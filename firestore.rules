@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isPharmacy(uid) { return get(/databases/$(database)/documents/users/$(uid)).data.role == 'pharmacy'; }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if true;
+      allow update, delete: if request.auth.uid == uid;
+    }
+
+    match /pharmacies/{pharmId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn() && request.auth.uid == pharmId; // pharmacy manages its own profile
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn() && request.resource.data.pharmacyId == request.auth.uid; // vendor writes only theirs
+    }
+
+    match /threads/{threadId} {
+      allow read, create: if isSignedIn() && request.resource.data.participants.hasAny([request.auth.uid]);
+      allow update, delete: if false; // immutable thread doc
+      match /messages/{msgId} {
+        allow read, create: if isSignedIn() && get(/databases/$(database)/documents/threads/$(threadId)).data.participants.hasAny([request.auth.uid]);
+      }
+    }
+
+    match /orders/{id} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.pharmacyId);
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+    }
+
+    match /users/{uid}/cart/{itemId} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

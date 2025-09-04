@@ -1,0 +1,8 @@
+import React from 'react';
+export default function OrdersIcon(props) {
+  return (
+    <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M5.12519 5.42678H10.9951M5.12519 9.27611H10.9951M5.12519 13.1254H9.03846M3.16855 0.615112H12.9517C14.0324 0.615112 14.9084 1.47681 14.9084 2.53978V15.0501C14.9084 16.1131 14.0324 16.9748 12.9517 16.9748H3.16855C2.08793 16.9748 1.21191 16.1131 1.21191 15.0501V2.53978C1.21191 1.47681 2.08793 0.615112 3.16855 0.615112Z" stroke="black" strokeWidth="0.85113" strokeLinecap="round"/>
+    </svg>
+  );
+}
