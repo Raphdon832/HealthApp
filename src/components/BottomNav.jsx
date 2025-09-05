@@ -1,12 +1,16 @@
-import { Home as HomeIcon, Package, MessageSquare, ShoppingCart, User } from 'lucide-react';
+import HomeIcon from '@/icons/react/HomeIcon';
+import OrdersIcon from '@/icons/react/OrdersIcon';
+import CartIcon from '@/icons/react/CartIcon';
+import ProfileIcon from '@/icons/react/ProfileIcon';
+import MessagesIcon from '@/icons/react/MessagesIcon';
 
 export default function BottomNav({ tab, setTab }) {
   const items = [
     { key: '/', label: 'Home', icon: HomeIcon },
-    { key: '/orders', label: 'Orders', icon: Package },
-    { key: '/messages', label: 'Messages', icon: MessageSquare },
-    { key: '/cart', label: 'Cart', icon: ShoppingCart },
-    { key: '/profile', label: 'Profile', icon: User },
+    { key: '/orders', label: 'Orders', icon: OrdersIcon },
+    { key: '/messages', label: 'Messages', icon: MessagesIcon },
+    { key: '/cart', label: 'Cart', icon: CartIcon },
+    { key: '/profile', label: 'Profile', icon: ProfileIcon },
   ];
   return (
     <div className="fixed bottom-3 left-0 right-0 flex justify-center">
