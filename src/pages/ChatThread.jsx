@@ -22,7 +22,11 @@ import { Paperclip, Send } from 'lucide-react';
 export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose }) {
   const { user, profile } = useAuth();
   const [threadId, setThreadId] = useState(threadIdProp || null);
-  const [vendor, setVendor] = useState(null);
+
+  // 🔹 What to show in the sticky header
+  const [otherName, setOtherName] = useState('');
+  const [otherSubline, setOtherSubline] = useState(''); // e.g., address or email
+
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const bottomRef = useRef(null);
@@ -39,8 +43,6 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         if (!vendorId) return; // wait for vendorId (coming from "Message vendor" button)
         const id = await getOrCreateThread({ vendorId, customerId: user.uid, role: 'customer' });
         setThreadId(id);
-        const snap = await getDoc(doc(db, 'pharmacies', vendorId));
-        setVendor(snap.exists() ? snap.data() : { name: 'Pharmacy' });
       } else {
         // Vendor path — must be opening an existing thread
         if (!threadIdProp) {
@@ -48,14 +50,53 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           return;
         }
         setThreadId(threadIdProp);
-        const parsedVendorId = vendorId || threadIdProp.split('__')[0];
-        if (parsedVendorId) {
-          const snap = await getDoc(doc(db, 'pharmacies', parsedVendorId));
-          setVendor(snap.exists() ? snap.data() : { name: 'Pharmacy' });
-        }
       }
     })().catch(console.error);
   }, [user?.uid, profile?.role, vendorId, threadIdProp]);
+
+  // 🔹 Load the thread doc and derive the "other party" name/subline
+  useEffect(() => {
+    if (!threadId || !profile?.role) return;
+
+    (async () => {
+      const tSnap = await getDoc(doc(db, 'threads', threadId));
+      if (!tSnap.exists()) return;
+      const t = tSnap.data();
+
+      // threadId = `${vendorId}__${customerId}`
+      const [vId, cId] = threadId.split('__');
+
+      if (profile.role === 'customer') {
+        // show the PHARMACY name to the customer
+        const name = t.vendorName || '';
+        const address = t.vendorAddress || '';
+        if (name) {
+          setOtherName(name);
+          setOtherSubline(address);
+        } else {
+          // fallback: fetch from pharmacies
+          const pSnap = await getDoc(doc(db, 'pharmacies', vId));
+          const pdata = pSnap.exists() ? pSnap.data() : {};
+          setOtherName(pdata.name || 'Pharmacy');
+          setOtherSubline(pdata.address || pdata.email || '');
+        }
+      } else {
+        // vendor is chatting with the CUSTOMER
+        const name = t.customerName || '';
+        const sub = t.customerAddress || t.customerEmail || '';
+        if (name) {
+          setOtherName(name);
+          setOtherSubline(sub);
+        } else {
+          // fallback: fetch from users
+          const uSnap = await getDoc(doc(db, 'users', cId));
+          const u = uSnap.exists() ? uSnap.data() : {};
+          setOtherName(u.displayName || 'Customer');
+          setOtherSubline(u.email || '');
+        }
+      }
+    })().catch(console.error);
+  }, [threadId, profile?.role]);
 
   // Live messages + mark read
   useEffect(() => {
@@ -71,7 +112,6 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     if (!threadId || !user) return null;
     const [vId, cId] = threadId.split('__');
     return user.uid === vId ? cId : vId;
-    // Works because threadId format is vendorId__customerId
   };
 
   const onSend = async () => {
@@ -80,8 +120,6 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     await sendChatMessage(threadId, { senderId: user.uid, to, text: text.trim() });
     setText('');
   };
-
-  if (!vendor) return <div className="p-8 text-center">Loading chat…</div>;
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
@@ -95,8 +133,8 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="min-w-0">
-            <div className="font-light text-[17px] truncate">{vendor?.name || 'Pharmacy'}</div>
-            <div className="text-[9px] text-zinc-500 truncate">{vendor?.address || ''}</div>
+            <div className="font-light text-[17px] truncate">{otherName || '...'}</div>
+            <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
           </div>
         </div>
       </div>
