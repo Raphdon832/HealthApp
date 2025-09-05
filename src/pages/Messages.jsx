@@ -109,9 +109,22 @@ export default function Messages() {
     setSearchResults(results);
   }, [search, threads, vendors, allMessages]);
 
+  // Only render the main container (with navbar/header) if no chat is open
+  if (selectedThread) {
+    return (
+      <div className="bg-white min-h-screen">
+        <ChatThread
+          key={selectedThread.id}
+          scrollTo={scrollToIdx}
+          onClose={() => { setSelectedThread(null); setScrollToIdx(null); }}
+          vendorId={selectedThread.participants.find(p => p !== user?.uid)}
+        />
+      </div>
+    );
+  }
   return (
     <div className="pt-10 pb-28 max-w-md mx-auto px-5">
-      {/* Sticky Header */}
+      {/* Sticky Header (navbar) */}
       <div className="sticky top-0 z-10 bg-white pt-10 pb-2">
         <div
           className="text-[30px] font-light font-poppins text-left flex items-start justify-start w-full pl-0"
@@ -147,19 +160,16 @@ export default function Messages() {
               key={i}
               className="w-full text-left px-4 py-2 hover:bg-zinc-100 flex flex-col"
               onClick={() => {
-                if (result.type === "vendor") {
-                  setSelectedThread(threads.find(t => t.id === result.threadId));
-                  setScrollToIdx(null);
-                } else if (result.type === "message") {
-                  const participants = threads.find(t => t.id === result.threadId)?.participants || [];
-                  let vendorId = '';
-                  if (participants.length === 2) {
-                    vendorId = participants.find(p => p !== user?.uid);
+                let vendorId = '';
+                const thread = threads.find(t => t.id === result.threadId);
+                if (thread) {
+                  if (thread.participants.length === 2) {
+                    vendorId = thread.participants.find(p => p !== user?.uid);
                   } else {
                     vendorId = result.threadId?.split('__')[1] || '';
                   }
-                  setSelectedThread(threads.find(t => t.id === result.threadId));
-                  setScrollToIdx(result.messageIndex);
+                  setSelectedThread({ ...thread, _vendorId: vendorId });
+                  setScrollToIdx(result.type === 'message' ? result.messageIndex : null);
                 }
                 setSearch("");
                 setSearchResults([]);
@@ -172,51 +182,42 @@ export default function Messages() {
         </div>
       )}
 
-      {/* Render ChatThread if selectedThread is set */}
-      {selectedThread ? (
-        <ChatThread
-          key={selectedThread.id}
-          scrollTo={scrollToIdx}
-          onClose={() => { setSelectedThread(null); setScrollToIdx(null); }}
-        />
-      ) : (
-        // Threads List
-        <div className="mt-6 space-y-4">
-          {threads.filter(t => {
-            const vendorName = vendors[t.id] || "Vendor";
-            const searchLower = search.toLowerCase();
-            const allMsgs = allMessages[t.id] || [];
-            return vendorName.toLowerCase().includes(searchLower) || allMsgs.some(m => m.toLowerCase().includes(searchLower));
-          }).map(t => (
-            <button
-              key={t.id}
-              onClick={() => { setSelectedThread(t); setScrollToIdx(null); }}
-              className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3"
-            >
-              {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
-                <span className="text-zinc-500 text-[12px] font-semibold">{vendors[t.id]?.[0] || 'V'}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-regular truncate">{vendors[t.id] || 'Vendor'}</div>
-                <div className="text-zinc-500 text-[10px] font-light truncate">{lastMessages[t.id]?.text || 'No messages yet.'}</div>
-              </div>
-              {/* Timestamp and Unread Badge */}
-              <div className="flex flex-col items-end justify-between h-full min-w-[48px]">
-                {/* Unread badge */}
-                {lastMessages[t.id]?.unread > 0 && (
-                  <span className="bg-sky-500 text-white text-[10px] font-semibold rounded-full px-2 py-0.5 mb-1">{lastMessages[t.id].unread}</span>
-                )}
-                {/* Timestamp */}
-                <span className="text-zinc-400 text-[10px] font-light">{lastMessages[t.id]?.timestamp ? new Date(lastMessages[t.id].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
-              </div>
-            </button>
-          ))}
-          {threads.length === 0 && (
-            <div className="text-zinc-500">No conversations yet.</div>
-          )}
-        </div>
-      )}
+      {/* Threads List */}
+      <div className="mt-6 space-y-4">
+        {threads.filter(t => {
+          const vendorName = vendors[t.id] || "Vendor";
+          const searchLower = search.toLowerCase();
+          const allMsgs = allMessages[t.id] || [];
+          return vendorName.toLowerCase().includes(searchLower) || allMsgs.some(m => m.toLowerCase().includes(searchLower));
+        }).map(t => (
+          <button
+            key={t.id}
+            onClick={() => { setSelectedThread(t); setScrollToIdx(null); }}
+            className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3"
+          >
+            {/* Avatar */}
+            <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
+              <span className="text-zinc-500 text-[12px] font-semibold">{vendors[t.id]?.[0] || 'V'}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-regular truncate">{vendors[t.id] || 'Vendor'}</div>
+              <div className="text-zinc-500 text-[10px] font-light truncate">{lastMessages[t.id]?.text || 'No messages yet.'}</div>
+            </div>
+            {/* Timestamp and Unread Badge */}
+            <div className="flex flex-col items-end justify-between h-full min-w-[48px]">
+              {/* Unread badge */}
+              {lastMessages[t.id]?.unread > 0 && (
+                <span className="bg-sky-500 text-white text-[10px] font-semibold rounded-full px-2 py-0.5 mb-1">{lastMessages[t.id].unread}</span>
+              )}
+              {/* Timestamp */}
+              <span className="text-zinc-400 text-[10px] font-light">{lastMessages[t.id]?.timestamp ? new Date(lastMessages[t.id].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+            </div>
+          </button>
+        ))}
+        {threads.length === 0 && (
+          <div className="text-zinc-500">No conversations yet.</div>
+        )}
+      </div>
     </div>
   );
 }

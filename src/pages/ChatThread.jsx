@@ -8,9 +8,10 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '@/lib/firebase';
 
-export default function ChatThread({ scrollTo, onClose }) {
+export default function ChatThread({ scrollTo, onClose, vendorId: vendorIdProp, onBackRoute }) {
   const { user } = useAuth();
-  const { vendorId } = useParams();
+  const params = useParams();
+  const vendorId = vendorIdProp || params.vendorId;
   const [vendor, setVendor] = useState(null);
   const [threadId, setThreadId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -21,9 +22,21 @@ export default function ChatThread({ scrollTo, onClose }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('ChatThread debug:', { user, vendorId });
+    if (!vendorId) {
+      setVendor({ name: 'Error: No vendorId provided', address: '', phone: '' });
+      return;
+    }
     if (user && vendorId) {
       ensureThread(vendorId, user.uid).then(setThreadId);
-      getDoc(doc(db, 'pharmacies', vendorId)).then(snap => setVendor(snap.data()));
+      getDoc(doc(db, 'pharmacies', vendorId)).then(snap => {
+        const data = snap.data();
+        if (!data) {
+          setVendor({ name: 'Unknown Pharmacy (ID: ' + vendorId + ')', address: '', phone: '' });
+        } else {
+          setVendor(data);
+        }
+      });
     }
   }, [user, vendorId]);
 
@@ -73,7 +86,19 @@ export default function ChatThread({ scrollTo, onClose }) {
     return msgDate.toLocaleDateString('en-GB'); // dd/mm/yyyy
   }
 
+  function isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   if (!vendor) return <div className="p-8 text-center">Loading chat...</div>;
+  if (vendor.name?.startsWith('Error:')) {
+    return <div className="p-8 text-center text-red-500">{vendor.name}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
@@ -82,7 +107,11 @@ export default function ChatThread({ scrollTo, onClose }) {
         <div className="px-5 pt-6 pb-3 border-b flex items-center justify-between gap-3">
           {/* left: back + vendor info */}
           <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => { if (onClose) onClose(); navigate(-1); }} className="rounded-full border px-4 py-1 shrink-0" style={{borderColor: '#000', borderWidth: 1}}>
+            <button onClick={() => {
+              if (onClose) onClose();
+              if (onBackRoute) navigate(onBackRoute);
+              else navigate('/messages');
+            }} className="rounded-full border px-4 py-1 shrink-0" style={{borderColor: '#000', borderWidth: 1}}>
               <ArrowLeft className="h-3 w-6" />
             </button>
             <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/vendor/${vendorId}`)}>
@@ -103,7 +132,7 @@ export default function ChatThread({ scrollTo, onClose }) {
       <div className="flex-1 w-full max-w-md mx-auto relative">
         {/* Top blur overlay for scroll effect */}
         <div className="pointer-events-none fixed top-[-80px] left-0 right-0 max-w-md mx-auto h-6 z-20" style={{background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0) 100%)', backdropFilter: 'blur(8px)'}} />
-        <div className="overflow-y-auto overflow-x-hidden px-2 py-4 space-y-3" style={{height: '100%', margin: 0, paddingTop: '85px', paddingBottom: '90px'}}>
+        <div className="overflow-y-auto overflow-x-hidden px-2 py-4 space-y-3" style={{height: '100%', margin: 0, paddingTop: '85px', paddingBottom: '0px'}}>
           {(() => {
             let lastDate = null;
             return messages.map((m, idx) => {
@@ -141,7 +170,7 @@ export default function ChatThread({ scrollTo, onClose }) {
                       }}
                     >
                       {m.text}
-                      {m.fileUrl && (
+                      {m.fileUrl && isValidUrl(m.fileUrl) && (
                         <div className="mt-2">
                           {m.fileUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                             <img src={m.fileUrl} alt={m.fileName || 'Attachment'} className="max-w-[120px] max-h-[120px] rounded-lg border border-zinc-200" />
@@ -151,6 +180,9 @@ export default function ChatThread({ scrollTo, onClose }) {
                             </a>
                           )}
                         </div>
+                      )}
+                      {m.fileUrl && !isValidUrl(m.fileUrl) && (
+                        <div className="mt-2 text-xs text-red-400">Invalid attachment link</div>
                       )}
                     </div>
                     <div className={`text-xs text-zinc-400 ${m.senderId === user?.uid ? 'mr-2' : 'ml-2'}`}
