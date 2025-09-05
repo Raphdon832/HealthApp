@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import ClockIcon from '@/icons/react/ClockIcon';
 import SearchIcon from '@/icons/react/SearchIcon';
 import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
@@ -15,6 +15,11 @@ export default function Home() {
   const [userCoords, setUserCoords] = useState(null);
   const [closestPharmacy, setClosestPharmacy] = useState(null);
   const [eta, setEta] = useState(null);
+  const newArrivalsRef = useRef(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+
+  // Move filtered above all useEffect
+  const filtered = useMemo(() => products.filter(p => (p.name + p.category).toLowerCase().includes(q.toLowerCase())), [products, q]);
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -71,7 +76,35 @@ export default function Home() {
     fetchAndCalcETA();
   }, [userCoords]);
 
-  const filtered = useMemo(() => products.filter(p => (p.name + p.category).toLowerCase().includes(q.toLowerCase())), [products, q]);
+  // Auto-scroll logic for New Arrivals
+  useEffect(() => {
+    if (!newArrivalsRef.current) return;
+    let interval;
+    let lastScrollLeft = 0;
+    let userScrollTimeout;
+    const handleUserScroll = () => {
+      setIsUserScrolling(true);
+      clearTimeout(userScrollTimeout);
+      userScrollTimeout = setTimeout(() => setIsUserScrolling(false), 2000);
+    };
+    const el = newArrivalsRef.current;
+    el.addEventListener('scroll', handleUserScroll);
+    interval = setInterval(() => {
+      if (!isUserScrolling && el) {
+        // Scroll by 1 card width (110px + gap)
+        el.scrollBy({ left: 120, behavior: 'smooth' });
+        // If at end, scroll back to start
+        if (el.scrollLeft + el.offsetWidth >= el.scrollWidth - 5) {
+          el.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    }, 2500);
+    return () => {
+      clearInterval(interval);
+      el.removeEventListener('scroll', handleUserScroll);
+      clearTimeout(userScrollTimeout);
+    };
+  }, [isUserScrolling, filtered.length]);
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col px-2">
@@ -125,24 +158,24 @@ export default function Home() {
             <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
             <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600">view all</button>
           </div>
-          <div className="w-full overflow-x-auto scrollbar-hide" style={{overflowX: 'auto'}}>
-            <div className="flex gap-4 md:gap-6 lg:gap-8 min-w-max pb-2">
+          <div ref={newArrivalsRef} className="w-full overflow-x-auto scrollbar-hide" style={{overflowX: 'auto'}}>
+            <div className="flex gap-3 md:gap-4 lg:gap-6 min-w-max pb-2">
               {filtered.map((p) => (
                 <ProductCard
                   key={p.id || p.sku}
                   product={p}
                   onOpen={()=>navigate(`/product/${p.id}`)}
                   onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
-                  cardWidth="132px"
-                  cardHeight="154px"
-                  nameSize="13px"
+                  cardWidth="110px"
+                  cardHeight="128px"
+                  nameSize="11px"
                   nameWeight="medium"
                   nameTracking="-0.5px"
-                  priceSize="11px"
+                  priceSize="9px"
                   priceColor="#BDBDBD"
                   priceWeight="medium"
                   addColor="#36A5FF"
-                  addSize="11px"
+                  addSize="9px"
                 />
               ))}
             </div>
