@@ -9,6 +9,7 @@ import {
   useParams,
   useMatch,
 } from 'react-router-dom';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -39,8 +40,16 @@ function Shell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => setTab(location.pathname), [location.pathname]);
+
+  useEffect(() => {
+    if (!user) return setCartCount(0);
+    const q = query(collection(db, 'users', user.uid, 'cart'));
+    const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
+    return unsub;
+  }, [user]);
 
   // Robust route matching (works with base paths / nested routers)
   const matchAuth = useMatch('/auth/*');
@@ -117,7 +126,7 @@ function Shell() {
         </Routes>
       </div>
       {/* Only show BottomNav if not on chat thread */}
-      {showNav && <BottomNav tab={tab} setTab={(k) => navigate(k)} />}
+      {showNav && <BottomNav tab={tab} setTab={(k) => navigate(k)} cartCount={cartCount} />}
     </div>
   );
 }
