@@ -87,7 +87,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   }, [editingProduct]);
 
   return (
-    <div className="pt-10 pb-28 max-w-md mx-auto px-5">
+    <div className="pt-10 pb-28 max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0 w-full min-h-screen flex flex-col">
       <div className="text-[30px] font-light font-poppins leading-none">My<br/>Profile</div>
       <div className="mt-8 rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative">
         <div className="mb-2">

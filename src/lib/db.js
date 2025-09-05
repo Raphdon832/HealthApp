@@ -53,23 +53,26 @@ export const listenOrders = (uid, cb) => {
   return onSnapshot(q, (snap) => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
 };
 
-export const getOrCreateChatThread = async (customerId, vendorId) => {
-  // Try to find an existing thread between these two participants
-  const threadsRef = collection(db, 'threads');
-  const q = query(threadsRef, where('participants', 'array-contains', customerId));
-  const snap = await getDocs(q);
-  // Look for a thread with both participants
-  let threadDoc = snap.docs.find(d => {
-    const participants = d.data().participants;
-    return participants.includes(vendorId) && participants.includes(customerId);
-  });
-  if (threadDoc) {
-    return threadDoc.id;
+export const getOrCreateChatThread = async (vendorId, customerId) => {
+  // Thread ID format: vendorId__customerId
+  const threadId = `${vendorId}__${customerId}`;
+  const ref = doc(db, 'threads', threadId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    // Fetch names for both participants
+    const vendorSnap = await getDoc(doc(db, 'pharmacies', vendorId));
+    const vendorName = vendorSnap.exists() ? vendorSnap.data().name : 'Vendor';
+    const customerSnap = await getDoc(doc(db, 'users', customerId));
+    const customerName = customerSnap.exists() ? customerSnap.data().displayName : 'Customer';
+    await setDoc(ref, {
+      id: threadId,
+      participants: [vendorId, customerId],
+      vendorId,
+      customerId,
+      vendorName,
+      customerName,
+      createdAt: serverTimestamp(),
+    });
   }
-  // If not found, create a new thread
-  const newThread = await addDoc(threadsRef, {
-    participants: [customerId, vendorId],
-    createdAt: serverTimestamp(),
-  });
-  return newThread.id;
+  return threadId;
 };

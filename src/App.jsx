@@ -56,8 +56,8 @@ function Shell() {
     : undefined;
 
   return (
-    <div className={`min-h-screen bg-white ${showNav ? 'pb-24' : 'pb-0'}`}>
-      <div>
+    <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${showNav ? 'pb-24' : 'pb-0'}`}>
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
         <Routes>
           {/* Home or redirect to landing */}
           <Route

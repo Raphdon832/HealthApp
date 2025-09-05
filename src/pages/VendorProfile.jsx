@@ -31,7 +31,8 @@ export default function VendorProfile() {
       return;
     }
     try {
-      const threadId = await getOrCreateChatThread(user.uid, id);
+      // FIX: vendorId first, then customerId
+      const threadId = await getOrCreateChatThread(id, user.uid);
       navigate(`/messages?thread=${threadId}`);
     } catch (err) {
       alert('Could not start chat thread.');
@@ -39,7 +40,7 @@ export default function VendorProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white/80 backdrop-blur-md max-w-md mx-auto px-5 pt-8 pb-28">
+    <div className="min-h-screen bg-white/80 backdrop-blur-md max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
       
       <button onClick={() => navigate(-1)} className="w-[78px] h-[27px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mb-4">
         <ArrowLeft className="h-3 w-3 mr-1"/> Back
