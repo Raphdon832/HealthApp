@@ -113,7 +113,7 @@ export default function Home() {
         <div className="w-full mx-auto pt-8 pb-4">
           <div className="pt-4 pb-2 w-full">
             <div className="w-full mx-auto px-0">
-              <div className="flex justify-between items-center w-full h-[24px] md:h-[24px] lg:h-[30px]">
+              <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
                 <div className="flex flex-col justify-center">
                   <div className="text-[20px] md:text-[26px] lg:text-[30px] font-thin font-poppins">Hello{user?`, ${user.displayName?.split(' ')[0]||'Friend'}`:''}</div>
                   <span className="text-zinc-500 text-[12px] md:text-[14px] lg:text-[16px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>{location}</span>
