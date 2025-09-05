@@ -122,6 +122,21 @@ export default function Messages() {
       </div>
     );
   }
+
+  // Group threads by vendorId to avoid duplicates
+  const uniqueThreads = Object.values(
+    threads.reduce((acc, t) => {
+      const vendorId = t.participants.find(p => p !== user?.uid);
+      if (!vendorId) return acc;
+      // If thread for vendorId doesn't exist or this thread has a newer message, use it
+      const lastMsg = lastMessages[t.id];
+      if (!acc[vendorId] || (lastMsg?.timestamp && (!acc[vendorId].lastMsg?.timestamp || lastMsg.timestamp > acc[vendorId].lastMsg.timestamp))) {
+        acc[vendorId] = { thread: t, lastMsg };
+      }
+      return acc;
+    }, {})
+  ).map(({ thread }) => thread);
+
   return (
     <div className="pt-10 pb-28 max-w-md mx-auto px-5">
       {/* Sticky Header (navbar) */}
@@ -184,7 +199,7 @@ export default function Messages() {
 
       {/* Threads List */}
       <div className="mt-6 space-y-4">
-        {threads.filter(t => {
+        {uniqueThreads.filter(t => {
           const vendorName = vendors[t.id] || "Vendor";
           const searchLower = search.toLowerCase();
           const allMsgs = allMessages[t.id] || [];
@@ -214,7 +229,7 @@ export default function Messages() {
             </div>
           </button>
         ))}
-        {threads.length === 0 && (
+        {uniqueThreads.length === 0 && (
           <div className="text-zinc-500">No conversations yet.</div>
         )}
       </div>
