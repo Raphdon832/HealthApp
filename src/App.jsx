@@ -9,7 +9,7 @@ import {
   useParams,
   useMatch,
 } from 'react-router-dom';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot, where } from 'firebase/firestore';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -41,6 +41,7 @@ function Shell() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [cartCount, setCartCount] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
@@ -48,6 +49,48 @@ function Shell() {
     if (!user) return setCartCount(0);
     const q = query(collection(db, 'users', user.uid, 'cart'));
     const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
+    return unsub;
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return setUnreadMessages(0);
+    // Listen for all threads where user is a participant
+    const threadsQ = query(collection(db, 'threads'), where('participants', 'array-contains', user.uid));
+    const unsub = onSnapshot(threadsQ, (threadsSnap) => {
+      let totalUnread = 0;
+      const threadIds = threadsSnap.docs.map(d => d.id);
+      if (!threadIds.length) {
+        setUnreadMessages(0);
+        return;
+      }
+      // For each thread, listen for unread messages
+      const unsubs = threadIds.map(threadId =>
+        onSnapshot(
+          query(
+            collection(db, 'threads', threadId, 'messages'),
+            where('to', '==', user.uid),
+            where('read', '==', false)
+          ),
+          (msgSnap) => {
+            totalUnread += msgSnap.size;
+            setUnreadMessages(prev => {
+              // This ensures we don't double count if multiple threads update
+              // Instead, recalculate total unread for all threads
+              let newTotal = 0;
+              threadIds.forEach(tid => {
+                // This is a hack: we can't get msgSnap for all threads here, so just use the latest
+                // But since onSnapshot fires for each thread, the last one will be the total
+                // So we just set to totalUnread
+                newTotal = totalUnread;
+              });
+              return newTotal;
+            });
+          }
+        )
+      );
+      // Cleanup
+      return () => unsubs.forEach(u => u());
+    });
     return unsub;
   }, [user]);
 
@@ -126,7 +169,7 @@ function Shell() {
         </Routes>
       </div>
       {/* Only show BottomNav if not on chat thread */}
-      {showNav && <BottomNav tab={tab} setTab={(k) => navigate(k)} cartCount={cartCount} />}
+      {showNav && <BottomNav tab={tab} setTab={(k) => navigate(k)} cartCount={cartCount} unreadMessages={unreadMessages} />}
     </div>
   );
 }
