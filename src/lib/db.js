@@ -76,3 +76,17 @@ export const getOrCreateChatThread = async (vendorId, customerId) => {
   }
   return threadId;
 };
+
+// Fetch all pharmacies with coordinates and name
+export const getAllPharmacies = async () => {
+  const snap = await getDocs(collection(db, 'pharmacies'));
+  return snap.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      name: data.name,
+      coordinates: data.coordinates || null,
+      // add other fields if needed
+    };
+  });
+};

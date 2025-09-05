@@ -31,8 +31,7 @@ export default function VendorProfile() {
       return;
     }
     try {
-      // FIX: vendorId first, then customerId
-      const threadId = await getOrCreateChatThread(id, user.uid);
+      const threadId = await getOrCreateChatThread(user.uid, id);
       navigate(`/messages?thread=${threadId}`);
     } catch (err) {
       alert('Could not start chat thread.');

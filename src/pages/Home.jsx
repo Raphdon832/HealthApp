@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ClockIcon from '@/icons/react/ClockIcon';
 import SearchIcon from '@/icons/react/SearchIcon';
-import { listenProducts, addToCart } from '@/lib/db';
+import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/ProductCard';
 import { useNavigate } from 'react-router-dom';
@@ -11,36 +11,94 @@ export default function Home() {
   const [q, setQ] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [location, setLocation] = useState('Fetching location...');
+  const [userCoords, setUserCoords] = useState(null);
+  const [closestPharmacy, setClosestPharmacy] = useState(null);
+  const [eta, setEta] = useState(null);
 
   useEffect(() => listenProducts(setProducts), []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocation('Location not supported');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setUserCoords({ latitude, longitude });
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        setLocation(data.display_name || 'Location unavailable');
+      } catch {
+        setLocation('Unable to fetch address');
+      }
+    }, () => setLocation('Location permission denied'));
+  }, []);
+
+  // Fetch pharmacies and calculate ETA to closest
+  useEffect(() => {
+    async function fetchAndCalcETA() {
+      if (!userCoords) return;
+      const pharmacies = await getAllPharmacies(); // Should return array with {name, coordinates: {latitude, longitude}}
+      if (!pharmacies || pharmacies.length === 0) return;
+      // Haversine formula
+      function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+      }
+      let minDist = Infinity, minPharm = null;
+      pharmacies.forEach(pharm => {
+        if (pharm.coordinates) {
+          const dist = getDistance(userCoords.latitude, userCoords.longitude, pharm.coordinates.latitude, pharm.coordinates.longitude);
+          if (dist < minDist) {
+            minDist = dist;
+            minPharm = pharm;
+          }
+        }
+      });
+      setClosestPharmacy(minPharm);
+      // Assume average city driving speed 25km/h
+      const etaMins = minDist ? Math.round((minDist / 25) * 60) : null;
+      setEta(etaMins);
+    }
+    fetchAndCalcETA();
+  }, [userCoords]);
 
   const filtered = useMemo(() => products.filter(p => (p.name + p.category).toLowerCase().includes(q.toLowerCase())), [products, q]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-white px-2 md:px-8 lg:px-16 xl:px-32">
-      {/* Header */}
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-8 pb-4">
-        <div className="sticky top-0 z-10 bg-white pt-4 pb-2 w-full">
-          <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0">
-            <div className="flex justify-between items-center w-full h-[54px] md:h-[64px] lg:h-[72px]">
-              <div className="flex flex-col justify-center">
-                <div className="text-[20px] md:text-[26px] lg:text-[32px] font-thin font-poppins">Hello{user?`, ${user.displayName?.split(' ')[0]||'Friend'}`:''}</div>
-                <span className="text-zinc-500 text-[12px] md:text-[14px] lg:text-[16px] font-thin font-poppins">Kuje, FCT, Abuja</span>
-              </div>
-              <div className="flex flex-col justify-center items-end">
-                <div className="flex items-center gap-1">
-                  <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6"/>
-                  <span className="text-[12px] md:text-[14px] lg:text-[16px] font-poppins font-thin text-right leading-tight">35 Mins to Hmedix Pharmacy</span>
+    <div className="min-h-screen w-full bg-white flex flex-col px-2">
+      {/* Sticky Header - not part of scrollable content */}
+      <div className="sticky top-0 z-30 w-full bg-white shadow-sm flex-shrink-0 px-2">
+        <div className="w-full mx-auto pt-8 pb-4">
+          <div className="pt-4 pb-2 w-full">
+            <div className="w-full mx-auto px-0">
+              <div className="flex justify-between items-center w-full h-[54px] md:h-[64px] lg:h-[72px]">
+                <div className="flex flex-col justify-center">
+                  <div className="text-[20px] md:text-[26px] lg:text-[30px] font-thin font-poppins">Hello{user?`, ${user.displayName?.split(' ')[0]||'Friend'}`:''}</div>
+                  <span className="text-zinc-500 text-[12px] md:text-[14px] lg:text-[16px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>{location}</span>
+                </div>
+                <div className="flex flex-col justify-center items-end">
+                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5"/>
+                  <span className="text-[12px] md:text-[14px] lg:text-[16px] font-poppins font-thin text-right leading-tight mt-0.5">
+                    {eta && closestPharmacy ? `${eta} min${eta !== 1 ? 's' : ''} to ${closestPharmacy.name}` : 'Finding closest pharmacy...'}
+                  </span>
                 </div>
               </div>
+              <div className="w-full" style={{}}></div>
             </div>
-            <div className="w-full" style={{borderBottom: '1px solid #EFEFEF'}}></div>
           </div>
         </div>
       </div>
-
-      {/* Home content */}
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col pt-1 pb-28 px-5 md:px-8 lg:px-12 xl:px-0">
+      {/* Scrollable Home content below sticky header */}
+      <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pt-1 pb-28 px-0">
         <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400"/>
           <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search drugs, pharmacies" className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"/>
