@@ -6,8 +6,10 @@ import BulkUploadModal from '@/components/BulkUploadModal';
 import RevenueGraph from '@/components/RevenueGraph';
 import VendorStatsCarousel from '@/components/VendorStatsCarousel';
 import SalesTrends from '@/components/SalesTrends';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import MessagesPreview from '@/components/MessagesPreview';
+import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
@@ -23,6 +25,10 @@ export default function Dashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [recentOrders, setRecentOrders] = useState([]);
   const [salesTrends, setSalesTrends] = useState([]);
+  const [recentThreads, setRecentThreads] = useState([]);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [showAddButton, setShowAddButton] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
@@ -132,12 +138,39 @@ export default function Dashboard() {
     fetchSalesTrends();
   }, [profile]);
 
+  useEffect(() => {
+    async function fetchThreads() {
+      if (!profile || profile.role !== 'pharmacy') {
+        setRecentThreads([]);
+        setUnreadMessages(0);
+        return;
+      }
+      // Get the 3 most recent threads for this vendor
+      const q = query(
+        collection(db, 'threads'),
+        where('vendorId', '==', profile.uid),
+        orderBy('lastAt', 'desc'),
+        limit(3)
+      );
+      const snap = await getDocs(q);
+      const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setRecentThreads(threads.map(t => ({
+        ...t,
+        unread: t.unread?.[profile.uid] || 0
+      })));
+      // Count total unread
+      const unread = threads.reduce((sum, t) => sum + (t.unread?.[profile.uid] || 0), 0);
+      setUnreadMessages(unread);
+    }
+    fetchThreads();
+  }, [profile]);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-sky-100 py-4 px-6 flex items-center justify-start">
         <h1 className="text-[25px] font-light text-black leading-none">My<br/>Dashboard</h1>
       </header>
-      <main className="flex-1 px-4 py-6 flex flex-col items-center justify-start">
+      <main className="flex-1 px-4 py-6 flex flex-col items-center justify-start relative">
         <div className="w-full max-w-md">
           {/* Best Selling Section */}
           <div className="mb-8 mt-[-12px]">
@@ -208,22 +241,21 @@ export default function Dashboard() {
           />
           {/* Sales Trends Section */}
           <SalesTrends data={salesTrends} />
-          {/* Add dashboard widgets or content here */}
-          <div className="w-full max-w-md text-center">
-            <p className="text-zinc-500 text-lg">Welcome to your pharmacy dashboard.</p>
-            {/* Example widget placeholder */}
-            <div className="mt-8 grid gap-4">
-              <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 shadow-sm">
-                <h2 className="text-sky-700 font-semibold mb-1">Orders Overview</h2>
-                <p className="text-zinc-500 text-sm">Track and manage your recent orders here.</p>
-              </div>
-              <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 shadow-sm">
-                <h2 className="text-sky-700 font-semibold mb-1">Messages</h2>
-                <p className="text-zinc-500 text-sm">View and respond to customer messages.</p>
-              </div>
-            </div>
-          </div>
+          {/* Messages Preview Section */}
+          <MessagesPreview
+            threads={recentThreads}
+            unreadCount={unreadMessages}
+            onThreadClick={t => navigate(`/messages/${t.id}`)}
+          />
         </div>
+        {/* Floating Add Product Button */}
+        <button
+          className="fixed bottom-24 right-8 z-50 bg-sky-400 text-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center"
+          aria-label="Add Product"
+          onClick={() => setShowAdd(true)}
+        >
+          <span className="text-3xl font-bold leading-none">+</span>
+        </button>
       </main>
     </div>
   );
