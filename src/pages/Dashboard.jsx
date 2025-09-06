@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { getBestSellingProducts } from '../lib/db';
 import { useAuth } from '../lib/auth';
+import AddProductModal from '@/components/AddProductModal';
+import BulkUploadModal from '@/components/BulkUploadModal';
+import RevenueGraph from '@/components/RevenueGraph';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
   const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
+  const [showAdd, setShowAdd] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
+  const [revenueData, setRevenueData] = useState([]);
+  const [revenueFilter, setRevenueFilter] = useState({ type: 'month', value: '' });
+  const [topPeriod, setTopPeriod] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -20,6 +30,49 @@ export default function Dashboard() {
     }
     fetchData();
   }, [profile]);
+
+  useEffect(() => {
+    async function fetchRevenue() {
+      if (!profile || profile.role !== 'pharmacy') return setRevenueData([]);
+      const q = query(collection(db, 'orders'), where('pharmacyId', '==', profile.uid));
+      const snap = await getDocs(q);
+      const orders = snap.docs.map(d => d.data());
+      let grouped = {};
+      let labelFn = d => '';
+      if (revenueFilter.type === 'date') {
+        labelFn = d => {
+          const dt = d.createdAt?.toDate?.() || new Date(d.createdAt);
+          return dt ? dt.toLocaleDateString('en-GB') : '';
+        };
+      } else if (revenueFilter.type === 'month') {
+        labelFn = d => {
+          const dt = d.createdAt?.toDate?.() || new Date(d.createdAt);
+          return dt ? `${dt.getMonth()+1}/${dt.getFullYear()}` : '';
+        };
+      } else if (revenueFilter.type === 'year') {
+        labelFn = d => {
+          const dt = d.createdAt?.toDate?.() || new Date(d.createdAt);
+          return dt ? `${dt.getFullYear()}` : '';
+        };
+      }
+      orders.forEach(o => {
+        const label = labelFn(o);
+        if (!label) return;
+        if (revenueFilter.value && !label.startsWith(revenueFilter.value)) return;
+        grouped[label] = (grouped[label] || 0) + (o.total || 0);
+      });
+      const arr = Object.entries(grouped).map(([label, value]) => ({ label, value }));
+      arr.sort((a, b) => a.label.localeCompare(b.label));
+      setRevenueData(arr);
+      if (arr.length > 0) {
+        const top = arr.reduce((max, cur) => cur.value > max.value ? cur : max, arr[0]);
+        setTopPeriod(top);
+      } else {
+        setTopPeriod(null);
+      }
+    }
+    fetchRevenue();
+  }, [profile, revenueFilter]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -43,7 +96,7 @@ export default function Dashboard() {
                       <span className="font-light text-[13px] text-zinc-700 truncate max-w-[120px]">{prod.name}</span>
                       <div className="flex-1 mx-2 h-3 bg-sky-100 rounded-full relative">
                         <div
-                          className="h-3 bg-sky-400 rounded-full"
+                          className="h-3 bg-sky-400 rounded-full transition-all duration-700"
                           style={{ width: `${Math.max(10, (prod.sold / (bestSelling[0]?.sold || 1)) * 100)}%` }}
                         />
                       </div>
@@ -54,6 +107,30 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+          {/* Add Products Section (copied from ProfilePharmacy) */}
+          <div className="mt-4 flex gap-2 w-full">
+            <button
+              className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
+              onClick={() => setShowAdd(true)}
+            >
+              + Add Product
+            </button>
+            <button
+              className="flex-1 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
+              onClick={() => setShowBulk(true)}
+            >
+              Bulk Upload
+            </button>
+          </div>
+          {showAdd && <AddProductModal pharmacyId={profile?.uid} onClose={()=>setShowAdd(false)} />}
+          {showBulk && <BulkUploadModal pharmacyId={profile?.uid} onClose={()=>setShowBulk(false)} />}
+          {/* Revenue Graph Section */}
+          <RevenueGraph
+            data={revenueData}
+            filter={revenueFilter}
+            onFilterChange={setRevenueFilter}
+            topPeriod={topPeriod}
+          />
           {/* Add dashboard widgets or content here */}
           <div className="w-full max-w-md text-center">
             <p className="text-zinc-500 text-lg">Welcome to your pharmacy dashboard.</p>
