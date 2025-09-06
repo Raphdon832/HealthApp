@@ -23,6 +23,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [editStock, setEditStock] = useState('');
   const [editSKU, setEditSKU] = useState('');
   const [editPrice, setEditPrice] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [editImageFile, setEditImageFile] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
@@ -83,6 +85,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       setEditStock(editingProduct.stock || '');
       setEditSKU(editingProduct.sku || '');
       setEditPrice(editingProduct.price || '');
+      setEditImage(editingProduct.image || '');
+      setEditImageFile(null);
     }
   }, [editingProduct]);
 
@@ -200,6 +204,36 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder="Stock" type="number" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editSKU} onChange={e=>setEditSKU(e.target.value)} placeholder="SKU" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder="Price" type="number" />
+              {/* Image field */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] text-zinc-500 font-light">Product Image</label>
+                <input
+                  className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none"
+                  value={editImage}
+                  onChange={e => { setEditImage(e.target.value); setEditImageFile(null); }}
+                  placeholder="Image URL (or choose file below)"
+                  type="text"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="mt-1"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      setEditImageFile(e.target.files[0]);
+                      setEditImage('');
+                    }
+                  }}
+                />
+                {/* Preview */}
+                {(editImage || editImageFile) && (
+                  <img
+                    src={editImageFile ? URL.createObjectURL(editImageFile) : editImage}
+                    alt="Preview"
+                    className="h-16 w-16 object-cover rounded-xl border mt-2"
+                  />
+                )}
+              </div>
             </div>
             <div className="flex gap-2 mt-6 items-center">
               <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>Save</button>
