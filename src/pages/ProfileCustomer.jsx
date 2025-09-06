@@ -21,17 +21,12 @@ export default function ProfileCustomer() {
 
   useEffect(() => {
     if (!user) return;
-    // Fetch cart items
-    getDocs(query(collection(db, 'carts'), where('userId', '==', user.uid))).then(snapshot => {
-      let count = 0;
-      snapshot.forEach(doc => {
-        const items = doc.data().items || [];
-        count += items.length;
-      });
-      setCartCount(count);
+    // Fetch cart items (actual count from user's cart subcollection)
+    getDocs(collection(db, 'users', user.uid, 'cart')).then(snapshot => {
+      setCartCount(snapshot.size);
     });
-    // Fetch active chats (threads)
-    getDocs(query(collection(db, 'threads'), where('userId', '==', user.uid))).then(snapshot => {
+    // Fetch active chats (threads where customerId == user.uid)
+    getDocs(query(collection(db, 'threads'), where('customerId', '==', user.uid))).then(snapshot => {
       setActiveChats(snapshot.size);
     });
     // Fetch drugs bought
