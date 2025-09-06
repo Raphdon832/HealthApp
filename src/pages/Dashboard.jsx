@@ -4,6 +4,8 @@ import { useAuth } from '../lib/auth';
 import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import RevenueGraph from '@/components/RevenueGraph';
+import VendorStatsCarousel from '@/components/VendorStatsCarousel';
+import SalesTrends from '@/components/SalesTrends';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -16,6 +18,11 @@ export default function Dashboard() {
   const [revenueData, setRevenueData] = useState([]);
   const [revenueFilter, setRevenueFilter] = useState({ type: 'month', value: '' });
   const [topPeriod, setTopPeriod] = useState(null);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [salesTrends, setSalesTrends] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -74,6 +81,57 @@ export default function Dashboard() {
     fetchRevenue();
   }, [profile, revenueFilter]);
 
+  useEffect(() => {
+    async function fetchStats() {
+      if (!profile || profile.role !== 'pharmacy') return;
+      // Total products
+      const productsSnap = await getDocs(query(collection(db, 'products'), where('pharmacyId', '==', profile.uid)));
+      setTotalProducts(productsSnap.size);
+      // Orders
+      const ordersSnap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', profile.uid)));
+      setTotalOrders(ordersSnap.size);
+      let revenue = 0;
+      let recents = [];
+      ordersSnap.forEach(doc => {
+        const d = doc.data();
+        revenue += d.total || 0;
+        recents.push({ id: doc.id, ...d });
+      });
+      setTotalRevenue(revenue);
+      recents.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setRecentOrders(recents.slice(0, 3));
+    }
+    fetchStats();
+  }, [profile]);
+
+  useEffect(() => {
+    async function fetchSalesTrends() {
+      if (!profile || profile.role !== 'pharmacy') {
+        setSalesTrends([]);
+        return;
+      }
+      // Group orders by month for the last 6 months
+      const q = query(collection(db, 'orders'), where('pharmacyId', '==', profile.uid));
+      const snap = await getDocs(q);
+      const orders = snap.docs.map(d => d.data());
+      const now = new Date();
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push({ label: d.toLocaleString('default', { month: 'short' }), year: d.getFullYear(), month: d.getMonth() + 1 });
+      }
+      const trends = months.map(({ label, year, month }) => {
+        const value = orders.filter(o => {
+          const dt = o.createdAt?.toDate?.() || new Date(o.createdAt);
+          return dt.getFullYear() === year && dt.getMonth() + 1 === month;
+        }).length;
+        return { label, value };
+      });
+      setSalesTrends(trends);
+    }
+    fetchSalesTrends();
+  }, [profile]);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-sky-100 py-4 px-6 flex items-center justify-start">
@@ -131,6 +189,25 @@ export default function Dashboard() {
             onFilterChange={setRevenueFilter}
             topPeriod={topPeriod}
           />
+          {/* Vendor Stats Carousel */}
+          <VendorStatsCarousel
+            cards={[
+              <div>
+                <div className="text-zinc-500 text-xs mb-1">Total Products</div>
+                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalProducts}</div>
+              </div>,
+              <div>
+                <div className="text-zinc-500 text-xs mb-1">Total Orders</div>
+                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalOrders}</div>
+              </div>,
+              <div>
+                <div className="text-zinc-500 text-xs mb-1">Total Revenue</div>
+                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">₦{totalRevenue.toLocaleString()}</div>
+              </div>
+            ]}
+          />
+          {/* Sales Trends Section */}
+          <SalesTrends data={salesTrends} />
           {/* Add dashboard widgets or content here */}
           <div className="w-full max-w-md text-center">
             <p className="text-zinc-500 text-lg">Welcome to your pharmacy dashboard.</p>

@@ -63,7 +63,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
           </>
         )}
       </div>
-      <div className="w-full h-32 flex items-end gap-2 mt-2">
+      <div className="w-full h-20 flex items-end gap-2 mt-2">
         {data.length === 0 ? (
           <div className="text-zinc-400 text-sm">No revenue data.</div>
         ) : (
