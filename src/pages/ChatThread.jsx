@@ -124,7 +124,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
       {/* Header */}
-      <div className="w-full max-w-md mx-auto pt-8 pb-4 sticky top-0 z-20 bg-white/80 backdrop-blur">
+      <div className="w-full max-w-md mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
         <div className="px-5 pt-6 pb-3 border-b flex items-center gap-3">
           <button
             onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
