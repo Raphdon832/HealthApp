@@ -6,11 +6,11 @@ import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [inventory, setInventory] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
@@ -28,6 +28,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  const [pharmacyProfile, setPharmacyProfile] = useState({ address: '', phone: '' });
 
   useEffect(() => { if (user) return listenProducts(setInventory, user.uid); }, [user]);
   useEffect(() => {
@@ -48,6 +49,15 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     // Fetch reviews
     getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', user.uid))).then(snapshot => {
       setReviews(snapshot.size);
+    });
+    // Fetch pharmacy profile (address, phone)
+    getDoc(doc(db, 'pharmacies', user.uid)).then(snap => {
+      if (snap.exists()) {
+        setPharmacyProfile({
+          address: snap.data().address || '',
+          phone: snap.data().phone || ''
+        });
+      }
     });
   }, [user]);
 
@@ -118,7 +128,16 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight">{user?.displayName || 'Pharmacy'}</div>
         <div className="w-full border-b mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
         <div className="text-[13px] text-zinc-500 font-light mb-1">{user?.email}</div>
-        <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-light"><Clock className="h-4 w-4"/> 25 mins to HMedix Pharmacy</div>
+        {pharmacyProfile.address && (
+          <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center"><MapPin className="h-4 w-4 mr-1" />{pharmacyProfile.address}</div>
+        )}
+        {pharmacyProfile.phone && (
+          <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center">
+            {/* Phone icon SVG from /src/icons/PhoneIcon.svg */}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1"><path d="M2.41333 5.19333C3.37333 7.08 4.92 8.62667 6.80667 9.58667L8.27333 8.12C8.46 7.93333 8.72 7.88 8.95333 7.95333C9.7 8.2 10.5 8.33333 11.3333 8.33333C11.5101 8.33333 11.6797 8.40357 11.8047 8.5286C11.9298 8.65362 12 8.82319 12 9V11.3333C12 11.5101 11.9298 11.6797 11.8047 11.8047C11.6797 11.9298 11.5101 12 11.3333 12C8.32755 12 5.44487 10.806 3.31946 8.68054C1.19404 6.55513 0 3.67245 0 0.666667C0 0.489856 0.0702379 0.320286 0.195262 0.195262C0.320286 0.0702379 0.489856 0 0.666667 0H3C3.17681 0 3.34638 0.0702379 3.4714 0.195262C3.59643 0.320286 3.66667 0.489856 3.66667 0.666667C3.66667 1.5 3.8 2.3 4.04667 3.04667C4.12 3.28 4.06667 3.54 3.88 3.72667L2.41333 5.19333Z" fill="#7D7D7D"/></svg>
+            {pharmacyProfile.phone}
+          </div>
+        )}
       </div>
       {/* Storefront Preview Section */}
       <div className="mt-8 rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative">
@@ -266,7 +285,15 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </div>
       )}
       <div className="mt-6">
-        <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+        <button
+          onClick={async () => {
+            await logout();
+            window.location.href = '/auth/landing';
+          }}
+          className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"
+        >
+          <LogOut className="h-4 w-4"/> Log Out
+        </button>
       </div>
     </div>
   );

@@ -3,13 +3,20 @@ import OrdersIcon from '../icons/react/OrdersIcon';
 import MessagesIcon from '../icons/react/MessagesIcon';
 import CartIcon from '../icons/react/CartIcon';
 import ProfileIcon from '../icons/react/ProfileIcon';
+import DashboardIcon from '../icons/react/DashboardIcon';
+import { useAuth } from '@/lib/auth';
 
 export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0 }) {
+  const { profile } = useAuth();
+  const isPharmacy = profile && profile.role === 'pharmacy';
   const items = [
-    { key: '/', label: 'Home', icon: HomeIcon },
+    isPharmacy
+      ? { key: '/', label: 'Dashboard', icon: DashboardIcon }
+      : { key: '/', label: 'Home', icon: HomeIcon },
     { key: '/orders', label: 'Orders', icon: OrdersIcon },
     { key: '/messages', label: 'Messages', icon: MessagesIcon },
-    { key: '/cart', label: 'Cart', icon: CartIcon },
+    // Only show Cart if not pharmacy
+    ...(!isPharmacy ? [{ key: '/cart', label: 'Cart', icon: CartIcon }] : []),
     { key: '/profile', label: 'Profile', icon: ProfileIcon },
   ];
   return (

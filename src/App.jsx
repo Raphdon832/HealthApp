@@ -24,6 +24,7 @@ import ProfilePharmacy from '@/pages/ProfilePharmacy';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
+import Dashboard from '@/pages/Dashboard';
 
 // Auth flow pages
 import Landing from '@/pages/auth/Landing';
@@ -43,7 +44,7 @@ import VendorProfile from '@/pages/VendorProfile';
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -51,11 +52,11 @@ function AppLayout() {
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
   useEffect(() => {
-    if (!user) return setCartCount(0);
+    if (!user || (profile && profile.role === 'pharmacy')) return setCartCount(0);
     const q = query(collection(db, 'users', user.uid, 'cart'));
     const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
     return unsub;
-  }, [user]);
+  }, [user, profile]);
 
   useEffect(() => {
     if (!user) return setUnreadMessages(0);
@@ -155,7 +156,7 @@ function ProfileRouter() {
 }
 
 function Shell() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // Optional: pass scrollTo from query to ChatThread (used by full-page route)
   const location = useLocation();
@@ -186,10 +187,11 @@ function Shell() {
 
       {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
       <Route element={<AppLayout />}>
-        <Route
-          path="/"
-          element={user ? <Home /> : <Navigate to="/auth/landing" replace />}
-        />
+        {profile && profile.role === 'pharmacy' ? (
+          <Route path="/" element={<Dashboard />} />
+        ) : (
+          <Route path="/" element={<Home />} />
+        )}
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route
@@ -200,7 +202,7 @@ function Shell() {
             </RequireAuth>
           }
         />
-        <Route path="/cart" element={<RequireAuth><Cart /></RequireAuth>} />
+        <Route path="/cart" element={<RequireAuth>{profile && profile.role === 'pharmacy' ? <Navigate to="/" /> : <Cart />}</RequireAuth>} />
         <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfileRouter /></RequireAuth>} />
       </Route>
