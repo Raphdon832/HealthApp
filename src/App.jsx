@@ -8,8 +8,9 @@ import {
   Navigate,
   useParams,
   useMatch,
+  Outlet,
 } from 'react-router-dom';
-import { collection, query, onSnapshot, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, where, doc as firestoreDoc, getDoc } from 'firebase/firestore';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -22,7 +23,6 @@ import ProfileCustomer from '@/pages/ProfileCustomer';
 import ProfilePharmacy from '@/pages/ProfilePharmacy';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
-import { doc as firestoreDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Auth flow pages
@@ -35,11 +35,16 @@ import PharmacySignIn from '@/pages/auth/PharmacySignIn';
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
 
-function Shell() {
-  const [tab, setTab] = useState('/');
+/* ---------------------------
+   LAYOUTS
+----------------------------*/
+
+// Layout that shows BottomNav
+function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
 
@@ -63,7 +68,6 @@ function Shell() {
         setUnreadMessages(0);
         return;
       }
-      // For each thread, listen for unread messages
       const unsubs = threadIds.map(threadId =>
         onSnapshot(
           query(
@@ -73,106 +77,52 @@ function Shell() {
           ),
           (msgSnap) => {
             totalUnread += msgSnap.size;
-            setUnreadMessages(prev => {
-              // This ensures we don't double count if multiple threads update
-              // Instead, recalculate total unread for all threads
-              let newTotal = 0;
-              threadIds.forEach(tid => {
-                // This is a hack: we can't get msgSnap for all threads here, so just use the latest
-                // But since onSnapshot fires for each thread, the last one will be the total
-                // So we just set to totalUnread
-                newTotal = totalUnread;
-              });
-              return newTotal;
-            });
+            setUnreadMessages(() => totalUnread);
           }
         )
       );
-      // Cleanup
       return () => unsubs.forEach(u => u());
     });
     return unsub;
   }, [user]);
 
-  // Robust route matching (works with base paths / nested routers)
-  const matchAuth = useMatch('/auth/*');
-  const matchChat = useMatch('/chat/:vendorId');
-
-  // Hide BottomNav on auth + chat routes
-  const showNav = !(matchAuth || matchChat);
-
-  // scrollTo param for chat thread (optional)
+  // Detect “chat modal open” via query param
   const params = new URLSearchParams(location.search);
-  const scrollTo = params.get('scrollTo')
-    ? parseInt(params.get('scrollTo'), 10)
-    : undefined;
+  const chatModalOpen = !!params.get('chat'); // e.g. /messages?chat=<vendorId>
 
   return (
-    <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${showNav ? 'pb-24' : 'pb-0'}`}>
+    <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${chatModalOpen ? '' : 'pb-24'}`}>
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        <Routes>
-          {/* Home or redirect to landing */}
-          <Route
-            path="/"
-            element={user ? <Home /> : <Navigate to="/auth/landing" replace />}
-          />
-
-          {/* Vendor profile */}
-          <Route path="/vendor/:id" element={<VendorProfile />} />
-
-          {/* Product detail */}
-          <Route path="/product/:id" element={<ProductDetailRoute />} />
-
-          {/* Auth flow */}
-          <Route path="/auth/landing" element={<Landing />} />
-          <Route path="/auth/customer/register" element={<CustomerRegister />} />
-          <Route path="/auth/customer/signin" element={<CustomerSignIn />} />
-          <Route path="/auth/pharmacy/register" element={<PharmacyRegister />} />
-          <Route path="/auth/pharmacy/signin" element={<PharmacySignIn />} />
-          <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
-
-          {/* Protected routes */}
-          <Route
-            path="/messages"
-            element={
-              <RequireAuth>
-                <Messages
-                  openThread={(t) => {
-                    const participants = t.participants || [];
-                    let vendorId = '';
-                    if (participants.length === 2) {
-                      vendorId = participants.find((p) => p !== user?.uid);
-                    } else {
-                      vendorId = t.id?.split('__')[1] || '';
-                    }
-                    navigate(`/chat/${vendorId}`);
-                  }}
-                />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/chat/:vendorId"
-            element={
-              <RequireAuth>
-                {/* Always go back to /messages from chat */}
-                <ChatThread scrollTo={scrollTo} onBackRoute="/messages" />
-              </RequireAuth>
-            }
-          />
-          <Route path="/cart" element={<RequireAuth><Cart /></RequireAuth>} />
-          <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
-          <Route path="/profile" element={<RequireAuth><ProfileRouter /></RequireAuth>} />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Outlet />
       </div>
-      {/* Only show BottomNav if not on chat thread */}
-      {showNav && <BottomNav tab={tab} setTab={(k) => navigate(k)} cartCount={cartCount} unreadMessages={unreadMessages} />}
+
+      {/* Hide BottomNav when chat modal flag is on */}
+      {!chatModalOpen && (
+        <BottomNav
+          tab={tab}
+          setTab={(k) => navigate(k)}
+          cartCount={cartCount}
+          unreadMessages={unreadMessages}
+        />
+      )}
     </div>
   );
 }
+
+// Layout without BottomNav (for auth pages and full-page chat route if you use it)
+function BareLayout() {
+  return (
+    <div className="min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
+        <Outlet />
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------
+   ROUTES
+----------------------------*/
 
 function ProductDetailRoute() {
   const { id } = useParams();
@@ -185,9 +135,7 @@ function ProductDetailRoute() {
       const prodData = prodSnap.data();
       setProduct(prodData);
       if (prodData?.pharmacyId) {
-        const pharmSnap = await getDoc(
-          firestoreDoc(db, 'pharmacies', prodData.pharmacyId)
-        );
+        const pharmSnap = await getDoc(firestoreDoc(db, 'pharmacies', prodData.pharmacyId));
         setPharmacy(pharmSnap.data());
       }
     }
@@ -204,6 +152,63 @@ function ProfileRouter() {
   if (profile.role === 'pharmacy')
     return <ProfilePharmacy onSwitchToCustomer={() => {}} />;
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
+}
+
+function Shell() {
+  const { user } = useAuth();
+
+  // Optional: pass scrollTo from query to ChatThread (used by full-page route)
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const scrollTo = params.get('scrollTo') ? parseInt(params.get('scrollTo'), 10) : undefined;
+
+  return (
+    <Routes>
+      {/* Auth (no BottomNav) */}
+      <Route element={<BareLayout />}>
+        <Route path="/auth/landing" element={<Landing />} />
+        <Route path="/auth/customer/register" element={<CustomerRegister />} />
+        <Route path="/auth/customer/signin" element={<CustomerSignIn />} />
+        <Route path="/auth/pharmacy/register" element={<PharmacyRegister />} />
+        <Route path="/auth/pharmacy/signin" element={<PharmacySignIn />} />
+        <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
+
+        {/* Optional full-page chat route (also no BottomNav) */}
+        <Route
+          path="/chat/:vendorId"
+          element={
+            <RequireAuth>
+              <ChatThread scrollTo={scrollTo} onBackRoute="/messages" />
+            </RequireAuth>
+          }
+        />
+      </Route>
+
+      {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
+      <Route element={<AppLayout />}>
+        <Route
+          path="/"
+          element={user ? <Home /> : <Navigate to="/auth/landing" replace />}
+        />
+        <Route path="/vendor/:id" element={<VendorProfile />} />
+        <Route path="/product/:id" element={<ProductDetailRoute />} />
+        <Route
+          path="/messages"
+          element={
+            <RequireAuth>
+              <Messages />
+            </RequireAuth>
+          }
+        />
+        <Route path="/cart" element={<RequireAuth><Cart /></RequireAuth>} />
+        <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
+        <Route path="/profile" element={<RequireAuth><ProfileRouter /></RequireAuth>} />
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
