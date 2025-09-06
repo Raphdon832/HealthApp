@@ -106,6 +106,25 @@ export default function Home() {
     };
   }, [isUserScrolling, filtered.length]);
 
+  // Sort products by viewCount descending for Popular Products
+  const popularProducts = useMemo(() => {
+    return [...filtered].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+  }, [filtered]);
+
+  // Increment viewCount when a product is opened
+  const handleProductOpen = async (productId) => {
+    navigate(`/product/${productId}`);
+    // Optimistically update local state
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p));
+    // Update Firestore
+    try {
+      const { doc, updateDoc, increment } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'products', productId), { viewCount: increment(1) });
+    } catch (e) {
+      // ignore error (offline etc)
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-white flex flex-col px-2">
       {/* Sticky Header - not part of scrollable content */}
@@ -158,13 +177,27 @@ export default function Home() {
             <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
             <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600">view all</button>
           </div>
-          <div ref={newArrivalsRef} className="w-full overflow-x-auto scrollbar-hide" style={{overflowX: 'auto'}}>
+          <div ref={newArrivalsRef} className="w-full overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing" style={{overflowX: 'auto'}} onMouseDown={e => {
+            const el = newArrivalsRef.current;
+            if (!el) return;
+            let startX = e.pageX - el.offsetLeft;
+            let scrollLeft = el.scrollLeft;
+            function onMove(ev) {
+              el.scrollLeft = scrollLeft - (ev.pageX - el.offsetLeft - startX);
+            }
+            function onUp() {
+              window.removeEventListener('mousemove', onMove);
+              window.removeEventListener('mouseup', onUp);
+            }
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+          }}>
             <div className="flex gap-3 md:gap-4 lg:gap-6 min-w-max pb-2">
               {filtered.map((p) => (
                 <ProductCard
                   key={p.id || p.sku}
                   product={p}
-                  onOpen={()=>navigate(`/product/${p.id}`)}
+                  onOpen={()=>handleProductOpen(p.id)}
                   onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
                   cardWidth="110px"
                   cardHeight="128px"
@@ -185,12 +218,12 @@ export default function Home() {
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-            {filtered.map((p) => (
+            {popularProducts.map((p) => (
               <div className="flex justify-center" key={p.id || p.sku + '-wrapper'}>
                 <ProductCard
                   key={p.id || p.sku}
                   product={p}
-                  onOpen={()=>navigate(`/product/${p.id}`)}
+                  onOpen={()=>handleProductOpen(p.id)}
                   onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
                   cardWidth="136px"
                   cardHeight="156px"

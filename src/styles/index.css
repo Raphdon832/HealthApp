@@ -21,3 +21,45 @@ body::-webkit-scrollbar, html::-webkit-scrollbar {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Hide scrollbars visually but allow horizontal scrolling globally */
+html, body {
+  /* Remove any overflow-x: hidden to allow horizontal scroll */
+  overflow-x: auto !important;
+  /* Hide scrollbars visually but keep scrollability */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Disable zoom globally */
+html, body {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+}
+
+/* Prevent zooming via touch gestures */
+html, body {
+  overflow-x: auto !important;
+  touch-action: pan-x pan-y;
+}
+
+/* Hide scrollbars visually but allow scrolling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Prevent zooming via gestures (for iOS Safari) */
+body {
+  touch-action: manipulation;
+}
+
+input, select, textarea {
+  touch-action: manipulation;
+}

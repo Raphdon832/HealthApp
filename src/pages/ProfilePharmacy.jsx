@@ -6,7 +6,7 @@ import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
@@ -67,8 +67,20 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     docPDF.save('pharmacy-profile-report.pdf');
   }
 
-  function handleSaveProduct() {
-    // Save product logic here
+  async function handleSaveProduct() {
+    if (!editingProduct) return;
+    let imageUrl = editImage;
+    // If a file is selected, upload to storage (not implemented here)
+    // For now, just use the URL or keep the old image
+    // TODO: Add upload logic if needed
+    await updateDoc(doc(db, 'products', editingProduct.id), {
+      name: editName,
+      category: editCategory,
+      stock: Number(editStock),
+      sku: editSKU,
+      price: Number(editPrice),
+      image: imageUrl || editingProduct.image || '',
+    });
     setEditingProduct(null);
   }
 
