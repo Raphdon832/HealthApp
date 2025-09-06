@@ -220,7 +220,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </div>
       )}
       <div className="mt-6">
-        <button onClick={() => { user.logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-300 px-2 py-1 text-[12px] inline-flex items-center gap-2"><LogOut className="h-2 w-2"/> Log Out</button>
+        <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
       </div>
     </div>
   );
