@@ -250,9 +250,10 @@ export default function Dashboard() {
         </div>
         {/* Floating Add Product Button */}
         <button
-          className="fixed bottom-24 right-8 z-50 bg-sky-400 text-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center"
+          className="fixed bottom-24 right-8 z-50 bg-sky-400 text-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center disabled:opacity-0 disabled:cursor-not-allowed"
           aria-label="Add Product"
           onClick={() => setShowAdd(true)}
+          disabled={showAdd}
         >
           <span className="text-3xl font-bold leading-none">+</span>
         </button>
