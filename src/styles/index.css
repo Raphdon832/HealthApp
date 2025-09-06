@@ -9,6 +9,8 @@ html, body, #root { height: 100%; }
 body, html {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
+  overflow-x: hidden !important; /* Hide horizontal scrollbar */
+  touch-action: pan-y; /* Prevent horizontal scroll on touch devices */
 }
 body::-webkit-scrollbar, html::-webkit-scrollbar {
   display: none;
@@ -20,4 +22,9 @@ body::-webkit-scrollbar, html::-webkit-scrollbar {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Disable zooming on mobile */
+html {
+  touch-action: manipulation;
 }
