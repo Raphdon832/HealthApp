@@ -90,16 +90,16 @@ export default function Messages() {
   return (
     <div className="pt-10 pb-28 px-5 max-w-md mx-auto w-full min-h-screen flex flex-col">
       <div className="sticky top-0 z-10 bg-white pt-10 pb-2">
-        <div className="text-[30px] font-light">My<br/>Conversations</div>
+        <div className="text-[30px] font-light leading-none">My<br/>Conversations</div>
       </div>
 
-      <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
-        <Search className="h-5 w-5 text-zinc-400" />
+      <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 pb-2">
+        <Search className="h-4 w-4 text-zinc-400"/>
         <input
           placeholder="Search chats"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full outline-none placeholder:text-zinc-400 bg-transparent"
+          className="w-full outline-none placeholder:text-zinc-400 bg-transparent placeholder:text-sm"
         />
       </div>
 
