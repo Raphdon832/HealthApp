@@ -12,6 +12,7 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { Paperclip, Send } from 'lucide-react';
 import CallIcon from '@/icons/react/CallIcon';
+import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
 
 /**
  * Props (either/or):
@@ -20,6 +21,18 @@ import CallIcon from '@/icons/react/CallIcon';
  * - onBackRoute?: string
  * - onClose?: () => void
  */
+
+// Helper to format date separators like WhatsApp
+function getDateLabel(date) {
+  const now = new Date();
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = (today - d) / (1000 * 60 * 60 * 24);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose }) {
   const { user, profile } = useAuth();
   const [threadId, setThreadId] = useState(threadIdProp || null);
@@ -33,6 +46,10 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const [pharmacyPhone, setPharmacyPhone] = useState('');
   const bottomRef = useRef(null);
   const navigate = useNavigate();
+
+  const [lastMessageId, setLastMessageId] = useState(null);
+  const [isTabActive, setIsTabActive] = useState(true);
+  const audioRef = useRef(null);
 
   // Resolve thread:
   // - customer + vendorId => create/get
@@ -111,6 +128,23 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length]);
 
+  // Page visibility for message tone
+  useEffect(() => {
+    const handleVisibility = () => setIsTabActive(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
+  // Play tone on new message (when tab not active)
+  const prevMsgCount = useRef(0);
+  useEffect(() => {
+    if (messages.length > prevMsgCount.current && !isTabActive && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
+    prevMsgCount.current = messages.length;
+  }, [messages, isTabActive]);
+
   const otherUid = () => {
     if (!threadId || !user) return null;
     const [vId, cId] = threadId.split('__');
@@ -126,6 +160,8 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
+      {/* Audio for message tone */}
+      <audio ref={audioRef} src={notificationSound} preload="auto" />
       {/* Header */}
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
         <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
@@ -177,23 +213,43 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
         <div className="flex-1 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto relative">
           <div className="overflow-y-auto px-2 sm:px-3 pb-2" style={{ paddingTop: 12 }}>
-            {messages.map((m) => {
-              const isMine = m.senderId === user?.uid;
-              const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
-              return (
-                <div key={m.id} className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
-                  <div
-                    className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
-                    style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
-                  >
-                    {m.text}
-                  </div>
-                  <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
-                    {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                  </div>
-                </div>
-              );
-            })}
+            {(() => {
+              let lastDate = null;
+              return messages.map((m, i) => {
+                const isMine = m.senderId === user?.uid;
+                const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
+                let showDate = false;
+                if (t) {
+                  const dayStr = t.toDateString();
+                  if (lastDate !== dayStr) {
+                    showDate = true;
+                    lastDate = dayStr;
+                  }
+                }
+                return (
+                  <React.Fragment key={m.id}>
+                    {showDate && t && (
+                      <div className="flex justify-center my-2">
+                        <span className="bg-zinc-200 text-zinc-600 text-xs px-3 py-1 rounded-full shadow-sm">
+                          {getDateLabel(t)}
+                        </span>
+                      </div>
+                    )}
+                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
+                      <div
+                        className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
+                        style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
+                      >
+                        {m.text}
+                      </div>
+                      <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
+                        {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              });
+            })()}
             <div ref={bottomRef} />
           </div>
         </div>
