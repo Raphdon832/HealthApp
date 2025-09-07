@@ -217,7 +217,7 @@ export default function Home() {
 
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
             {popularProducts.map((p) => (
               <div className="flex justify-center" key={p.id || p.sku + '-wrapper'}>
                 <ProductCard
