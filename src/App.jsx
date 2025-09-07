@@ -134,7 +134,7 @@ function ProductDetailRoute() {
     async function fetchData() {
       const prodSnap = await getDoc(firestoreDoc(db, 'products', id));
       const prodData = prodSnap.data();
-      setProduct(prodData);
+      setProduct(prodData ? { id, ...prodData } : null);
       if (prodData?.pharmacyId) {
         const pharmSnap = await getDoc(firestoreDoc(db, 'pharmacies', prodData.pharmacyId));
         setPharmacy(pharmSnap.data());

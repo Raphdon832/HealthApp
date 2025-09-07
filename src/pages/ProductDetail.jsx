@@ -65,7 +65,7 @@ export default function ProductDetail({ product, pharmacy }) {
           {/* Address + Directions */}
           <div className="mt-1 flex items-center text-zinc-600 text-[13px] md:text-[15px] lg:text-[17px] font-poppins font-light">
             <div className="flex items-center gap-2 flex-1">
-              <MapPin className="h-3 w-3" /> {pharmacy?.address}
+              <MapPin className="h-6 w-6" /> {pharmacy?.address}
             </div>
             {pharmacy?.address && (
               <div className="flex-shrink-0 ml-auto">
@@ -105,7 +105,15 @@ export default function ProductDetail({ product, pharmacy }) {
         <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0">
           <div className="flex gap-3">
             <button
-              onClick={() => (user ? addToCart(user.uid, product.id, 1) : alert('Please sign in'))}
+              onClick={async () => {
+                if (!user) return alert('Please sign in');
+                if (!product.id) return alert('Product unavailable. Please try again.');
+                try {
+                  await addToCart(user.uid, product.id, 1);
+                } catch (e) {
+                  alert('Failed to add to cart.');
+                }
+              }}
               className="flex-1 rounded-full bg-sky-600 text-white h-[30px] py-0 text-[11px] font-poppins font-light"
             >
               Add to Cart
