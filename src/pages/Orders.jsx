@@ -12,6 +12,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrders, setExpandedOrders] = useState({}); // Track expanded state per order
+  const [revealedNumbers, setRevealedNumbers] = useState({}); // Track revealed phone numbers per order
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,6 +88,8 @@ export default function Orders() {
             const isExpanded = expandedOrders[o.id];
             const showSeeMore = items.length > 4;
             const visibleItems = isExpanded ? items : items.slice(0, 4);
+            const phone = o.customerPhone || o.customer_phone || o.phone || '';
+            const isRevealed = revealedNumbers[o.id];
             return (
               <div key={o.id} className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -129,11 +132,15 @@ export default function Orders() {
                       >
                         {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
                       </select>
-                      <button
-                        className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
-                        onClick={() => navigator.clipboard.writeText(o.customerEmail || '')}
-                        disabled={!o.customerEmail}
-                      >Copy Email</button>
+                      {phone && !isRevealed && (
+                        <button
+                          className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
+                          onClick={() => setRevealedNumbers(prev => ({ ...prev, [o.id]: true }))}
+                        >Reveal Number</button>
+                      )}
+                      {phone && isRevealed && (
+                        <span className="ml-2 text-[13px] text-zinc-700 font-medium">{phone}</span>
+                      )}
                     </div>
                   </div>
                 )}
