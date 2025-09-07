@@ -35,8 +35,8 @@ return (
 <button disabled={busy} className="w-full sm:w-[359px] h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] lg:text-[18px] font-light border-[#36A5FF] text-[#36A5FF] bg-white mt-4 flex items-center justify-center">{busy?'Signing in…':'Sign In'}</button>
 </div>
 </form>
-<div className="mt-6 text-left text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Forgot password?</div>
-<div className="mt-2 text-left text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Don’t have an account? <Link to="/auth/customer/register" className="text-sky-600 font-medium">Register</Link></div>
+<div className="mt-6 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Forgot password?</div>
+<div className="mt-2 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Don’t have an account? <Link to="/auth/customer/register" className="text-sky-600 font-medium">Register</Link></div>
 </AuthLayout>
 );
 }
