@@ -11,6 +11,7 @@ import {
 } from '@/lib/db';
 import { doc, getDoc } from 'firebase/firestore';
 import { Paperclip, Send } from 'lucide-react';
+import CallIcon from '@/icons/react/CallIcon';
 
 /**
  * Props (either/or):
@@ -29,6 +30,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
+  const [pharmacyPhone, setPharmacyPhone] = useState('');
   const bottomRef = useRef(null);
   const navigate = useNavigate();
 
@@ -62,10 +64,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
       const tSnap = await getDoc(doc(db, 'threads', threadId));
       if (!tSnap.exists()) return;
       const t = tSnap.data();
-
-      // threadId = `${vendorId}__${customerId}`
       const [vId, cId] = threadId.split('__');
-
       if (profile.role === 'customer') {
         // show the PHARMACY name to the customer
         const name = t.vendorName || '';
@@ -80,6 +79,10 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           setOtherName(pdata.name || 'Pharmacy');
           setOtherSubline(pdata.address || pdata.email || '');
         }
+        // Always fetch pharmacy phone for call button
+        const pSnap = await getDoc(doc(db, 'pharmacies', vId));
+        const pdata = pSnap.exists() ? pSnap.data() : {};
+        setPharmacyPhone(pdata.phone || '');
       } else {
         // vendor is chatting with the CUSTOMER
         const name = t.customerName || '';
@@ -125,17 +128,48 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
       {/* Header */}
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
-        <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3">
-          <button
-            onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
-            className="rounded-full border px-3 sm:px-4 py-1"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="min-w-0">
-            <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
-            <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
+        <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
+              className="rounded-full border px-3 sm:px-4 py-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            {/* Customer: show pharmacy name as link */}
+            {profile?.role === 'customer' ? (
+              <button
+                className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none"
+                onClick={() => {
+                  if (threadId) {
+                    const [vId] = threadId.split('__');
+                    navigate(`/vendor/${vId}`);
+                  }
+                }}
+                title={otherName}
+              >
+                {otherName || '...'}
+              </button>
+            ) : (
+              <div className="min-w-0">
+                <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
+                <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
+              </div>
+            )}
           </div>
+          {/* Call button on the right for customer */}
+          {profile?.role === 'customer' && (
+            <a
+              href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
+              className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50' : 'opacity-40 cursor-not-allowed'}`}
+              style={{ minWidth: 32 }}
+              title={pharmacyPhone ? `Call ${otherName}` : 'No phone number'}
+              tabIndex={pharmacyPhone ? 0 : -1}
+              aria-disabled={!pharmacyPhone}
+            >
+              <CallIcon className="h-3 w-3 mr-1" /> Call
+            </a>
+          )}
         </div>
       </div>
 

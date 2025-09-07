@@ -39,7 +39,19 @@ export default function AddProductModal({ pharmacyId, onClose }) {
         <div className="text-lg font-light font-poppins mb-4 text-black">Add Product</div>
         <div className="space-y-3">
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Name" value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})} />
-          <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Category" value={form.category} onChange={(e)=>setForm({...form,category:e.target.value})} />
+          <select
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none bg-white"
+            value={form.category}
+            onChange={e => setForm({ ...form, category: e.target.value })}
+          >
+            <option value="Prescription">Prescription</option>
+            <option value="Over-the-counter">Over-the-counter</option>
+            <option value="Syrup">Syrup</option>
+            <option value="Therapeutic">Therapeutic</option>
+            <option value="Controlled">Controlled</option>
+            <option value="Target System">Target System</option>
+            <option value="Others">Others</option>
+          </select>
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Stock" type="number" value={form.stock} onChange={(e)=>setForm({...form,stock:e.target.value})} />
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="SKU" value={form.sku} onChange={(e)=>setForm({...form,sku:e.target.value})} />
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Price" type="number" value={form.price} onChange={(e)=>setForm({...form,price:e.target.value})} />
