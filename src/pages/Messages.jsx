@@ -88,12 +88,12 @@ export default function Messages() {
   });
 
   return (
-    <div className="pt-10 pb-28 px-5 max-w-md mx-auto w-full min-h-screen flex flex-col">
-      <div className="sticky top-0 z-10 bg-white pt-10 pb-2">
-        <div className="text-[30px] font-light leading-none">My<br/>Conversations</div>
+    <div className="pt-1 px-5 max-w-md mx-auto w-full min-h-screen flex flex-col">
+      <div className="sticky top-0 z-10 bg-[#ffffff1d] pt-2 pb-2 backdrop-blur-md">
+        <div className="text-[25px] font-light leading-none">My<br/>Conversations</div>
       </div>
 
-      <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 pb-2">
+      <div className="mt-4 flex items-center gap-3 border-b border-zinc-300 pb-2">
         <Search className="h-4 w-4 text-zinc-400"/>
         <input
           placeholder="Search chats"
