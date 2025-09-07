@@ -102,7 +102,7 @@ export default function Messages() {
   });
 
   return (
-    <div className="min-h-screen w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
+    <div className="min-h-screen pt-10 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
       <div className="sticky top-0 z-10 bg-[#ffffff1d] pt-2 pb-2 backdrop-blur-md">
         <div className="text-[25px] font-light leading-none">My<br/>Conversations</div>
       </div>

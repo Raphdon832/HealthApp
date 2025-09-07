@@ -24,9 +24,13 @@ export default function Orders() {
     );
   }
 
+
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</div>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 bg-white/20 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+        <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</div>
+      </div>
       <div className="mt-6 space-y-4">
         {orders.map(o => (
           <div key={o.id} className="rounded-[10px] border border-gray-200 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between">

@@ -51,9 +51,26 @@ export default function ProfileCustomer() {
     });
   }, [user]);
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
+        <button
+          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
+          onClick={() => navigate('/auth/landing')}
+        >
+          Sign In / Sign Up
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</div>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+        <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</div>
+      </div>
       <div className="mt-8 rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
         {/* Avatar */}
         <div className="w-20 h-20 rounded-full bg-zinc-200 flex items-center justify-center mb-3 overflow-hidden">

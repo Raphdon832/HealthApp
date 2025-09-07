@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { removeFromCart, placeOrder } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
+import DeleteIcon from '@/icons/react/DeleteIcon';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -28,11 +29,27 @@ export default function Cart() {
   const checkout = async () => {
     if (!user || !items.length) return;
     const first = items[0];
-    const pharmacyId = first.product.pharmacyId; // simple single‑vendor demo
+    const pharmacyId =
     await placeOrder({ customerId: user.uid, pharmacyId, items: items.map(i=>({ productId: i.productId, qty: i.qty })), total });
     for (const i of items) await removeFromCart(user.uid, i.id);
     alert('Checkout successful');
   };
+
+  // Harmonize duplicate items by productId
+  const harmonizedItems = useMemo(() => {
+    const map = new Map();
+    for (const i of items) {
+      const pid = i.product?.id;
+      if (!pid) continue;
+      if (map.has(pid)) {
+        const existing = map.get(pid);
+        map.set(pid, { ...existing, qty: existing.qty + i.qty, ids: [...(existing.ids||[existing.id]), i.id] });
+      } else {
+        map.set(pid, { ...i, ids: [i.id] });
+      }
+    }
+    return Array.from(map.values());
+  }, [items]);
 
   if (!user) {
     return (
@@ -50,25 +67,65 @@ export default function Cart() {
 
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Cart</div>
-      <div className="mt-6 space-y-4">
-        {items.map((i) => (
-          <div key={i.id} className="rounded-[15px] border border-zinc-200 p-3 flex flex-col sm:flex-row items-center gap-3 md:gap-5 lg:gap-7">
-            <img src={i.product?.image} className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 object-cover rounded-2xl"/>
-            <div className="flex-1 w-full">
-              <div className="font-semibold text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">{i.product?.name}</div>
-              <div className="text-zinc-500 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px]">₦{Number(i.product?.price||0).toLocaleString()}</div>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+        <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Cart</div>
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        {harmonizedItems.map((i) => (
+          <div key={i.product?.id} className="relative rounded-xl border border-zinc-200 p-2 flex flex-col items-center gap-2 min-w-0">
+            {/* Remove icon button at top right */}
+            <button
+              onClick={() => i.ids.forEach(id => removeFromCart(user.uid, id))}
+              className="absolute top-2 right-2 z-10 p-0.5 rounded-full hover:scale-110 transition"
+              aria-label="Remove"
+            >
+              <DeleteIcon className="w-5 h-5" />
+            </button>
+            <img src={i.product?.image} className="h-12 w-12 object-cover rounded-xl"/>
+            <div className="flex-1 w-full text-center">
+              <div className="font-semibold text-[12px] sm:text-[13px] md:text-[14px] lg:text-[15px] truncate">{i.product?.name}</div>
+              <div className="text-zinc-500 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px]">₦{Number(i.product?.price||0).toLocaleString()}</div>
             </div>
-            <button onClick={()=>removeFromCart(user.uid, i.id)} className="rounded-xl border p-2 text-[#fd9292] text-[10px] sm:text-[12px] lg:text-[14px]">Remove</button>
+            {/* Quantity selector */}
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light disabled:opacity-40"
+                onClick={async () => {
+                  if (i.qty > 1) {
+                    // Remove one instance (by id)
+                    await removeFromCart(user.uid, i.ids[0]);
+                  }
+                }}
+                disabled={i.qty <= 1}
+                aria-label="Decrease quantity"
+              >
+                -
+              </button>
+              <span className="text-[13px] font-poppins w-6 text-center">{i.qty}</span>
+              <button
+                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light"
+                onClick={async () => {
+                  // Add one more of this product
+                  if (i.product?.id) {
+                    const { addToCart } = await import('@/lib/db');
+                    await addToCart(user.uid, i.product.id, 1);
+                  }
+                }}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
           </div>
         ))}
-        {items.length===0 && <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">Your cart is empty.</div>}
+        {harmonizedItems.length===0 && <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] col-span-2">Your cart is empty.</div>}
       </div>
-      {items.length>0 && (
-        <div className="mt-6 rounded-[15px] border border-sky-400 p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-regular">
+      {harmonizedItems.length>0 && (
+        <div className="mt-6 rounded-xl border border-sky-400 p-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between text-[13px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-regular">
             <span>Total</span>
-            <span className="font-semibold text-[13px] sm:text-[15px]">₦{Number(total).toLocaleString()}</span>
+            <span className="font-semibold text-[12px] sm:text-[15px]">₦{Number(total).toLocaleString()}</span>
           </div>
           <button onClick={checkout} className="mt-4 w-full rounded-full border bg-sky-400 text-white py-2 text-[12px] sm:text-[14px] lg:text-[16px] font-light">Proceed to Checkout</button>
         </div>
