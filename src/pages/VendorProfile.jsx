@@ -48,7 +48,7 @@ export default function VendorProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-white/80 backdrop-blur-md max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
+    <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
       <button
         onClick={() => navigate(-1)}
         className="w-[78px] h-[27px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mb-4"

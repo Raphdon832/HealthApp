@@ -126,7 +126,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col px-2">
+    <div className="min-h-screen w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
       {/* Sticky Header - not part of scrollable content */}
       <div className="sticky top-0 z-30 w-full bg-white border-b flex-shrink-0 px-2">
         <div className="w-full mx-auto pt-8 pb-4">

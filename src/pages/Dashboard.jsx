@@ -166,7 +166,7 @@ export default function Dashboard() {
   }, [profile]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-sky-100 py-4 px-6 flex items-center justify-start">
         <h1 className="text-[25px] font-light text-black leading-none">My<br/>Dashboard</h1>
       </header>

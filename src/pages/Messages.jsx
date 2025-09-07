@@ -76,6 +76,20 @@ export default function Messages() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
+        <button
+          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
+          onClick={() => navigate('/auth/landing')}
+        >
+          Sign In / Sign Up
+        </button>
+      </div>
+    );
+  }
+
   const me = user?.uid;
   const myUnread = (t) => t?.unread?.[me] || 0;
   const displayName = (t) => (profile?.role === 'customer' ? t.vendorName : t.customerName) || '';
@@ -88,7 +102,7 @@ export default function Messages() {
   });
 
   return (
-    <div className="pt-1 px-5 max-w-md mx-auto w-full min-h-screen flex flex-col">
+    <div className="min-h-screen w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
       <div className="sticky top-0 z-10 bg-[#ffffff1d] pt-2 pb-2 backdrop-blur-md">
         <div className="text-[25px] font-light leading-none">My<br/>Conversations</div>
       </div>

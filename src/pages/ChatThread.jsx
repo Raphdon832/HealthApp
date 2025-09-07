@@ -124,37 +124,37 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
       {/* Header */}
-      <div className="w-full max-w-md mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
-        <div className="px-5 pt-6 pb-3 border-b flex items-center gap-3">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
+        <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3">
           <button
             onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
-            className="rounded-full border px-4 py-1"
+            className="rounded-full border px-3 sm:px-4 py-1"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="min-w-0">
-            <div className="font-light text-[17px] truncate">{otherName || '...'}</div>
+            <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
             <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="w-full max-w-md mx-auto flex-1 flex flex-col">
-        <div className="flex-1 w-full max-w-md mx-auto relative">
-          <div className="overflow-y-auto px-3 pb-2" style={{ paddingTop: 12 }}>
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
+        <div className="flex-1 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto relative">
+          <div className="overflow-y-auto px-2 sm:px-3 pb-2" style={{ paddingTop: 12 }}>
             {messages.map((m) => {
               const isMine = m.senderId === user?.uid;
               const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
               return (
                 <div key={m.id} className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
                   <div
-                    className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
-                    style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 12 }}
+                    className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
+                    style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
                   >
                     {m.text}
                   </div>
-                  <div className={`text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
+                  <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
                     {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                   </div>
                 </div>
@@ -165,8 +165,8 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         </div>
 
         {/* Composer */}
-        <div className="max-w-md mx-auto w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
-          <form className="mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
+        <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
+          <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
             <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
               <Paperclip className="h-5 w-5 text-zinc-400" />
             </label>
@@ -174,7 +174,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
               value={text}
               onChange={e => setText(e.target.value)}
               placeholder="Type a message"
-              className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[12px]"
+              className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
               style={{ fontSize: 13, height: 34 }}
             />
             <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>

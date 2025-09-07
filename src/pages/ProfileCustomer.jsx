@@ -52,8 +52,8 @@ export default function ProfileCustomer() {
   }, [user]);
 
   return (
-    <div className="pt-10 pb-28 max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0 w-full min-h-screen flex flex-col">
-      <div className="text-[30px] font-light font-poppins leading-none">My<br/>Profile</div>
+    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+      <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</div>
       <div className="mt-8 rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
         {/* Avatar */}
         <div className="w-20 h-20 rounded-full bg-zinc-200 flex items-center justify-center mb-3 overflow-hidden">
