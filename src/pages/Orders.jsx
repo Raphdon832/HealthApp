@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
+
+const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
 export default function Orders() {
   const { user, profile } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +28,14 @@ export default function Orders() {
     });
     return unsub;
   }, [user, profile]);
+
+  const handleStatusChange = async (orderId, newStatus) => {
+    await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+  };
+
+  const filteredOrders = statusFilter === 'all'
+    ? orders
+    : orders.filter(o => (o.status || 'pending') === statusFilter);
 
   if (!user) {
     return (
@@ -46,13 +57,27 @@ export default function Orders() {
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
         <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</div>
       </div>
+      {/* Filters */}
+      <div className="mt-4 flex gap-2 flex-wrap">
+        <button
+          className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+          onClick={()=>setStatusFilter('all')}
+        >All</button>
+        {ORDER_STATUSES.map(s => (
+          <button
+            key={s}
+            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+            onClick={()=>setStatusFilter(s)}
+          >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
+        ))}
+      </div>
       <div className="mt-6 space-y-4">
         {loading ? (
           <div className="text-zinc-400 text-sm">Loading...</div>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">No orders yet.</div>
         ) : (
-          orders.map(o => (
+          filteredOrders.map(o => (
             <div key={o.id} className="rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -61,7 +86,7 @@ export default function Orders() {
                 </div>
                 <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
               </div>
-              {/* Pharmacy view: show customer info and items */}
+              {/* Pharmacy view: show customer info, items, status, and actions */}
               {profile.role === 'pharmacy' && (
                 <div className="mt-2">
                   <div className="text-[13px] text-zinc-500 font-light mb-1">Customer: {o.customerName || o.customerId || o.customer_id || 'N/A'}</div>
@@ -72,6 +97,21 @@ export default function Orders() {
                       <li key={idx}>{item.name || item.productId} x{item.qty || item.quantity || 1}</li>
                     ))}
                   </ul>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[12px] text-zinc-500">Status:</span>
+                    <select
+                      className="border rounded px-2 py-1 text-[12px]"
+                      value={o.status || 'pending'}
+                      onChange={e => handleStatusChange(o.id, e.target.value)}
+                    >
+                      {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+                    </select>
+                    <button
+                      className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
+                      onClick={() => navigator.clipboard.writeText(o.customerEmail || '')}
+                      disabled={!o.customerEmail}
+                    >Copy Email</button>
+                  </div>
                 </div>
               )}
             </div>
