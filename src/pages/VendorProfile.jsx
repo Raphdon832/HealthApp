@@ -47,22 +47,18 @@ export default function VendorProfile() {
     }
   };
 
-  
-
   return (
     <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
-        <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Vendor<br/>Profile</div>
+      {/* Sticky header with back button and title */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 flex items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mr-1"
+        >
+          <ArrowLeft className="h-3 w-3 mr-0" /> Back
+        </button>
+        <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Vendor&nbsp;Profile</div>
       </div>
-      <button
-        onClick={() => navigate(-1)}
-        className="w-[78px] h-[27px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mb-4"
-      >
-        <ArrowLeft className="h-3 w-3 mr-1" /> Back
-      </button>
-
-      <div className="text-[25px] font-poppins font-light tracking-tight mb-4">Vendor Profile</div>
 
       <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-6 w-full flex flex-col items-start">
         <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">

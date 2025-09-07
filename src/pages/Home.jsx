@@ -18,8 +18,16 @@ export default function Home() {
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [showNewArrivalsModal, setShowNewArrivalsModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const filtered = useMemo(() => products.filter(p => (p.name + p.category).toLowerCase().includes(q.toLowerCase())), [products, q]);
+  // Filtered products by search and category
+  const filtered = useMemo(() => {
+    return products.filter(p => {
+      const matchesSearch = (p.name + p.category).toLowerCase().includes(q.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, q, selectedCategory]);
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -160,7 +168,8 @@ export default function Home() {
             {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map(cat => (
               <button
                 key={cat}
-                className="px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition"
+                className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${selectedCategory===cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
               </button>
