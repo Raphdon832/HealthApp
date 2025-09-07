@@ -26,7 +26,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-black font-light text-lg tracking-tight">Revenue</h2>
         <select
-          className="rounded-lg border border-sky-200 bg-white px-2 py-1 text-sm text-sky-700 focus:outline-none"
+          className="rounded-full border border-sky-200 bg-white px-2 py-1 text-sm text-sky-700 focus:outline-none"
           value={filter.type}
           onChange={e => onFilterChange({ ...filter, type: e.target.value })}
         >
@@ -37,7 +37,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
       <div className="flex gap-2 mb-2">
         {filter.type === 'year' && (
           <select
-            className="rounded-lg border border-sky-200 px-2 py-1 text-sm text-sky-700 bg-white focus:outline-none"
+            className="rounded-full border border-sky-200 px-2 py-1 text-[12px] text-sky-700 bg-white focus:outline-none"
             value={filter.year || yearOptions[0] || ''}
             onChange={e => onFilterChange({ ...filter, year: e.target.value })}
           >
@@ -47,14 +47,14 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
         {filter.type === 'month' && (
           <>
             <select
-              className="rounded-lg border border-sky-200 px-2 py-1 text-sm text-sky-700 bg-white focus:outline-none"
+              className="rounded-full border border-sky-200 px-2 py-1 text-[12px] text-sky-700 bg-white focus:outline-none"
               value={filter.year || yearOptions[0] || ''}
               onChange={e => onFilterChange({ ...filter, year: e.target.value })}
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <select
-              className="rounded-lg border border-sky-200 px-2 py-1 text-sm text-sky-700 bg-white focus:outline-none"
+              className="rounded-full border border-sky-200 px-2 py-1 text-[12px] text-sky-700 bg-white focus:outline-none"
               value={filter.month || monthOptions[0] || ''}
               onChange={e => onFilterChange({ ...filter, month: e.target.value })}
             >
@@ -70,7 +70,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
           data.map((d, i) => (
             <div key={i} className="flex flex-col items-center flex-1">
               <div
-                className="w-6 bg-sky-400 rounded-t-lg transition-all duration-700"
+                className="w-6 bg-sky-400 rounded-t-full transition-all duration-700"
                 style={{ height: `${Math.max(8, (d.value / (Math.max(...data.map(x => x.value)) || 1)) * 80)}px` }}
                 title={`₦${d.value.toLocaleString()}`}
               />

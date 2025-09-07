@@ -166,11 +166,11 @@ export default function Dashboard() {
   }, [profile]);
 
   return (
-    <div className="min-h-screen w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-sky-100 py-4 px-6 flex items-center justify-start">
+    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
         <h1 className="text-[25px] font-light text-black leading-none">My<br/>Dashboard</h1>
       </header>
-      <main className="flex-1 px-4 py-6 flex flex-col items-center justify-start relative">
+      <main className="flex-1 px-3 sm:px-4 py-6 flex flex-col items-center justify-start relative w-full">
         <div className="w-full max-w-md">
           {/* Best Selling Section */}
           <div className="mb-8 mt-[-12px]">
