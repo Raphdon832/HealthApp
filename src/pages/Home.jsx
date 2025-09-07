@@ -17,8 +17,8 @@ export default function Home() {
   const [eta, setEta] = useState(null);
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [showNewArrivalsModal, setShowNewArrivalsModal] = useState(false);
 
-  // Move filtered above all useEffect
   const filtered = useMemo(() => products.filter(p => (p.name + p.category).toLowerCase().includes(q.toLowerCase())), [products, q]);
 
   useEffect(() => listenProducts(setProducts), []);
@@ -41,13 +41,11 @@ export default function Home() {
     }, () => setLocation('Location permission denied'));
   }, []);
 
-  // Fetch pharmacies and calculate ETA to closest
   useEffect(() => {
     async function fetchAndCalcETA() {
       if (!userCoords) return;
-      const pharmacies = await getAllPharmacies(); // Should return array with {name, coordinates: {latitude, longitude}}
+      const pharmacies = await getAllPharmacies();
       if (!pharmacies || pharmacies.length === 0) return;
-      // Haversine formula
       function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // km
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -69,18 +67,15 @@ export default function Home() {
         }
       });
       setClosestPharmacy(minPharm);
-      // Assume average city driving speed 25km/h
       const etaMins = minDist ? Math.round((minDist / 25) * 60) : null;
       setEta(etaMins);
     }
     fetchAndCalcETA();
   }, [userCoords]);
 
-  // Auto-scroll logic for New Arrivals
   useEffect(() => {
     if (!newArrivalsRef.current) return;
     let interval;
-    let lastScrollLeft = 0;
     let userScrollTimeout;
     const handleUserScroll = () => {
       setIsUserScrolling(true);
@@ -91,9 +86,7 @@ export default function Home() {
     el.addEventListener('scroll', handleUserScroll);
     interval = setInterval(() => {
       if (!isUserScrolling && el) {
-        // Scroll by 1 card width (110px + gap)
         el.scrollBy({ left: 120, behavior: 'smooth' });
-        // If at end, scroll back to start
         if (el.scrollLeft + el.offsetWidth >= el.scrollWidth - 5) {
           el.scrollTo({ left: 0, behavior: 'smooth' });
         }
@@ -102,32 +95,38 @@ export default function Home() {
     return () => {
       clearInterval(interval);
       el.removeEventListener('scroll', handleUserScroll);
-      clearTimeout(userScrollTimeout);
+      if (userScrollTimeout) clearTimeout(userScrollTimeout);
     };
   }, [isUserScrolling, filtered.length]);
 
-  // Sort products by viewCount descending for Popular Products
   const popularProducts = useMemo(() => {
     return [...filtered].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
   }, [filtered]);
 
-  // Increment viewCount when a product is opened
+  const newArrivals = useMemo(() => {
+    return [...products]
+      .filter(p => p.createdAt)
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+      .slice(0, 12);
+  }, [products]);
+  const allNewArrivals = useMemo(() => {
+    return [...products]
+      .filter(p => p.createdAt)
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  }, [products]);
+
   const handleProductOpen = async (productId) => {
     navigate(`/product/${productId}`);
-    // Optimistically update local state
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p));
-    // Update Firestore
     try {
       const { doc, updateDoc, increment } = await import('firebase/firestore');
       await updateDoc(doc(db, 'products', productId), { viewCount: increment(1) });
     } catch (e) {
-      // ignore error (offline etc)
     }
   };
 
   return (
     <div className="min-h-screen w-full px-0 pb-28">
-      {/* Sticky Header - not part of scrollable content */}
       <div className="sticky top-0 z-30 w-full bg-white border-b flex-shrink-0 px-2">
         <div className="w-full mx-auto pt-8 pb-4">
           <div className="pt-4 pb-2 w-full">
@@ -149,7 +148,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Scrollable Home content below sticky header */}
       <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pt-1 pb-28 px-0">
         <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400"/>
@@ -157,14 +155,12 @@ export default function Home() {
           <div className="flex gap-1 text-zinc-400"><div className="h-1 w-1 bg-current rounded-full"/><div className="h-1 w-1 bg-current rounded-full"/><div className="h-1 w-1 bg-current rounded-full"/></div>
         </div>
 
-        {/* Category horizontal scroll section */}
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
             {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map(cat => (
               <button
                 key={cat}
                 className="px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition"
-                // onClick handler can be added to filter by category
               >
                 {cat}
               </button>
@@ -175,7 +171,10 @@ export default function Home() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
             <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
-            <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600">view all</button>
+            <button
+              className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600"
+              onClick={() => setShowNewArrivalsModal(true)}
+            >view all</button>
           </div>
           <div ref={newArrivalsRef} className="w-full overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing" style={{overflowX: 'auto'}} onMouseDown={e => {
             const el = newArrivalsRef.current;
@@ -193,28 +192,63 @@ export default function Home() {
             window.addEventListener('mouseup', onUp);
           }}>
             <div className="flex gap-3 md:gap-4 lg:gap-6 min-w-max pb-2">
-              {filtered.map((p) => (
-                <ProductCard
-                  key={p.id || p.sku}
-                  product={p}
-                  onOpen={()=>handleProductOpen(p.id)}
-                  onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
-                  cardWidth="110px"
-                  cardHeight="128px"
-                  nameSize="11px"
-                  nameWeight="medium"
-                  nameTracking="-0.5px"
-                  priceSize="9px"
-                  priceColor="#BDBDBD"
-                  priceWeight="medium"
-                  addColor="#36A5FF"
-                  addSize="9px"
-                />
+              {newArrivals.map((p) => (
+                <div className="relative" key={p.id || p.sku}>
+                  <ProductCard
+                    product={p}
+                    onOpen={()=>handleProductOpen(p.id)}
+                    onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
+                    cardWidth="110px"
+                    cardHeight="128px"
+                    nameSize="11px"
+                    nameWeight="medium"
+                    nameTracking="-0.5px"
+                    priceSize="9px"
+                    priceColor="#BDBDBD"
+                    priceWeight="medium"
+                    addColor="#36A5FF"
+                    addSize="9px"
+                  />
+                  <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">New</span>
+                </div>
               ))}
             </div>
           </div>
         </div>
-
+        {showNewArrivalsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-[20px] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
+              <button
+                className="absolute top-2 right-2 text-zinc-500 hover:text-zinc-800 text-xl font-bold"
+                onClick={() => setShowNewArrivalsModal(false)}
+                aria-label="Close"
+              >&times;</button>
+              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
+                {allNewArrivals.map((p) => (
+                  <div className="relative flex flex-col items-center" key={p.id || p.sku}>
+                    <ProductCard
+                      product={p}
+                      onOpen={()=>handleProductOpen(p.id)}
+                      onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
+                      cardWidth="110px"
+                      cardHeight="128px"
+                      nameSize="11px"
+                      nameWeight="medium"
+                      nameTracking="-0.5px"
+                      priceSize="9px"
+                      priceColor="#BDBDBD"
+                      priceWeight="medium"
+                      addColor="#36A5FF"
+                      addSize="9px"
+                    />
+                    <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">New</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
