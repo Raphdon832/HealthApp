@@ -11,6 +11,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [expandedOrders, setExpandedOrders] = useState({}); // Track expanded state per order
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +37,10 @@ export default function Orders() {
   const filteredOrders = statusFilter === 'all'
     ? orders
     : orders.filter(o => (o.status || 'pending') === statusFilter);
+
+  const toggleExpand = (orderId) => {
+    setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
 
   if (!user) {
     return (
@@ -77,45 +82,64 @@ export default function Orders() {
         ) : filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">No orders yet.</div>
         ) : (
-          filteredOrders.map(o => (
-            <div key={o.id} className="rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">Order #{o.id.slice(0,6)}</div>
-                  <div className="text-gray-500 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
-                </div>
-                <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
-              </div>
-              {/* Pharmacy view: show customer info, items, status, and actions */}
-              {profile.role === 'pharmacy' && (
-                <div className="mt-2">
-                  <div className="text-[13px] text-zinc-500 font-light mb-1">Customer: {o.customerName || o.customerId || o.customer_id || 'N/A'}</div>
-                  <div className="text-[12px] text-zinc-400 font-light mb-2">{o.customerEmail || ''}</div>
-                  <div className="text-[13px] text-zinc-700 font-medium mb-1">Items:</div>
-                  <ul className="ml-2 list-disc text-[13px] text-zinc-700">
-                    {(o.items||[]).map((item, idx) => (
-                      <li key={idx}>{item.name || item.productId} x{item.qty || item.quantity || 1}</li>
-                    ))}
-                  </ul>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[12px] text-zinc-500">Status:</span>
-                    <select
-                      className="border rounded px-2 py-1 text-[12px]"
-                      value={o.status || 'pending'}
-                      onChange={e => handleStatusChange(o.id, e.target.value)}
-                    >
-                      {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
-                    </select>
-                    <button
-                      className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
-                      onClick={() => navigator.clipboard.writeText(o.customerEmail || '')}
-                      disabled={!o.customerEmail}
-                    >Copy Email</button>
+          filteredOrders.map(o => {
+            const items = o.items || [];
+            const isExpanded = expandedOrders[o.id];
+            const showSeeMore = items.length > 4;
+            const visibleItems = isExpanded ? items : items.slice(0, 4);
+            return (
+              <div key={o.id} className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">Order #{o.id.slice(0,6)}</div>
+                    <div className="text-gray-500 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
                   </div>
+                  <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
                 </div>
-              )}
-            </div>
-          ))
+                {/* Pharmacy view: show customer info, items, status, and actions */}
+                {profile.role === 'pharmacy' && (
+                  <div className="mt-2">
+                    <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center gap-2">
+                      Customer: {o.customerName || o.customerId || o.customer_id || 'N/A'}
+                    </div>
+                    <div className="text-[12px] text-zinc-400 font-light mb-2">{o.customerEmail || ''}</div>
+                    <div className="text-[13px] text-zinc-700 font-medium mb-1">Items:</div>
+                    <ul className="ml-2 list-disc text-[13px] text-zinc-700">
+                      {visibleItems.map((item, idx) => (
+                        <li key={idx}>
+                          <span>{item.name || item.productId}</span>
+                          <span> x{item.qty || item.quantity || 1}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {showSeeMore && (
+                      <button
+                        className="text-sky-600 text-xs mt-1 ml-2 font-medium hover:underline focus:outline-none"
+                        onClick={() => toggleExpand(o.id)}
+                      >
+                        {isExpanded ? 'See less' : `See more (${items.length - 4} more)`}
+                      </button>
+                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[12px] text-zinc-500">Status:</span>
+                      <select
+                        className="border rounded px-2 py-1 text-[12px]"
+                        value={o.status || 'pending'}
+                        onChange={e => handleStatusChange(o.id, e.target.value)}
+                      >
+                        {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+                      </select>
+                      <button
+                        className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
+                        onClick={() => navigator.clipboard.writeText(o.customerEmail || '')}
+                        disabled={!o.customerEmail}
+                      >Copy Email</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>
