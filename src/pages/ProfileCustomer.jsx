@@ -5,7 +5,7 @@ import { Pencil } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -29,24 +29,32 @@ export default function ProfileCustomer() {
     getDocs(query(collection(db, 'threads'), where('customerId', '==', user.uid))).then(snapshot => {
       setActiveChats(snapshot.size);
     });
-    // Fetch drugs bought
-    getDocs(query(collection(db, 'orders'), where('userId', '==', user.uid))).then(snapshot => {
+    // Fetch drugs bought (harmonized by productId, using product name from products collection)
+    getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))).then(async snapshot => {
       const drugs = {};
-      snapshot.forEach(doc => {
-        const order = doc.data();
-        (order.items || []).forEach(item => {
-          if (!drugs[item.name]) {
-            drugs[item.name] = { name: item.name, count: 0, date: order.date || '' };
+      for (const docSnap of snapshot.docs) {
+        const order = docSnap.data();
+        for (const item of (order.items || [])) {
+          const key = item.productId;
+          if (!drugs[key]) {
+            // Try to get product name from products collection
+            let name = item.name;
+            if (!name && key) {
+              const prodSnap = await getDoc(doc(db, 'products', key));
+              name = prodSnap.exists() ? prodSnap.data().name : key;
+            }
+            drugs[key] = { name, count: 0, lastDate: order.createdAt?.toDate?.() || null };
           }
-          drugs[item.name].count += item.count || 1;
+          drugs[key].count += Number(item.qty || item.quantity || 1);
           // Use latest date
-          if (order.date && (!drugs[item.name].date || new Date(order.date) > new Date(drugs[item.name].date))) {
-            drugs[item.name].date = order.date;
+          const orderDate = order.createdAt?.toDate?.() || null;
+          if (orderDate && (!drugs[key].lastDate || orderDate > drugs[key].lastDate)) {
+            drugs[key].lastDate = orderDate;
           }
-        });
-      });
-      // Sort by date desc, then slice
-      const drugsArr = Object.values(drugs).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+      }
+      // Sort by lastDate desc
+      const drugsArr = Object.values(drugs).sort((a, b) => (b.lastDate || 0) - (a.lastDate || 0));
       setDrugsBought(drugsArr);
     });
   }, [user]);
