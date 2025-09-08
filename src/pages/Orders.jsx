@@ -122,7 +122,16 @@ export default function Orders() {
             const phone = o.customerPhone || o.customer_phone || o.phone || '';
             const isRevealed = revealedNumbers[o.id];
             return (
-              <div key={o.id} className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 cursor-pointer hover:bg-sky-50 transition" onClick={() => setModalOrder(o)}>
+              <div
+                key={o.id}
+                className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition"
+                style={{ cursor: 'pointer' }}
+                onClick={e => {
+                  // Only open modal if not clicking the see more/less button
+                  if (e.target.closest('.order-see-more-btn')) return;
+                  setModalOrder(o);
+                }}
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">Order #{o.id.slice(0,6)}</div>
@@ -148,8 +157,11 @@ export default function Orders() {
                     </ul>
                     {showSeeMore && (
                       <button
-                        className="text-sky-600 text-xs mt-1 ml-2 font-medium hover:underline focus:outline-none"
-                        onClick={() => toggleExpand(o.id)}
+                        className="order-see-more-btn text-sky-600 text-xs mt-1 ml-2 font-medium hover:underline focus:outline-none"
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleExpand(o.id);
+                        }}
                       >
                         {isExpanded ? 'See less' : `See more (${items.length - 4} more)`}
                       </button>
@@ -166,7 +178,10 @@ export default function Orders() {
                       {phone && !isRevealed && (
                         <button
                           className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
-                          onClick={() => setRevealedNumbers(prev => ({ ...prev, [o.id]: true }))}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
+                          }}
                         >Reveal Number</button>
                       )}
                       {phone && isRevealed && (
