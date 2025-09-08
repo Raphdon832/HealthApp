@@ -25,6 +25,7 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
 import Dashboard from '@/pages/Dashboard';
+import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 
 // Auth flow pages
 import Landing from '@/pages/auth/Landing';
@@ -216,6 +217,7 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
+      <GlobalMessageNotifier />
       <Shell />
     </AuthProvider>
   );
