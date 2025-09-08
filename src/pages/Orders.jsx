@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
+import Modal from '@/components/Modal';
 
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
@@ -13,6 +14,8 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrders, setExpandedOrders] = useState({}); // Track expanded state per order
   const [revealedNumbers, setRevealedNumbers] = useState({}); // Track revealed phone numbers per order
+  const [modalOrder, setModalOrder] = useState(null);
+  const [modalOrderProducts, setModalOrderProducts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +45,20 @@ export default function Orders() {
   const toggleExpand = (orderId) => {
     setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
   };
+
+  // Fetch product details for modal
+  useEffect(() => {
+    async function fetchProducts() {
+      if (!modalOrder || !modalOrder.items) return setModalOrderProducts([]);
+      // Get all product IDs in the order
+      const ids = modalOrder.items.map(i => i.productId);
+      // Fetch all product docs in parallel
+      const proms = ids.map(id => getDoc(doc(db, 'products', id)));
+      const snaps = await Promise.all(proms);
+      setModalOrderProducts(snaps.map(s => s.exists() ? { id: s.id, ...s.data() } : null));
+    }
+    fetchProducts();
+  }, [modalOrder]);
 
   if (!user) {
     return (
@@ -91,7 +108,7 @@ export default function Orders() {
             const phone = o.customerPhone || o.customer_phone || o.phone || '';
             const isRevealed = revealedNumbers[o.id];
             return (
-              <div key={o.id} className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2">
+              <div key={o.id} className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 cursor-pointer hover:bg-sky-50 transition" onClick={() => setModalOrder(o)}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">Order #{o.id.slice(0,6)}</div>
@@ -149,6 +166,36 @@ export default function Orders() {
           })
         )}
       </div>
+      {/* Modal for order details */}
+      <Modal open={!!modalOrder} onClose={() => setModalOrder(null)}>
+        {modalOrder && (
+          <div>
+            <div className="text-lg font-medium mb-2">Order #{modalOrder.id.slice(0, 6)}</div>
+            <div className="text-zinc-500 text-xs mb-4">{modalOrder.createdAt?.toDate?.().toLocaleString?.()||''}</div>
+            <div className="mb-2 text-[15px] font-medium">Items:</div>
+            <ul className="mb-4 space-y-2">
+              {modalOrder.items.map((item, idx) => {
+                const prod = modalOrderProducts[idx];
+                return (
+                  <li key={idx} className="flex items-center gap-3">
+                    {prod && prod.image && <img src={prod.image} alt={prod.name} className="h-10 w-10 object-cover rounded-lg border" />}
+                    <div className="flex-1">
+                      <div className="font-poppins font-medium text-[14px]">{prod ? prod.name : item.productId}</div>
+                      <div className="text-zinc-500 text-xs">Qty: {item.qty || item.quantity || 1}</div>
+                    </div>
+                    <div className="text-[14px] font-medium text-sky-600">₦{Number(item.price || prod?.price || 0).toLocaleString()}</div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="flex justify-between items-center border-t pt-3 mt-2">
+              <div className="text-[15px] font-medium">Total:</div>
+              <div className="text-[15px] font-bold text-sky-700">₦{Number(modalOrder.total).toLocaleString()}</div>
+            </div>
+            <div className="mt-2 text-xs text-zinc-400">Status: {modalOrder.status || 'pending'}</div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
