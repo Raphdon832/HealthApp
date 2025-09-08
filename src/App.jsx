@@ -63,29 +63,44 @@ function AppLayout() {
     if (!user) return setUnreadMessages(0);
     // Listen for all threads where user is a participant
     const threadsQ = query(collection(db, 'threads'), where('participants', 'array-contains', user.uid));
+    let unsubs = [];
     const unsub = onSnapshot(threadsQ, (threadsSnap) => {
-      let totalUnread = 0;
       const threadIds = threadsSnap.docs.map(d => d.id);
       if (!threadIds.length) {
         setUnreadMessages(0);
+        unsubs.forEach(u => u());
+        unsubs = [];
         return;
       }
-      const unsubs = threadIds.map(threadId =>
-        onSnapshot(
+      // Unsubscribe from previous listeners
+      unsubs.forEach(u => u());
+      unsubs = [];
+      let totalUnread = 0;
+      let counts = {};
+      let pending = threadIds.length;
+      threadIds.forEach(threadId => {
+        const unsubMsg = onSnapshot(
           query(
             collection(db, 'threads', threadId, 'messages'),
             where('to', '==', user.uid),
             where('read', '==', false)
           ),
           (msgSnap) => {
-            totalUnread += msgSnap.size;
-            setUnreadMessages(() => totalUnread);
+            counts[threadId] = msgSnap.size;
+            pending--;
+            if (pending === 0) {
+              totalUnread = Object.values(counts).reduce((a, b) => a + b, 0);
+              setUnreadMessages(totalUnread);
+            }
           }
-        )
-      );
-      return () => unsubs.forEach(u => u());
+        );
+        unsubs.push(unsubMsg);
+      });
     });
-    return unsub;
+    return () => {
+      unsub();
+      unsubs.forEach(u => u());
+    };
   }, [user]);
 
   // Detect “chat modal open” via query param

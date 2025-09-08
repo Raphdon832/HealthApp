@@ -29,7 +29,7 @@ export default function Cart() {
   const checkout = async () => {
     if (!user || !items.length) return;
     const first = items[0];
-    const pharmacyId =
+    const pharmacyId = first.product?.pharmacyId;
     await placeOrder({ customerId: user.uid, pharmacyId, items: items.map(i=>({ productId: i.productId, qty: i.qty })), total });
     for (const i of items) await removeFromCart(user.uid, i.id);
     alert('Checkout successful');

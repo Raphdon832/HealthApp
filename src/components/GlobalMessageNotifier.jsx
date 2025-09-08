@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { listenUserThreads } from '@/lib/db';
 import notificationSound from '@/assets/message-tone.mp3';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 /**
  * GlobalMessageNotifier
@@ -18,20 +20,48 @@ export default function GlobalMessageNotifier() {
 
   useEffect(() => {
     if (!user?.uid || !profile?.role) return;
-    // Listen to all threads for this user
     return listenUserThreads(
       { uid: user.uid, role: profile.role },
       (threads) => {
         threads.forEach((thread) => {
-          // Listen to the last message in each thread
           if (!thread.id) return;
-          const messagesCol = window.firebase.firestore().collection('threads').doc(thread.id).collection('messages');
-          messagesCol.orderBy('createdAt', 'desc').limit(1).onSnapshot((snap) => {
+          const messagesQ = query(
+            collection(db, 'threads', thread.id, 'messages'),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+          );
+          onSnapshot(messagesQ, (snap) => {
             if (snap.empty) return;
             const msg = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            // Only play if not sent by self, and not in this thread
             const isMine = msg.senderId === user.uid;
-            const isViewingThread = location.pathname.includes('/chat/') || (location.pathname === '/messages' && location.search.includes(thread.vendorId));
+            let isViewingThread = false;
+            // 1. /chat/:vendorId (full page chat route)
+            if (location.pathname.startsWith('/chat/')) {
+              const vendorId = location.pathname.split('/chat/')[1]?.split('/')[0];
+              if (profile.role === 'customer') {
+                if (thread.id === `${vendorId}__${user.uid}`) isViewingThread = true;
+              } else {
+                // For pharmacy, vendorId is their own uid, so find thread with their uid and any customer
+                if (thread.id.startsWith(`${user.uid}__`)) {
+                  // If pharmacy is in a full-page chat, we can't know which customer unless you encode it in the route
+                  isViewingThread = true;
+                }
+              }
+            }
+            // 2. /messages?chat=... (modal chat route)
+            if (location.pathname === '/messages') {
+              const params = new URLSearchParams(location.search);
+              const chatId = params.get('chat');
+              if (chatId) {
+                if (profile.role === 'customer') {
+                  // thread.id = <vendorId>__<customerId>
+                  if (thread.id === `${chatId}__${user.uid}`) isViewingThread = true;
+                } else {
+                  // thread.id = <pharmacyId>__<customerId>
+                  if (thread.id === `${user.uid}__${chatId}`) isViewingThread = true;
+                }
+              }
+            }
             if (!isMine && lastMsgIds.current[thread.id] !== msg.id && !isViewingThread) {
               if (audioRef.current) {
                 audioRef.current.currentTime = 0;
