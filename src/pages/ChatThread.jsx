@@ -135,15 +135,23 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
-  // Play tone on new message (when tab not active)
-  const prevMsgCount = useRef(0);
+  // Play tone on new incoming message (not sent by self)
+  const prevMsgId = useRef(null);
   useEffect(() => {
-    if (messages.length > prevMsgCount.current && !isTabActive && audioRef.current) {
+    if (!messages.length) return;
+    const lastMsg = messages[messages.length - 1];
+    if (
+      lastMsg.id !== prevMsgId.current &&
+      lastMsg.senderId !== user?.uid &&
+      audioRef.current
+    ) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
+      // Try to play, fallback if blocked
+      const playPromise = audioRef.current.play();
+      if (playPromise) playPromise.catch(() => {});
     }
-    prevMsgCount.current = messages.length;
-  }, [messages, isTabActive]);
+    prevMsgId.current = lastMsg.id;
+  }, [messages, user?.uid]);
 
   const otherUid = () => {
     if (!threadId || !user) return null;
