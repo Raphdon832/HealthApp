@@ -60,6 +60,20 @@ export default function Orders() {
     fetchProducts();
   }, [modalOrder]);
 
+  // Harmonize items for modal
+  function getHarmonizedItems(items) {
+    const map = {};
+    items.forEach(item => {
+      const key = item.productId;
+      if (!map[key]) {
+        map[key] = { ...item, qty: Number(item.qty || item.quantity || 1) };
+      } else {
+        map[key].qty += Number(item.qty || item.quantity || 1);
+      }
+    });
+    return Object.values(map);
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -174,14 +188,14 @@ export default function Orders() {
             <div className="text-zinc-500 text-xs mb-4">{modalOrder.createdAt?.toDate?.().toLocaleString?.()||''}</div>
             <div className="mb-2 text-[15px] font-medium">Items:</div>
             <ul className="mb-4 space-y-2">
-              {modalOrder.items.map((item, idx) => {
-                const prod = modalOrderProducts[idx];
+              {getHarmonizedItems(modalOrder.items).map((item, idx) => {
+                const prod = modalOrderProducts.find(p => p && p.id === item.productId);
                 return (
-                  <li key={idx} className="flex items-center gap-3">
+                  <li key={item.productId} className="flex items-center gap-3">
                     {prod && prod.image && <img src={prod.image} alt={prod.name} className="h-10 w-10 object-cover rounded-lg border" />}
                     <div className="flex-1">
                       <div className="font-poppins font-medium text-[14px]">{prod ? prod.name : item.productId}</div>
-                      <div className="text-zinc-500 text-xs">Qty: {item.qty || item.quantity || 1}</div>
+                      <div className="text-zinc-500 text-xs">Qty: {item.qty}</div>
                     </div>
                     <div className="text-[14px] font-medium text-sky-600">₦{Number(item.price || prod?.price || 0).toLocaleString()}</div>
                   </li>
