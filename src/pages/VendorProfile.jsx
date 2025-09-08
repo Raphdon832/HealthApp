@@ -5,6 +5,8 @@ import { getDoc, doc } from 'firebase/firestore';
 import { listenProducts, getOrCreateThread } from '@/lib/db'; // ⬅︎ use new helper
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
@@ -47,6 +49,81 @@ export default function VendorProfile() {
     }
   };
 
+  // PDF report generation (table format)
+  const handleDownloadReport = async () => {
+    if (!vendor) return;
+    const doc = new jsPDF();
+    let y = 10;
+    doc.setFontSize(18);
+    doc.text('Pharmacy Report', 14, y);
+    y += 10;
+    doc.setFontSize(12);
+    // Vendor Info Table
+    autoTable(doc, {
+      startY: y,
+      head: [['Field', 'Value']],
+      body: [
+        ['Pharmacy', vendor.name || ''],
+        ['Email', vendor.email || ''],
+        ['Address', vendor.address || ''],
+        ['Phone', vendor.phone || ''],
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [30, 144, 255] },
+      styles: { fontSize: 11 },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    // Products Table
+    if (products.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Product Name', 'Category', 'Stock', 'SKU', 'Price']],
+        body: products.map((p) => [
+          p.name,
+          p.category,
+          p.stock,
+          p.sku,
+          `₦${Number(p.price).toLocaleString()}`
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [30, 144, 255] },
+        styles: { fontSize: 10 },
+        margin: { left: 14, right: 14 },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    // Orders Table (fetch orders for this vendor)
+    let orders = [];
+    try {
+      // Example: fetch orders from Firestore (adjust as needed)
+      // const q = query(collection(db, 'orders'), where('pharmacyId', '==', id));
+      // const snap = await getDocs(q);
+      // orders = snap.docs.map(doc => doc.data());
+    } catch (e) {}
+    if (orders.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Order ID', 'Customer', 'Status', 'Date', 'Products']],
+        body: orders.map((order) => [
+          order.id || '',
+          order.customerName || '',
+          order.status || '',
+          order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : '',
+          (order.items || []).map(item => `${item.name} (x${item.quantity})`).join(', ')
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [30, 144, 255] },
+        styles: { fontSize: 10 },
+        margin: { left: 14, right: 14 },
+      });
+    }
+
+    doc.save(`${vendor.name || 'pharmacy'}-report.pdf`);
+  };
+
   return (
     <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
       {/* Sticky header with back button and title */}
@@ -82,6 +159,13 @@ export default function VendorProfile() {
         className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2 mb-8"
       >
         <MessageCircle className="h-4 w-4" /> Message Vendor
+      </button>
+
+      <button
+        onClick={handleDownloadReport}
+        className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2 mb-8"
+      >
+        Download report
       </button>
 
       <div className="flex items-center justify-between mb-4">

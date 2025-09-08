@@ -63,7 +63,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     });
   }, [user]);
 
-  function downloadReport() {
+  async function downloadReport() {
     const docPDF = new jsPDF();
     docPDF.setFont('helvetica', 'normal');
     docPDF.setFontSize(16);
@@ -76,6 +76,44 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     docPDF.text(`Products Sold: ${productsSold}`, 25, 80);
     docPDF.text(`Active Chats: ${activeChats}`, 25, 90);
     docPDF.text(`Reviews: ${reviews}`, 25, 100);
+    // Dashboard stats (except message preview)
+    let y = 115;
+    docPDF.setFontSize(14);
+    docPDF.text('Orders', 20, y);
+    y += 8;
+    docPDF.setFontSize(10);
+    // Fetch all orders and all products for pharmacy
+    const ordersSnap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', user.uid)));
+    const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const productsSnap = await getDocs(query(collection(db, 'products'), where('pharmacyId', '==', user.uid)));
+    const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Map productId to name
+    const prodMap = {};
+    products.forEach(p => { prodMap[p.id] = p.name; });
+    for (const order of orders) {
+      docPDF.setFontSize(10);
+      docPDF.text(`Order #${order.id.slice(0, 8)} | Date: ${(order.createdAt?.toDate?.() || '').toLocaleString?.() || ''} | Total: ₦${Number(order.total).toLocaleString()}`, 20, y);
+      y += 6;
+      // Harmonize items by productId
+      const itemMap = {};
+      (order.items || []).forEach(item => {
+        const key = item.productId;
+        if (!itemMap[key]) {
+          itemMap[key] = { ...item, qty: Number(item.qty || item.quantity || 1) };
+        } else {
+          itemMap[key].qty += Number(item.qty || item.quantity || 1);
+        }
+      });
+      for (const key in itemMap) {
+        const item = itemMap[key];
+        const name = item.name || prodMap[key] || key;
+        docPDF.text(`- ${name} (ID: ${key}) x${item.qty}  ₦${Number(item.price || 0).toLocaleString()}`, 25, y);
+        y += 5;
+        if (y > 270) { docPDF.addPage(); y = 20; }
+      }
+      y += 3;
+      if (y > 270) { docPDF.addPage(); y = 20; }
+    }
     docPDF.save('pharmacy-profile-report.pdf');
   }
 
