@@ -5,6 +5,7 @@ import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/ProductCard';
 import { useNavigate } from 'react-router-dom';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -132,6 +133,10 @@ export default function Home() {
     } catch (e) {
     }
   };
+
+  if (!products.length) {
+    return <LoadingSkeleton lines={6} className="my-8" />;
+  }
 
   return (
     <div className="min-h-screen w-full px-0 pb-28">

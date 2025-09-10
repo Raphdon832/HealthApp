@@ -7,6 +7,7 @@ import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAu
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -61,17 +62,7 @@ export default function ProfileCustomer() {
   }, [user]);
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
-        <button
-          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
-          onClick={() => navigate('/auth/landing')}
-        >
-          Sign In / Sign Up
-        </button>
-      </div>
-    );
+    return <LoadingSkeleton lines={4} className="my-8" />;
   }
 
   return (

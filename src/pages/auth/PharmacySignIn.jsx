@@ -4,24 +4,32 @@ import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import BackButton from './BackButton';
 import { useAuth } from '@/lib/auth';
+import FailureScreen from './FailureScreen';
 
 
 export default function PharmacySignIn(){
 const { signIn } = useAuth();
 const [form, setForm] = useState({ email:'', password:'' });
 const [busy, setBusy] = useState(false);
+const [error, setError] = useState(null);
 const navigate = useNavigate();
 
 
 const submit = async (e)=>{
 e.preventDefault();
 setBusy(true);
+setError(null);
 try{
 await signIn(form.email, form.password);
 navigate('/');
-}catch(err){ alert(err.message); }
+}catch(err){
+setError(err.message || 'Login failed.');
+}
 finally{ setBusy(false); }
 }
+
+
+if (error) return <FailureScreen message={error} onRetry={()=>setError(null)} />;
 
 
 return (
@@ -35,7 +43,9 @@ return (
 <button disabled={busy} className="w-full sm:w-[359px] h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] lg:text-[18px] font-light border-[#36A5FF] text-[#36A5FF] bg-white mt-4 flex items-center justify-center">{busy?'Signing in…':'Sign In'}</button>
 </div>
 </form>
-<div className="mt-6 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Forgot password?</div>
+<div className="mt-6 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">
+  <Link to="/auth/forgot-password" className="text-sky-600 font-medium">Forgot password?</Link>
+</div>
 <div className="mt-2 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">Don’t have an account? <Link to="/auth/pharmacy/register" className="text-sky-600 font-medium">Register</Link></div>
 </AuthLayout>
 );

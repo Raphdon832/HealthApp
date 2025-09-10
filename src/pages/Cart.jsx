@@ -5,6 +5,7 @@ import { removeFromCart, placeOrder } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@/icons/react/DeleteIcon';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -63,6 +64,10 @@ export default function Cart() {
         </button>
       </div>
     );
+  }
+
+  if (user && items.length === 0) {
+    return <LoadingSkeleton lines={3} className="my-8" />;
   }
 
   return (

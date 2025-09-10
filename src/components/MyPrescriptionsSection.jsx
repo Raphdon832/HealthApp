@@ -3,6 +3,8 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import PrescriptionList from '@/components/PrescriptionList';
 import { useAuth } from '@/lib/auth';
+import { fulfillPrescriptionIfOrdered } from '@/lib/db';
+import LoadingSkeleton from './LoadingSkeleton';
 
 // Helper: Parse frequency string like "2x/day" to number of times per day
 function parseFrequency(freq) {
@@ -90,14 +92,19 @@ export default function MyPrescriptionsSection() {
   const { user } = useAuth();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     async function fetchPrescriptions() {
       setLoading(true);
+      // Fulfill prescriptions if all drugs are purchased (after order completion)
+      await fulfillPrescriptionIfOrdered({ customerId: user.uid });
       const q = query(collection(db, 'prescriptions'), where('customerId', '==', user.uid));
       const snap = await getDocs(q);
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort by startDate descending (most recent first)
+      data = data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
       setPrescriptions(data);
       setLoading(false);
       // Schedule notifications and save alarms
@@ -118,6 +125,9 @@ export default function MyPrescriptionsSection() {
 
   if (!user) return null;
 
+  const total = prescriptions.length;
+  const visiblePrescriptions = showAll ? prescriptions : prescriptions.slice(0, 1);
+
   return (
     <div className="w-full">
       <div className="text-[18px] font-light font-poppins text-black mb-2 tracking-tight">
@@ -130,15 +140,29 @@ export default function MyPrescriptionsSection() {
         )}
       </div>
       {loading ? (
-        <div className="text-zinc-400">Loading...</div>
+        <LoadingSkeleton lines={3} className="my-4" />
       ) : prescriptions.length === 0 ? (
         <div className="text-zinc-400">No prescriptions found.</div>
       ) : (
-        <PrescriptionList
-          prescriptions={prescriptions}
-          userId={user.uid}
-          chatThreadId={null} // Not needed for this view
-        />
+        <>
+          <PrescriptionList
+            prescriptions={visiblePrescriptions}
+            userId={user.uid}
+            chatThreadId={null} // Not needed for this view
+          />
+          {total > 1 && !showAll && (
+            <button
+              className="mt-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-medium"
+              onClick={() => setShowAll(true)}
+            >See more ({total})</button>
+          )}
+          {showAll && total > 1 && (
+            <button
+              className="mt-2 px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 text-xs font-medium"
+              onClick={() => setShowAll(false)}
+            >See less</button>
+          )}
+        </>
       )}
     </div>
   );

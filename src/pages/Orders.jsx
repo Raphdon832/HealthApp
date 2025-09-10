@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import Modal from '@/components/Modal';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
@@ -88,6 +89,10 @@ export default function Orders() {
     );
   }
 
+  if (loading) {
+    return <LoadingSkeleton lines={4} className="my-8" />;
+  }
+
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
       {/* Sticky header */}
@@ -109,9 +114,7 @@ export default function Orders() {
         ))}
       </div>
       <div className="mt-6 space-y-4">
-        {loading ? (
-          <div className="text-zinc-400 text-sm">Loading...</div>
-        ) : filteredOrders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">No orders yet.</div>
         ) : (
           filteredOrders.map(o => {

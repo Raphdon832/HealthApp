@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
 import ChatThread from './ChatThread';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function Messages() {
   const { user, profile } = useAuth();
@@ -88,6 +89,10 @@ export default function Messages() {
         </button>
       </div>
     );
+  }
+
+  if (!threads.length && user) {
+    return <LoadingSkeleton lines={4} className="my-8" />;
   }
 
   const me = user?.uid;

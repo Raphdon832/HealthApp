@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
@@ -25,7 +26,7 @@ export default function VendorProfile() {
     return listenProducts(setProducts, id);
   }, [id]);
 
-  if (!vendor) return <div className="p-8 text-center">Loading vendor...</div>;
+  if (!vendor) return <LoadingSkeleton lines={4} className="my-8" />;
 
   const handleMessageVendor = async () => {
     // must be signed in

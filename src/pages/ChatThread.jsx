@@ -365,6 +365,9 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
       <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
         <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
       </Modal>
+
+      {/* Prescription Quick Actions (for customer) */}
+      {/* Removed PrescriptionList from chat thread view as per requirements */}
     </div>
   );
 }

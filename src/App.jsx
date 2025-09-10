@@ -33,6 +33,8 @@ import CustomerRegister from '@/pages/auth/CustomerRegister';
 import CustomerSignIn from '@/pages/auth/CustomerSignIn';
 import PharmacyRegister from '@/pages/auth/PharmacyRegister';
 import PharmacySignIn from '@/pages/auth/PharmacySignIn';
+import VerifyEmail from '@/pages/VerifyEmail';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
 
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
@@ -179,6 +181,16 @@ function Shell() {
   const params = new URLSearchParams(location.search);
   const scrollTo = params.get('scrollTo') ? parseInt(params.get('scrollTo'), 10) : undefined;
 
+  // Block unverified users
+  if (user && !user.emailVerified) {
+    return (
+      <Routes>
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="*" element={<Navigate to="/verify-email" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       {/* Auth (no BottomNav) */}
@@ -188,6 +200,7 @@ function Shell() {
         <Route path="/auth/customer/signin" element={<CustomerSignIn />} />
         <Route path="/auth/pharmacy/register" element={<PharmacyRegister />} />
         <Route path="/auth/pharmacy/signin" element={<PharmacySignIn />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
 
         {/* Optional full-page chat route (also no BottomNav) */}

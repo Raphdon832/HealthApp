@@ -4,12 +4,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import BackButton from './BackButton';
 import { useAuth } from '@/lib/auth';
+import SuccessScreen from './SuccessScreen';
 
 
 export default function CustomerRegister(){
 const { signUp } = useAuth();
 const [form, setForm] = useState({ name:'', email:'', phone:'', password:'' });
 const [busy, setBusy] = useState(false);
+const [success, setSuccess] = useState(null);
 const navigate = useNavigate();
 
 
@@ -17,13 +19,16 @@ const submit = async (e)=>{
 e.preventDefault();
 setBusy(true);
 try{
-await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'customer' });
+const result = await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'customer' });
+setSuccess(form.email);
 // Optional: store phone under users doc can be added later
-navigate('/');
 }catch(err){
 alert(err.message);
 }finally{ setBusy(false); }
 }
+
+
+if (success) return <SuccessScreen email={success} />;
 
 
 return (

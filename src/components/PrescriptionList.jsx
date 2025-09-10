@@ -97,12 +97,14 @@ export default function PrescriptionList({ chatThreadId, prescriptions: propPres
             <div className="flex flex-col gap-2">
               {p.drugs.map((d, i) => {
                 const { quantityLeft } = getDrugStatus(d, p, i);
+                // Disable if requirePurchase and not fulfilled
+                const disableMarkDose = (p.requirePurchase && !p.fulfilled) || quantityLeft <= 0;
                 return (
                   <button
                     key={i}
                     className="rounded-full bg-sky-600 text-white text-[10px] px-2 py-0.5 ml-auto disabled:opacity-40 mb-1 shadow-sm"
                     style={{minWidth: 70, height: 24, lineHeight: '16px'}}
-                    disabled={quantityLeft <= 0}
+                    disabled={disableMarkDose}
                     onClick={() => handleMarkDose(p.id, i)}
                   >Mark Dose</button>
                 );
@@ -121,6 +123,14 @@ export default function PrescriptionList({ chatThreadId, prescriptions: propPres
                   <span className={daysLeft <= 2 ? 'text-red-500' : 'text-green-600'}>Days left: {daysLeft}</span>
                   <span className={quantityLeft <= 2 ? 'text-red-500' : 'text-green-600'}>Qty left: {quantityLeft}</span>
                   {d.notes && <span className="block text-xs text-zinc-400">Notes: {d.notes}</span>}
+                  {d.productId && p.requirePurchase && (
+                    <a
+                      href={`/product/${d.productId}`}
+                      className="mt-1 inline-block text-xs text-sky-600 underline hover:text-sky-800 transition"
+                    >
+                      View & Buy
+                    </a>
+                  )}
                 </li>
               );
             })}

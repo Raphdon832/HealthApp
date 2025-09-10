@@ -3,11 +3,12 @@ import { addToCart } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  if (!product) return null;
+  if (!product) return <LoadingSkeleton lines={5} className="my-8" />;
 
   const price = Number(product.price || 0);
 

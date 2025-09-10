@@ -6,6 +6,7 @@ import BackButton from './BackButton';
 import { useAuth } from '@/lib/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import SuccessScreen from './SuccessScreen';
 
 
 export default function PharmacyRegister(){
@@ -14,6 +15,7 @@ const [form, setForm] = useState({ name:'', email:'', phone:'', address:'', pass
 const [busy, setBusy] = useState(false);
 const [addressSuggestions, setAddressSuggestions] = useState([]);
 const [selectedAddress, setSelectedAddress] = useState(null);
+const [success, setSuccess] = useState(null);
 const addressTimeout = useRef();
 const navigate = useNavigate();
 
@@ -40,27 +42,30 @@ const handleSelectSuggestion = (s) => {
 };
 
 const submit = async (e)=>{
-e.preventDefault();
-setBusy(true);
-try{
-await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'pharmacy' });
-const uid = auth.currentUser?.uid;
-if (uid) {
-await setDoc(doc(db, 'pharmacies', uid), {
-id: uid,
-name: form.name,
-email: form.email,
-address: form.address,
-lat: selectedAddress?.lat || null,
-lon: selectedAddress?.lon || null,
-etaMins: 25,
-phone: form.phone
-});
+  e.preventDefault();
+  setBusy(true);
+  try{
+    await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'pharmacy' });
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      await setDoc(doc(db, 'pharmacies', uid), {
+        id: uid,
+        name: form.name,
+        email: form.email,
+        address: form.address,
+        lat: selectedAddress?.lat || null,
+        lon: selectedAddress?.lon || null,
+        etaMins: 25,
+        phone: form.phone
+      });
+    }
+    setSuccess(form.email);
+  }catch(err){
+    alert(err.message);
+  }finally{ setBusy(false); }
 }
-navigate('/');
-}catch(err){ alert(err.message); }
-finally{ setBusy(false); }
-}
+
+if (success) return <SuccessScreen email={success} />;
 
 
 return (

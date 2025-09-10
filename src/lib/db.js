@@ -234,3 +234,27 @@ export async function getPrescriptionsForThread(chatThreadId) {
   const snap = await getDocs(q);
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
+// Fulfill prescription if all drugs are purchased
+export async function fulfillPrescriptionIfOrdered({ customerId }) {
+  // 1. Get all prescriptions for this customer that require purchase and are not fulfilled
+  const presSnap = await getDocs(query(collection(db, 'prescriptions'), where('customerId', '==', customerId), where('requirePurchase', '==', true), where('fulfilled', '!=', true)));
+  const prescriptions = presSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  if (!prescriptions.length) return;
+  // 2. Get all fulfilled orders for this customer
+  const ordersSnap = await getDocs(query(collection(db, 'orders'), where('customerId', '==', customerId), where('status', '==', 'fulfilled')));
+  const allOrderItems = [];
+  ordersSnap.forEach(orderDoc => {
+    const order = orderDoc.data();
+    (order.items || []).forEach(item => {
+      allOrderItems.push(item.productId);
+    });
+  });
+  // 3. For each prescription, check if all drugs are in the orders
+  for (const p of prescriptions) {
+    const allDrugsPurchased = p.drugs.every(d => d.productId && allOrderItems.includes(d.productId));
+    if (allDrugsPurchased) {
+      await updateDoc(doc(db, 'prescriptions', p.id), { fulfilled: true });
+    }
+  }
+}

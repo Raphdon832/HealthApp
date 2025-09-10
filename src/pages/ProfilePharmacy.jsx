@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout } = useAuth();
@@ -153,17 +154,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   }, [editingProduct]);
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
-        <button
-          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
-          onClick={() => navigate('/auth/landing')}
-        >
-          Sign In / Sign Up
-        </button>
-      </div>
-    );
+    return <LoadingSkeleton lines={4} className="my-8" />;
   }
 
   return (
