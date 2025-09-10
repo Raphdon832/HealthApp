@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { sendReset } from '@/lib/email';
-import ForgotPasswordIllustration from '@/icons/illustrations/ForgotPasswordIllustration.png'; // <-- adjust name if different
+//import ForgotPasswordIllustration from '@/icons/illustrations/ForgotPasswordIllustration.png'; // <-- adjust name if different
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -26,7 +26,7 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md text-center bg-white rounded-2xl  p-8">
         {/* Illustration above heading */}
         <img
-          src={ForgotPasswordIllustration}
+          src="/ForgotPasswordIllustration.png"
           alt="Forgot Password"
           className="mx-auto mb-4 w-28 h-28 object-contain"
         />
