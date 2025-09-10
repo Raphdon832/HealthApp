@@ -22,13 +22,13 @@ export default function PrescriptionList({ chatThreadId, products, userId }) {
 
   return (
     <div className="mt-4">
-      <div className="text-lg font-medium mb-2">Prescriptions</div>
+      <div className="text-lg font-light mb-2">Prescriptions</div>
       {prescriptions.length === 0 && <div className="text-zinc-400 text-sm">No prescriptions yet.</div>}
       {prescriptions.map(p => (
         <div key={p.id} className="mb-4 border rounded p-3">
-          <div className="font-medium mb-1">Created: {new Date(p.startDate).toLocaleDateString()}</div>
-          <div className="mb-1 text-xs text-zinc-500">Status: {p.status}</div>
-          <ul className="mb-2">
+          <div className="font-thin mb-1">Created: {new Date(p.startDate).toLocaleDateString()}</div>
+          <div className="mb-1 text-xs text-zinc-500 font-light">Status: {p.status}</div>
+          <ul className="mb-2 text-[12px]">
             {p.drugs.map((d, i) => {
               const { daysLeft, quantityLeft } = getDrugStatus(d, p);
               return (
