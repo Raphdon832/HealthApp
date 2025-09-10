@@ -92,7 +92,11 @@ export default function Messages() {
   }
 
   if (!threads.length && user) {
-    return <LoadingSkeleton lines={4} className="my-8" />;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="text-zinc-500 text-lg font-light">No conversations yet.</div>
+      </div>
+    );
   }
 
   const me = user?.uid;
