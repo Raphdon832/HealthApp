@@ -162,12 +162,7 @@ export default function VendorProfile() {
         <MessageCircle className="h-4 w-4" /> Message Vendor
       </button>
 
-      <button
-        onClick={handleDownloadReport}
-        className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2 mb-8"
-      >
-        Download report
-      </button>
+      
 
       <div className="flex items-center justify-between mb-4">
         <div className="text-[17px] font-poppins font-medium">Products by {vendor.name}</div>
