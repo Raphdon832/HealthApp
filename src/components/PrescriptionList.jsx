@@ -49,17 +49,35 @@ export default function PrescriptionList({ chatThreadId, prescriptions: propPres
     return { daysLeft, quantityLeft };
   }
 
+  // Helper to parse dosage string and extract the number of pills per dose
+  function parseDosage(dosage) {
+    // Try to extract a number from the dosage string (e.g. "2 tablets", "1 capsule", "3 pills")
+    if (!dosage) return 1;
+    const match = dosage.match(/(\d+(?:\.\d+)?)/);
+    if (match) return Number(match[1]);
+    return 1;
+  }
+
   // Mark dose taken handler
   async function handleMarkDose(prescriptionId, drugIdx) {
     setQtyMap(prev => {
       const next = { ...prev };
-      next[prescriptionId] = { ...next[prescriptionId], [drugIdx]: Math.max(0, (next[prescriptionId]?.[drugIdx] ?? 1) - 1) };
+      const p = prescriptions.find(p => p.id === prescriptionId);
+      if (!p) return prev;
+      const d = p.drugs[drugIdx];
+      const dosageNum = parseDosage(d.dosage);
+      const currentQty = next[prescriptionId]?.[drugIdx] ?? d.quantity;
+      next[prescriptionId] = { ...next[prescriptionId], [drugIdx]: Math.max(0, currentQty - dosageNum) };
       return next;
     });
     // Persist to Firestore (update the prescription's drugs array)
     const p = prescriptions.find(p => p.id === prescriptionId);
     if (!p) return;
-    const newDrugs = p.drugs.map((d, i) => i === drugIdx ? { ...d, quantity: Math.max(0, d.quantity - 1) } : d);
+    const d = p.drugs[drugIdx];
+    const dosageNum = parseDosage(d.dosage);
+    const newDrugs = p.drugs.map((drug, i) =>
+      i === drugIdx ? { ...drug, quantity: Math.max(0, drug.quantity - dosageNum) } : drug
+    );
     await updateDoc(doc(db, 'prescriptions', prescriptionId), { drugs: newDrugs });
     // Optionally, update local state
     setPrescriptions(prev => prev.map(p => p.id === prescriptionId ? { ...p, drugs: newDrugs } : p));
