@@ -10,7 +10,24 @@ import {
 ----------------------------------*/
 export const getAllPharmacies = async () => {
   const snap = await getDocs(collection(db, 'pharmacies'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const pharmacies = await Promise.all(snap.docs.map(async d => {
+    const data = { id: d.id, ...d.data() };
+    // Prefer lat/lon fields if present
+    if (data.lat && data.lon) {
+      data.coordinates = { latitude: Number(data.lat), longitude: Number(data.lon) };
+    } else if (data.address) {
+      // Fallback: geocode address (OpenStreetMap)
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.address)}&limit=1`);
+        const geo = await res.json();
+        if (geo && geo[0]) {
+          data.coordinates = { latitude: Number(geo[0].lat), longitude: Number(geo[0].lon) };
+        }
+      } catch {}
+    }
+    return data;
+  }));
+  return pharmacies;
 };
 
 /* -----------------------------
