@@ -10,6 +10,7 @@
     "seed": "node --env-file=.env scripts/seed.mjs"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.7",
     "firebase": "^10.12.4",
     "framer-motion": "^12.23.12",
     "jspdf": "^3.0.2",

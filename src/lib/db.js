@@ -210,3 +210,27 @@ export const getBestSellingProducts = async (limitCount = 5, pharmacyId) => {
     dateAdded: p.dateAdded
   }));
 }
+
+/* -----------------------------
+   PRESCRIPTIONS (new code)
+----------------------------------*/
+export async function createPrescription({ pharmacyId, customerId, chatThreadId, drugs, startDate, duration, notes }) {
+  return await addDoc(collection(db, 'prescriptions'), {
+    pharmacyId,
+    customerId,
+    chatThreadId,
+    drugs,
+    startDate,
+    duration,
+    notes,
+    status: 'active',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getPrescriptionsForThread(chatThreadId) {
+  const q = query(collection(db, 'prescriptions'), where('chatThreadId', '==', chatThreadId));
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}

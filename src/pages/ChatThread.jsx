@@ -13,6 +13,12 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Paperclip, Send } from 'lucide-react';
 import CallIcon from '@/icons/react/CallIcon';
 import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
+import CreatePrescriptionModal from '@/components/CreatePrescriptionModal';
+import PrescriptionList from '@/components/PrescriptionList';
+import { createPrescription } from '@/lib/db';
+import { Menu } from '@headlessui/react';
+import Modal from '@/components/Modal';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 /**
  * Props (either/or):
@@ -50,6 +56,9 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const [lastMessageId, setLastMessageId] = useState(null);
   const [isTabActive, setIsTabActive] = useState(true);
   const audioRef = useRef(null);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [pharmacyProducts, setPharmacyProducts] = useState([]);
+  const [showPrescriptionHistory, setShowPrescriptionHistory] = useState(false);
 
   // Resolve thread:
   // - customer + vendorId => create/get
@@ -166,6 +175,38 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     setText('');
   };
 
+  // Fetch pharmacy products for prescription modal
+  useEffect(() => {
+    let vId = null;
+    if (profile?.role === 'pharmacy') vId = user?.uid;
+    else if (threadId) [vId] = threadId.split('__');
+    if (!vId) return;
+    // Use modular Firestore API
+    const q = query(collection(db, 'products'), where('pharmacyId', '==', vId));
+    const unsub = onSnapshot(q, snap => {
+      setPharmacyProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, [profile?.role, user?.uid, threadId]);
+
+  // Handle prescription creation
+  const handleCreatePrescription = async ({ drugs, startDate, duration, notes }) => {
+    if (!threadId || !user) return;
+    const [vId, cId] = threadId.split('__');
+    await createPrescription({
+      pharmacyId: vId,
+      customerId: cId,
+      chatThreadId: threadId,
+      drugs,
+      startDate,
+      duration,
+      notes,
+    });
+    setShowPrescriptionModal(false);
+    // Optionally, send a chat message
+    await sendChatMessage(threadId, { senderId: user.uid, to: cId, text: 'A new prescription has been created.' });
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white">
       {/* Audio for message tone */}
@@ -201,7 +242,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
               </div>
             )}
           </div>
-          {/* Call button on the right for customer */}
+          {/* Call button for customer */}
           {profile?.role === 'customer' && (
             <a
               href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
@@ -213,6 +254,36 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
             >
               <CallIcon className="h-3 w-3 mr-1" /> Call
             </a>
+          )}
+          {/* Dropdown for pharmacy actions */}
+          {profile?.role === 'pharmacy' && threadId && (
+            <Menu as="div" className="relative inline-block text-left ml-2">
+              <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">Actions ▾</Menu.Button>
+              <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white border border-sky-200 divide-y divide-gray-100 rounded-[5px] shadow-lg focus:outline-none z-50">
+                <div className="py-1">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                        onClick={() => setShowPrescriptionModal(true)}
+                      >
+                        Create Prescription
+                      </button>
+                    )}
+                  </Menu.Item>
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                        onClick={() => setShowPrescriptionHistory(true)}
+                      >
+                        View Prescription History
+                      </button>
+                    )}
+                  </Menu.Item>
+                </div>
+              </Menu.Items>
+            </Menu>
           )}
         </div>
       </div>
@@ -282,6 +353,18 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           <div style={{ height: 6 }} />
         </div>
       </div>
+
+      {/* Create Prescription Modal */}
+      <CreatePrescriptionModal
+        open={showPrescriptionModal}
+        onClose={() => setShowPrescriptionModal(false)}
+        products={pharmacyProducts}
+        onSubmit={handleCreatePrescription}
+      />
+      {/* Prescription History Modal */}
+      <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
+        <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
+      </Modal>
     </div>
   );
 }
