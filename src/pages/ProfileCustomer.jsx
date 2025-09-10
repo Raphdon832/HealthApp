@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
+import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -227,6 +228,12 @@ export default function ProfileCustomer() {
           </div>
         )}
       </div>
+
+      {/* My Prescriptions Section (Card) */}
+      <div className="mt-8 rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
+        <MyPrescriptionsSection />
+      </div>
+
       <div className="mt-6">
         <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
       </div>
