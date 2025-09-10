@@ -127,8 +127,9 @@ export default function Orders() {
                 className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition"
                 style={{ cursor: 'pointer' }}
                 onClick={e => {
-                  // Only open modal if not clicking the see more/less button
+                  // Only open modal if not clicking the see more/less button or status dropdown (pharmacy view)
                   if (e.target.closest('.order-see-more-btn')) return;
+                  if (profile.role === 'pharmacy' && e.target.closest('.order-status-dropdown')) return;
                   setModalOrder(o);
                 }}
               >
@@ -169,7 +170,7 @@ export default function Orders() {
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[12px] text-zinc-500">Status:</span>
                       <select
-                        className="border rounded px-2 py-1 text-[12px]"
+                        className="order-status-dropdown border rounded px-2 py-1 text-[12px]"
                         value={o.status || 'pending'}
                         onChange={e => handleStatusChange(o.id, e.target.value)}
                       >
