@@ -91,14 +91,6 @@ export default function Messages() {
     );
   }
 
-  if (!threads.length && user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="text-zinc-500 text-lg font-light">No conversations yet.</div>
-      </div>
-    );
-  }
-
   const me = user?.uid;
   const myUnread = (t) => t?.unread?.[me] || 0;
   const displayName = (t) => (profile?.role === 'customer' ? t.vendorName : t.customerName) || '';
