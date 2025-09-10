@@ -118,6 +118,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     docPDF.save('pharmacy-profile-report.pdf');
   }
 
+  
+
   async function handleSaveProduct() {
     if (!editingProduct) return;
     let imageUrl = editImage;
