@@ -19,22 +19,42 @@ export default function Home() {
   const [userCoords, setUserCoords] = useState(null);
   const [closestPharmacy, setClosestPharmacy] = useState(null);
   const [eta, setEta] = useState(null);
+
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [showNewArrivalsModal, setShowNewArrivalsModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Info cards
   const [infoCards, setInfoCards] = useState([]);
   const infoSectionRef = useRef(null);
 
+  // Banner carousel state/refs
+  const [activeIdx, setActiveIdx] = useState(0);
+  const cardRefs = useRef([]);                // array of DOM nodes
+  cardRefs.current = [];                      // reset each render
+  const setCardRef = (i) => (el) => {         // stable setter per index
+    cardRefs.current[i] = el || null;
+  };
+
   // Filtered products by search and category
-  const filtered = useMemo(() =>
-    products.filter(p => {
-      const matchesSearch = ((p.name || '') + (p.category || '')).toLowerCase().includes(q.toLowerCase());
-      const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-      const matchesTag = Array.isArray(p.tags) && p.tags.some(tag => tag.toLowerCase().includes(q.toLowerCase()));
-      return matchesSearch || matchesCategory || matchesTag;
-    })
-  , [products, q, selectedCategory]);
+  const filtered = useMemo(
+    () =>
+      products.filter((p) => {
+        const matchesSearch = ((p.name || '') + (p.category || ''))
+          .toLowerCase()
+          .includes(q.toLowerCase());
+        const matchesCategory =
+          selectedCategory === 'All' ||
+          (p.category &&
+            p.category.toLowerCase() === selectedCategory.toLowerCase());
+        const matchesTag =
+          Array.isArray(p.tags) &&
+          p.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
+        return matchesSearch || matchesCategory || matchesTag;
+      }),
+    [products, q, selectedCategory]
+  );
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -43,17 +63,22 @@ export default function Home() {
       setLocation('Location not supported');
       return;
     }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      setUserCoords({ latitude, longitude });
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-        const data = await res.json();
-        setLocation(data.display_name || 'Location unavailable');
-      } catch {
-        setLocation('Unable to fetch address');
-      }
-    }, () => setLocation('Location permission denied'));
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserCoords({ latitude, longitude });
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          setLocation(data.display_name || 'Location unavailable');
+        } catch {
+          setLocation('Unable to fetch address');
+        }
+      },
+      () => setLocation('Location permission denied')
+    );
   }, []);
 
   useEffect(() => {
@@ -63,18 +88,27 @@ export default function Home() {
       if (!pharmacies || pharmacies.length === 0) return;
       function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
       }
-      let minDist = Infinity, minPharm = null;
-      pharmacies.forEach(pharm => {
+      let minDist = Infinity,
+        minPharm = null;
+      pharmacies.forEach((pharm) => {
         if (pharm.coordinates) {
-          const dist = getDistance(userCoords.latitude, userCoords.longitude, pharm.coordinates.latitude, pharm.coordinates.longitude);
+          const dist = getDistance(
+            userCoords.latitude,
+            userCoords.longitude,
+            pharm.coordinates.latitude,
+            pharm.coordinates.longitude
+          );
           if (dist < minDist) {
             minDist = dist;
             minPharm = pharm;
@@ -88,6 +122,7 @@ export default function Home() {
     fetchAndCalcETA();
   }, [userCoords]);
 
+  // New Arrivals auto-scroll
   useEffect(() => {
     if (!newArrivalsRef.current) return;
     let interval;
@@ -117,18 +152,22 @@ export default function Home() {
   // Fetch vendor names for all products
   useEffect(() => {
     async function fetchVendors() {
-      const vendorIds = Array.from(new Set(products.map(p => p.vendorId).filter(Boolean)));
+      const vendorIds = Array.from(
+        new Set(products.map((p) => p.vendorId).filter(Boolean))
+      );
       const vendorMap = {};
-      await Promise.all(vendorIds.map(async (vid) => {
-        if (!vid) return;
-        try {
-          const snap = await getDoc(doc(db, 'pharmacies', vid));
-          if (snap.exists()) {
-            const name = snap.data().name || 'Pharmacy';
-            vendorMap[vid] = name; // Use full name
-          }
-        } catch {}
-      }));
+      await Promise.all(
+        vendorIds.map(async (vid) => {
+          if (!vid) return;
+          try {
+            const snap = await getDoc(doc(db, 'pharmacies', vid));
+            if (snap.exists()) {
+              const name = snap.data().name || 'Pharmacy';
+              vendorMap[vid] = name; // Use full name
+            }
+          } catch {}
+        })
+      );
       setVendors(vendorMap);
     }
     if (products.length) fetchVendors();
@@ -137,7 +176,7 @@ export default function Home() {
   // Listen for info cards from Firestore
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'infoCards'), (snap) => {
-      setInfoCards(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setInfoCards(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, []);
@@ -145,31 +184,131 @@ export default function Home() {
   // Popular products: sort by combined popularity (viewCount + sold), exclude out-of-stock
   const popularProducts = useMemo(() => {
     return [...filtered]
-      .filter(p => (p.stock === undefined || p.stock > 0))
-      .sort((a, b) => ((b.viewCount || 0) + (b.sold || 0)) - ((a.viewCount || 0) + (a.sold || 0)));
+      .filter((p) => p.stock === undefined || p.stock > 0)
+      .sort(
+        (a, b) =>
+          (b.viewCount || 0) + (b.sold || 0) - ((a.viewCount || 0) + (a.sold || 0))
+      );
   }, [filtered]);
 
   const newArrivals = useMemo(() => {
     return [...products]
-      .filter(p => p.createdAt)
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+      .filter((p) => p.createdAt)
+      .sort(
+        (a, b) =>
+          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+      )
       .slice(0, 12);
   }, [products]);
+
   const allNewArrivals = useMemo(() => {
     return [...products]
-      .filter(p => p.createdAt)
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      .filter((p) => p.createdAt)
+      .sort(
+        (a, b) =>
+          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+      );
   }, [products]);
 
   const handleProductOpen = async (productId) => {
     navigate(`/product/${productId}`);
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p));
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p
+      )
+    );
     try {
       const { doc, updateDoc, increment } = await import('firebase/firestore');
-      await updateDoc(doc(db, 'products', productId), { viewCount: increment(1) });
-    } catch (e) {
-    }
+      await updateDoc(doc(db, 'products', productId), {
+        viewCount: increment(1),
+      });
+    } catch (e) {}
   };
+
+  // ===== Banner snap + auto-advance =====
+
+  // Determine which card is centered
+  useEffect(() => {
+    const wrap = infoSectionRef.current;
+    if (!wrap) return;
+
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const center = wrap.scrollLeft + wrap.clientWidth / 2;
+        let best = 0,
+          bestDist = Infinity;
+        cardRefs.current.forEach((el, idx) => {
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          const wrect = wrap.getBoundingClientRect();
+          const cardCenter =
+            rect.left - wrect.left + rect.width / 2 + wrap.scrollLeft;
+          const d = Math.abs(cardCenter - center);
+          if (d < bestDist) {
+            bestDist = d;
+            best = idx;
+          }
+        });
+        setActiveIdx(best);
+      });
+    };
+
+    wrap.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // init
+
+    return () => {
+      wrap.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [infoCards.length]);
+
+  // Auto-scroll to next card (pause on user interaction)
+  useEffect(() => {
+    const wrap = infoSectionRef.current;
+    if (!wrap || cardRefs.current.length === 0) return;
+
+    if (
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    let userInteracting = false;
+    let idleTimer;
+
+    const startUser = () => {
+      userInteracting = true;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        userInteracting = false;
+      }, 1800);
+    };
+
+    wrap.addEventListener('pointerdown', startUser);
+    wrap.addEventListener('wheel', startUser, { passive: true });
+    wrap.addEventListener('touchstart', startUser, { passive: true });
+
+    const tick = setInterval(() => {
+      if (userInteracting) return;
+      const next = (activeIdx + 1) % cardRefs.current.length;
+      cardRefs.current[next]?.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }, 3000);
+
+    return () => {
+      clearInterval(tick);
+      wrap.removeEventListener('pointerdown', startUser);
+      wrap.removeEventListener('wheel', startUser);
+      wrap.removeEventListener('touchstart', startUser);
+      clearTimeout(idleTimer);
+    };
+  }, [activeIdx, infoCards.length]);
 
   // Helper: is pharmacy user
   const isPharmacy = user && user.role === 'pharmacy';
@@ -186,34 +325,67 @@ export default function Home() {
             <div className="w-full mx-auto px-0">
               <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
                 <div className="flex flex-col justify-center">
-                  <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">Hello{user?`, ${user.displayName?.split(' ')[0]||'Friend'}`:''}</div>
-                  <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>{location}</span>
+                  <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
+                    Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
+                  </div>
+                  <span
+                    className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg"
+                    title={location}
+                  >
+                    {location}
+                  </span>
                 </div>
                 <div className="flex flex-col justify-center items-end">
-                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5"/>
+                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
-                    {eta && closestPharmacy ? `${eta} min${eta !== 1 ? 's' : ''} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}` : 'Fetching ETA...'}
+                    {eta && closestPharmacy
+                      ? `${eta} min${eta !== 1 ? 's' : ''} to ${
+                          vendors[closestPharmacy.vendorId] || 'your pharmacy'
+                        }`
+                      : 'Fetching ETA...'}
                   </span>
                 </div>
               </div>
-              <div className="w-full" style={{}}></div>
+              <div className="w-full" />
             </div>
           </div>
         </div>
       </div>
+
       <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pt-1 pb-28 px-0">
         <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
-          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400"/>
-          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search drugs, pharmacies" className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"/>
-          <div className="flex gap-1 text-zinc-400"><div className="h-1 w-1 bg-current rounded-full"/><div className="h-1 w-1 bg-current rounded-full"/><div className="h-1 w-1 bg-current rounded-full"/></div>
+          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search drugs, pharmacies"
+            className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
+          />
+          <div className="flex gap-1 text-zinc-400">
+            <div className="h-1 w-1 bg-current rounded-full" />
+            <div className="h-1 w-1 bg-current rounded-full" />
+            <div className="h-1 w-1 bg-current rounded-full" />
+          </div>
         </div>
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
-            {["All", "Prescription", "Over-the-counter", "Syrup", "Therapeutic", "Controlled", "Target System"].map(cat => (
+            {[
+              'All',
+              'Prescription',
+              'Over-the-counter',
+              'Syrup',
+              'Therapeutic',
+              'Controlled',
+              'Target System',
+            ].map((cat) => (
               <button
                 key={cat}
-                className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${selectedCategory===cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''}`}
+                className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${
+                  selectedCategory === cat
+                    ? 'bg-sky-100 border-sky-400 text-sky-700'
+                    : ''
+                }`}
                 onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
@@ -223,131 +395,145 @@ export default function Home() {
         </div>
 
         {/* Info Section (homepage banner) */}
-{infoCards.length > 0 && (
-  <div
-    className="w-full mt-6 mb-4 overflow-x-auto scrollbar-hide"
-    ref={infoSectionRef}
-    role="region"
-    aria-label="Announcements"
-    style={{ height: 160 }}
-  >
-    <div className="flex gap-4 md:gap-6 justify-center min-w-max h-full">
-      {infoCards.map((card) => {
-        const bg = card.bgColor || '#3BA3FF'; // default blue
-        return (
+        {infoCards.length > 0 && (
           <div
-            key={card.id}
-            className="relative flex-shrink-0 rounded-2xl overflow-hidden"
-            style={{
-              width: '90vw',
-              maxWidth: 700,
-              minWidth: 260,
-              height: '100%',
-              background: bg,
-            }}
+            className="w-full mt-6 mb-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
+            ref={infoSectionRef}
+            role="region"
+            aria-label="Announcements"
+            style={{ height: 160 }}
           >
-            {/* If a full-image card is provided, just fill the card */}
-            {card.fullImage ? (
-              <img
-                src={card.fullImage}
-                alt={card.header || 'Info'}
-                className="w-full h-full object-cover"
-                style={{ borderRadius: 'inherit' }}
-              />
-            ) : (
-              <>
-                {/* RIGHT IMAGE LAYER (behind text), vertically centered & right aligned */}
-                {card.image && (
-                  <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
-                    <img
-                      src={card.image}
-                      alt=""
-                      className="object-contain drop-shadow-md"
-                      style={{
-                        maxHeight: '100%',
-                        maxWidth: '100%',
-                        borderRadius: '0 16px 16px 0',
-                        opacity: 0.95,
-                      }}
-                    />
-                  </div>
-                )}
+            <div className="flex gap-4 md:gap-6 min-w-max h-full">
+              {infoCards.map((card, i) => {
+                const bg = card.bgColor || '#3BA3FF'; // default blue
+                return (
+                  <div
+                    key={card.id}
+                    ref={setCardRef(i)}
+                    className="relative flex-shrink-0 snap-center rounded-2xl shadow-lg overflow-hidden"
+                    style={{
+                      width: '90vw',
+                      maxWidth: 700,
+                      minWidth: 260,
+                      height: '100%',
+                      background: bg,
+                    }}
+                  >
+                    {/* If a full-image card is provided, just fill the card */}
+                    {card.fullImage ? (
+                      <img
+                        src={card.fullImage}
+                        alt={card.header || 'Info'}
+                        className="w-full h-full object-cover"
+                        style={{ borderRadius: 'inherit' }}
+                      />
+                    ) : (
+                      <>
+                        {/* RIGHT IMAGE LAYER (behind text), vertically centered & right aligned */}
+                        {card.image && (
+                          <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
+                            <img
+                              src={card.image}
+                              alt=""
+                              className="object-cover"
+                              style={{
+                                height: '100%',
+                                maxWidth: '55%',
+                                borderRadius: '0 16px 16px 0',
+                              }}
+                            />
+                          </div>
+                        )}
 
-                {/* Optional soft fade over right edge to keep text readable */}
-                <div
-                  className="absolute inset-y-0 right-0"
-                  style={{
-                    width: '55%',
-                    background:
-                      'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
-                    pointerEvents: 'none',
-                  }}
-                />
+                        {/* Optional soft fade over right edge to keep text readable */}
+                        <div
+                          className="absolute inset-y-0 right-0"
+                          style={{
+                            width: '55%',
+                            background:
+                              'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
+                            pointerEvents: 'none',
+                          }}
+                        />
 
-                {/* TEXT LAYER (constrained width, sits above image) */}
-                <div className="relative z-10 h-full flex items-center">
-                  <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[55%]">
-                    <div className="text-white font-light text-[22px] leading-none md:text-[28px] lg:text-[30px] tracking-tight">
-                      {card.header || '—'}
-                    </div>
+                        {/* TEXT LAYER (constrained width, sits above image) */}
+                        <div className="relative z-10 h-full flex items-center">
+                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[70%] md:max-w-[60%] lg:max-w-[55%]">
+                            <div className="text-white font-semibold text-[16px] md:text-[22px] lg:text-[24px]">
+                              {card.header || '—'}
+                            </div>
 
-                    {card.preview && (
-                      <div className="mt-1 text-white/90 leading-snug text-[11px] font-normal md:text-[14px] tracking-tight">
-                        {card.preview}
-                      </div>
+                            {card.preview && (
+                              <div className="mt-2 text-white/90 leading-snug text-[11px] md:text-[14px]">
+                                {card.preview}
+                              </div>
+                            )}
+
+                            {card.link && card.linkText && (
+                              <a
+                                href={card.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
+                              >
+                                {card.linkText}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </>
                     )}
-
-                    {card.link && card.linkText && (
-                      <a
-                        href={card.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
-                      >
-                        {card.linkText}
-                      </a>
-                    )}
                   </div>
-                </div>
-              </>
-            )}
+                );
+              })}
+            </div>
           </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+        )}
 
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
+            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">
+              New Arrivals
+            </div>
             <button
               className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600"
               onClick={() => setShowNewArrivalsModal(true)}
-            >view all</button>
+            >
+              view all
+            </button>
           </div>
-          <div ref={newArrivalsRef} className="w-full overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing" style={{overflowX: 'auto'}} onMouseDown={e => {
-            const el = newArrivalsRef.current;
-            if (!el) return;
-            let startX = e.pageX - el.offsetLeft;
-            let scrollLeft = el.scrollLeft;
-            function onMove(ev) {
-              el.scrollLeft = scrollLeft - (ev.pageX - el.offsetLeft - startX);
-            }
-            function onUp() {
-              window.removeEventListener('mousemove', onMove);
-              window.removeEventListener('mouseup', onUp);
-            }
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup', onUp);
-          }}>
+          <div
+            ref={newArrivalsRef}
+            className="w-full overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+            style={{ overflowX: 'auto' }}
+            onMouseDown={(e) => {
+              const el = newArrivalsRef.current;
+              if (!el) return;
+              let startX = e.pageX - el.offsetLeft;
+              let scrollLeft = el.scrollLeft;
+              function onMove(ev) {
+                el.scrollLeft =
+                  scrollLeft - (ev.pageX - el.offsetLeft - startX);
+              }
+              function onUp() {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+              }
+              window.addEventListener('mousemove', onMove);
+              window.addEventListener('mouseup', onUp);
+            }}
+          >
             <div className="flex gap-3 md:gap-4 lg:gap-6 min-w-max pb-2">
               {newArrivals.map((p) => (
                 <div className="relative" key={p.id || p.sku}>
                   <ProductCard
                     product={p}
-                    onOpen={()=>handleProductOpen(p.id)}
-                    onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
+                    onOpen={() => handleProductOpen(p.id)}
+                    onAdd={() =>
+                      user
+                        ? addToCart(user.uid, p.id, 1)
+                        : alert('Please sign in')
+                    }
                     cardWidth="110px"
                     cardHeight="128px"
                     nameSize="11px"
@@ -359,12 +545,15 @@ export default function Home() {
                     addColor="#36A5FF"
                     addSize="9px"
                   />
-                  <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">New</span>
+                  <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
+                    New
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
         {showNewArrivalsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-[20px] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
@@ -372,15 +561,23 @@ export default function Home() {
                 className="absolute top-2 right-2 text-zinc-500 hover:text-zinc-800 text-xl font-bold"
                 onClick={() => setShowNewArrivalsModal(false)}
                 aria-label="Close"
-              >&times;</button>
-              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
+              >
+                &times;
+              </button>
+              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">
+                All New Products
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
                 {allNewArrivals.map((p) => (
                   <div className="relative flex flex-col items-center" key={p.id || p.sku}>
                     <ProductCard
                       product={p}
-                      onOpen={()=>handleProductOpen(p.id)}
-                      onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
+                      onOpen={() => handleProductOpen(p.id)}
+                      onAdd={() =>
+                        user
+                          ? addToCart(user.uid, p.id, 1)
+                          : alert('Please sign in')
+                      }
                       cardWidth="110px"
                       cardHeight="128px"
                       nameSize="11px"
@@ -392,23 +589,30 @@ export default function Home() {
                       addColor="#36A5FF"
                       addSize="9px"
                     />
-                    <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">New</span>
+                    <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
+                      New
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         )}
+
         <div className="mt-10">
-          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
+          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">
+            Popular Products
+          </div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularProducts.map((p) => (
-              <div className="flex justify-center relative" key={p.id || p.sku + '-wrapper'}>
+              <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
                 <ProductCard
                   key={p.id || p.sku}
                   product={p}
-                  onOpen={()=>handleProductOpen(p.id)}
-                  onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
+                  onOpen={() => handleProductOpen(p.id)}
+                  onAdd={() =>
+                    user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')
+                  }
                   cardWidth="128px"
                   cardHeight="120px"
                   nameSize="12px"
