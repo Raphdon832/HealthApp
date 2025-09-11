@@ -6,9 +6,12 @@ import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/ProductCard';
 import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [vendors, setVendors] = useState({}); // vendorId -> vendorName
   const [q, setQ] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -22,13 +25,13 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Filtered products by search and category
-  const filtered = useMemo(() => {
-    return products.filter(p => {
-      const matchesSearch = (p.name + p.category).toLowerCase().includes(q.toLowerCase());
+  const filtered = useMemo(() =>
+    products.filter(p => {
+      const matchesSearch = ((p.name || '') + (p.category || '')).toLowerCase().includes(q.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
       return matchesSearch && matchesCategory;
-    });
-  }, [products, q, selectedCategory]);
+    })
+  , [products, q, selectedCategory]);
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -108,8 +111,31 @@ export default function Home() {
     };
   }, [isUserScrolling, filtered.length]);
 
+  // Fetch vendor names for all products
+  useEffect(() => {
+    async function fetchVendors() {
+      const vendorIds = Array.from(new Set(products.map(p => p.vendorId).filter(Boolean)));
+      const vendorMap = {};
+      await Promise.all(vendorIds.map(async (vid) => {
+        if (!vid) return;
+        try {
+          const snap = await getDoc(doc(db, 'pharmacies', vid));
+          if (snap.exists()) {
+            const name = snap.data().name || 'Pharmacy';
+            vendorMap[vid] = name; // Use full name
+          }
+        } catch {}
+      }));
+      setVendors(vendorMap);
+    }
+    if (products.length) fetchVendors();
+  }, [products]);
+
+  // Popular products: sort by combined popularity (viewCount + sold), exclude out-of-stock
   const popularProducts = useMemo(() => {
-    return [...filtered].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    return [...filtered]
+      .filter(p => (p.stock === undefined || p.stock > 0))
+      .sort((a, b) => ((b.viewCount || 0) + (b.sold || 0)) - ((a.viewCount || 0) + (a.sold || 0)));
   }, [filtered]);
 
   const newArrivals = useMemo(() => {
@@ -265,7 +291,7 @@ export default function Home() {
         )}
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularProducts.map((p) => (
               <div className="flex justify-center" key={p.id || p.sku + '-wrapper'}>
                 <ProductCard
@@ -273,18 +299,19 @@ export default function Home() {
                   product={p}
                   onOpen={()=>handleProductOpen(p.id)}
                   onAdd={()=> user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')}
-                  cardWidth="136px"
-                  cardHeight="156px"
-                  nameSize="13px"
+                  cardWidth="128px"
+                  cardHeight="120px"
+                  nameSize="10px"
                   nameWeight="medium"
                   nameTracking="-0.5px"
                   nameLineHeight="1.1"
-                  priceSize="12px"
+                  priceSize="9px"
                   priceColor="#BDBDBD"
                   priceWeight="medium"
                   priceLineHeight="1.1"
                   addColor="#36A5FF"
-                  addSize="11px"
+                  addSize="9px"
+                  borderRadius="10px"
                 />
               </div>
             ))}
