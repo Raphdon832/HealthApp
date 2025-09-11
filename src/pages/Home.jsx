@@ -304,6 +304,7 @@ export default function Home() {
                   nameSize="12px"
                   nameWeight="semibold"
                   nameTracking="-0.5px"
+                  nameLineHeight="-1.1"
                   priceSize="11px"
                   priceColor="#BDBDBD"
                   priceWeight="medium"
