@@ -223,85 +223,100 @@ export default function Home() {
         </div>
 
         {/* Info Section (homepage banner) */}
-        {infoCards.length > 0 && (
+{infoCards.length > 0 && (
+  <div
+    className="w-full mt-6 mb-4 overflow-x-auto scrollbar-hide"
+    ref={infoSectionRef}
+    role="region"
+    aria-label="Announcements"
+    style={{ height: 160 }}
+  >
+    <div className="flex gap-4 md:gap-6 justify-center min-w-max h-full">
+      {infoCards.map((card) => {
+        const bg = card.bgColor || '#3BA3FF'; // default blue
+        return (
           <div
-            className="w-full mt-6 mb-4 overflow-x-auto scrollbar-hide"
-            ref={infoSectionRef}
-            role="region"
-            aria-label="Announcements"
-            style={{ height: 160 }}
+            key={card.id}
+            className="relative flex-shrink-0 rounded-2xl overflow-hidden"
+            style={{
+              width: '90vw',
+              maxWidth: 700,
+              minWidth: 260,
+              height: '100%',
+              background: bg,
+            }}
           >
-            <div className="flex gap-4 justify-center md:gap-6 min-w-max h-full">
-              {infoCards.map(card => {
-                const bg = card.bgColor || '#3BA3FF'; // default blue
-                return (
-                  <div
-                    key={card.id}
-                    className="relative flex-shrink-0 rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row"
-                    style={{
-                      width: '90vw', // mobile default
-                      maxWidth: 700,
-                      minWidth: 260,
-                      height: '100%',
-                      background: bg,
-                      display: 'flex',
-                      alignItems: 'stretch',
-                      flexDirection: 'column',
-                    }}
-                  >
-                    {card.fullImage ? (
-                      <img
-                        src={card.fullImage}
-                        alt={card.header || 'Info'}
-                        className="w-full h-full object-cover"
-                        style={{ borderRadius: 'inherit' }}
-                      />
-                    ) : (
-                      <>
-                        <div className="flex flex-col justify-between p-4 md:p-6 flex-1">
-                          <div>
-                            <div className="text-[16px] md:text-[22px] lg:text-[24px] font-semibold text-white">
-                              {card.header || '—'}
-                            </div>
-                            {card.preview && (
-                              <div className="text-[11px] md:text-[14px] text-white/90 mt-2 leading-snug">
-                                {card.preview}
-                              </div>
-                            )}
-                          </div>
-                          {card.link && card.linkText && (
-                            <a
-                              href={card.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block mt-3 text-[12px] md:text-[13px] font-medium underline text-white"
-                            >
-                              {card.linkText}
-                            </a>
-                          )}
-                        </div>
-                        {card.image && (
-                          <div className="flex items-center justify-end h-full">
-                            <img
-                              src={card.image}
-                              alt=""
-                              className="object-contain"
-                              style={{ maxWidth: '45%',
-                                        maxHeight: '100%',
-                                        borderRadius: '0 16px 16px 0',
-                                        
-                                      }}
-                            />
-                          </div>
-                        )}
-                      </>
+            {/* If a full-image card is provided, just fill the card */}
+            {card.fullImage ? (
+              <img
+                src={card.fullImage}
+                alt={card.header || 'Info'}
+                className="w-full h-full object-cover"
+                style={{ borderRadius: 'inherit' }}
+              />
+            ) : (
+              <>
+                {/* RIGHT IMAGE LAYER (behind text), vertically centered & right aligned */}
+                {card.image && (
+                  <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
+                    <img
+                      src={card.image}
+                      alt=""
+                      className="object-contain drop-shadow-md"
+                      style={{
+                        maxHeight: '100%',
+                        maxWidth: '100%',
+                        borderRadius: '0 16px 16px 0',
+                        opacity: 0.95,
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Optional soft fade over right edge to keep text readable */}
+                <div
+                  className="absolute inset-y-0 right-0"
+                  style={{
+                    width: '55%',
+                    background:
+                      'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                {/* TEXT LAYER (constrained width, sits above image) */}
+                <div className="relative z-10 h-full flex items-center">
+                  <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[55%]">
+                    <div className="text-white font-light text-[22px] leading-none md:text-[28px] lg:text-[30px] tracking-tight">
+                      {card.header || '—'}
+                    </div>
+
+                    {card.preview && (
+                      <div className="mt-1 text-white/90 leading-snug text-[11px] font-normal md:text-[14px] tracking-tight">
+                        {card.preview}
+                      </div>
+                    )}
+
+                    {card.link && card.linkText && (
+                      <a
+                        href={card.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
+                      >
+                        {card.linkText}
+                      </a>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </>
+            )}
           </div>
-        )}
+        );
+      })}
+    </div>
+  </div>
+)}
 
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
