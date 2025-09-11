@@ -11,7 +11,7 @@ import { db } from '@/lib/firebase';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
-  const [vendors, setVendors] = useState({}); // vendorId -> vendorName
+  const [vendors, setVendors] = useState({});
   const [q, setQ] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,32 +29,22 @@ export default function Home() {
   const [infoCards, setInfoCards] = useState([]);
   const infoSectionRef = useRef(null);
 
-  // Banner carousel state/refs
+  // Banner carousel state/refs (PERSISTENT — do NOT reset each render)
   const [activeIdx, setActiveIdx] = useState(0);
-  const cardRefs = useRef([]);                // array of DOM nodes
-  cardRefs.current = [];                      // reset each render
-  const setCardRef = (i) => (el) => {         // stable setter per index
+  const cardRefs = useRef([]); // array of DOM nodes for each card
+  const setCardRef = (i) => (el) => {
     cardRefs.current[i] = el || null;
   };
 
   // Filtered products by search and category
-  const filtered = useMemo(
-    () =>
-      products.filter((p) => {
-        const matchesSearch = ((p.name || '') + (p.category || ''))
-          .toLowerCase()
-          .includes(q.toLowerCase());
-        const matchesCategory =
-          selectedCategory === 'All' ||
-          (p.category &&
-            p.category.toLowerCase() === selectedCategory.toLowerCase());
-        const matchesTag =
-          Array.isArray(p.tags) &&
-          p.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
-        return matchesSearch || matchesCategory || matchesTag;
-      }),
-    [products, q, selectedCategory]
-  );
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      const matchesSearch = ((p.name || '') + (p.category || '')).toLowerCase().includes(q.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
+      const matchesTag = Array.isArray(p.tags) && p.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
+      return matchesSearch || matchesCategory || matchesTag;
+    });
+  }, [products, q, selectedCategory]);
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -68,9 +58,7 @@ export default function Home() {
         const { latitude, longitude } = pos.coords;
         setUserCoords({ latitude, longitude });
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
           const data = await res.json();
           setLocation(data.display_name || 'Location unavailable');
         } catch {
@@ -87,42 +75,35 @@ export default function Home() {
       const pharmacies = await getAllPharmacies();
       if (!pharmacies || pharmacies.length === 0) return;
       function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // km
+        const R = 6371;
         const dLat = ((lat2 - lat1) * Math.PI) / 180;
         const dLon = ((lon2 - lon1) * Math.PI) / 180;
         const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.sin(dLat / 2) ** 2 +
           Math.cos((lat1 * Math.PI) / 180) *
             Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
+            Math.sin(dLon / 2) ** 2;
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
       }
-      let minDist = Infinity,
-        minPharm = null;
+      let minDist = Infinity, minPharm = null;
       pharmacies.forEach((pharm) => {
         if (pharm.coordinates) {
           const dist = getDistance(
-            userCoords.latitude,
-            userCoords.longitude,
-            pharm.coordinates.latitude,
-            pharm.coordinates.longitude
+            userCoords.latitude, userCoords.longitude,
+            pharm.coordinates.latitude, pharm.coordinates.longitude
           );
-          if (dist < minDist) {
-            minDist = dist;
-            minPharm = pharm;
-          }
+          if (dist < minDist) { minDist = dist; minPharm = pharm; }
         }
       });
       setClosestPharmacy(minPharm);
-      const etaMins = minDist ? Math.round((minDist / 25) * 60) : null;
+      const etaMins = Number.isFinite(minDist) ? Math.round((minDist / 25) * 60) : null;
       setEta(etaMins);
     }
     fetchAndCalcETA();
   }, [userCoords]);
 
-  // New Arrivals auto-scroll
+  // New Arrivals auto-scroll (unchanged)
   useEffect(() => {
     if (!newArrivalsRef.current) return;
     let interval;
@@ -149,22 +130,16 @@ export default function Home() {
     };
   }, [isUserScrolling, filtered.length]);
 
-  // Fetch vendor names for all products
+  // Vendors
   useEffect(() => {
     async function fetchVendors() {
-      const vendorIds = Array.from(
-        new Set(products.map((p) => p.vendorId).filter(Boolean))
-      );
+      const vendorIds = Array.from(new Set(products.map((p) => p.vendorId).filter(Boolean)));
       const vendorMap = {};
       await Promise.all(
         vendorIds.map(async (vid) => {
-          if (!vid) return;
           try {
             const snap = await getDoc(doc(db, 'pharmacies', vid));
-            if (snap.exists()) {
-              const name = snap.data().name || 'Pharmacy';
-              vendorMap[vid] = name; // Use full name
-            }
+            if (snap.exists()) vendorMap[vid] = snap.data().name || 'Pharmacy';
           } catch {}
         })
       );
@@ -173,7 +148,7 @@ export default function Home() {
     if (products.length) fetchVendors();
   }, [products]);
 
-  // Listen for info cards from Firestore
+  // Info cards from Firestore
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'infoCards'), (snap) => {
       setInfoCards(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -181,53 +156,36 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // Popular products: sort by combined popularity (viewCount + sold), exclude out-of-stock
+  // Popular/New
   const popularProducts = useMemo(() => {
     return [...filtered]
       .filter((p) => p.stock === undefined || p.stock > 0)
-      .sort(
-        (a, b) =>
-          (b.viewCount || 0) + (b.sold || 0) - ((a.viewCount || 0) + (a.sold || 0))
-      );
+      .sort((a, b) => ((b.viewCount || 0) + (b.sold || 0)) - ((a.viewCount || 0) + (a.sold || 0)));
   }, [filtered]);
 
   const newArrivals = useMemo(() => {
     return [...products]
       .filter((p) => p.createdAt)
-      .sort(
-        (a, b) =>
-          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-      )
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       .slice(0, 12);
   }, [products]);
 
   const allNewArrivals = useMemo(() => {
     return [...products]
       .filter((p) => p.createdAt)
-      .sort(
-        (a, b) =>
-          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-      );
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
   }, [products]);
 
   const handleProductOpen = async (productId) => {
     navigate(`/product/${productId}`);
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p
-      )
-    );
+    setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p)));
     try {
       const { doc, updateDoc, increment } = await import('firebase/firestore');
-      await updateDoc(doc(db, 'products', productId), {
-        viewCount: increment(1),
-      });
-    } catch (e) {}
+      await updateDoc(doc(db, 'products', productId), { viewCount: increment(1) });
+    } catch {}
   };
 
-  // ===== Banner snap + auto-advance =====
-
-  // Determine which card is centered
+  // ===== Banner: snap detection (which card is centered) =====
   useEffect(() => {
     const wrap = infoSectionRef.current;
     if (!wrap) return;
@@ -237,44 +195,34 @@ export default function Home() {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const center = wrap.scrollLeft + wrap.clientWidth / 2;
-        let best = 0,
-          bestDist = Infinity;
+        let best = 0, bestDist = Infinity;
         cardRefs.current.forEach((el, idx) => {
           if (!el) return;
           const rect = el.getBoundingClientRect();
           const wrect = wrap.getBoundingClientRect();
-          const cardCenter =
-            rect.left - wrect.left + rect.width / 2 + wrap.scrollLeft;
+          const cardCenter = rect.left - wrect.left + rect.width / 2 + wrap.scrollLeft;
           const d = Math.abs(cardCenter - center);
-          if (d < bestDist) {
-            bestDist = d;
-            best = idx;
-          }
+          if (d < bestDist) { bestDist = d; best = idx; }
         });
         setActiveIdx(best);
       });
     };
 
     wrap.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // init
-
+    onScroll(); // initial
     return () => {
       wrap.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(raf);
     };
   }, [infoCards.length]);
 
-  // Auto-scroll to next card (pause on user interaction)
+  // ===== Banner: auto-advance (pauses on interaction) =====
   useEffect(() => {
     const wrap = infoSectionRef.current;
     if (!wrap || cardRefs.current.length === 0) return;
 
-    if (
-      window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      return;
-    }
+    // honor reduced motion
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
     let userInteracting = false;
     let idleTimer;
@@ -282,9 +230,7 @@ export default function Home() {
     const startUser = () => {
       userInteracting = true;
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => {
-        userInteracting = false;
-      }, 1800);
+      idleTimer = setTimeout(() => { userInteracting = false; }, 1800); // pause duration after user input
     };
 
     wrap.addEventListener('pointerdown', startUser);
@@ -294,12 +240,8 @@ export default function Home() {
     const tick = setInterval(() => {
       if (userInteracting) return;
       const next = (activeIdx + 1) % cardRefs.current.length;
-      cardRefs.current[next]?.scrollIntoView({
-        behavior: 'smooth',
-        inline: 'center',
-        block: 'nearest',
-      });
-    }, 3000);
+      cardRefs.current[next]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 3000); // interval between auto-advances (ms)
 
     return () => {
       clearInterval(tick);
@@ -310,7 +252,6 @@ export default function Home() {
     };
   }, [activeIdx, infoCards.length]);
 
-  // Helper: is pharmacy user
   const isPharmacy = user && user.role === 'pharmacy';
 
   if (!products.length) {
@@ -328,10 +269,7 @@ export default function Home() {
                   <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
                     Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
                   </div>
-                  <span
-                    className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg"
-                    title={location}
-                  >
+                  <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
                     {location}
                   </span>
                 </div>
@@ -339,9 +277,7 @@ export default function Home() {
                   <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
                     {eta && closestPharmacy
-                      ? `${eta} min${eta !== 1 ? 's' : ''} to ${
-                          vendors[closestPharmacy.vendorId] || 'your pharmacy'
-                        }`
+                      ? `${eta} min${eta !== 1 ? 's' : ''} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}`
                       : 'Fetching ETA...'}
                   </span>
                 </div>
@@ -370,21 +306,11 @@ export default function Home() {
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
-            {[
-              'All',
-              'Prescription',
-              'Over-the-counter',
-              'Syrup',
-              'Therapeutic',
-              'Controlled',
-              'Target System',
-            ].map((cat) => (
+            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map((cat) => (
               <button
                 key={cat}
                 className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${
-                  selectedCategory === cat
-                    ? 'bg-sky-100 border-sky-400 text-sky-700'
-                    : ''
+                  selectedCategory === cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''
                 }`}
                 onClick={() => setSelectedCategory(cat)}
               >
@@ -401,74 +327,55 @@ export default function Home() {
             ref={infoSectionRef}
             role="region"
             aria-label="Announcements"
-            style={{ height: 160 }}
+            style={{ height: 140 }}
           >
             <div className="flex gap-4 md:gap-6 min-w-max h-full">
               {infoCards.map((card, i) => {
-                const bg = card.bgColor || '#3BA3FF'; // default blue
+                const bg = card.bgColor || '#3BA3FF';
                 return (
                   <div
                     key={card.id}
                     ref={setCardRef(i)}
-                    className="relative flex-shrink-0 snap-center rounded-2xl shadow-lg overflow-hidden"
-                    style={{
-                      width: '90vw',
-                      maxWidth: 700,
-                      minWidth: 260,
-                      height: '100%',
-                      background: bg,
-                    }}
+                    className="relative flex-shrink-0 snap-center rounded-2xl overflow-hidden"
+                    style={{ width: '90vw', maxWidth: 700, minWidth: 260, height: '100%', background: bg }}
                   >
-                    {/* If a full-image card is provided, just fill the card */}
                     {card.fullImage ? (
-                      <img
-                        src={card.fullImage}
-                        alt={card.header || 'Info'}
-                        className="w-full h-full object-cover"
-                        style={{ borderRadius: 'inherit' }}
-                      />
+                      <img src={card.fullImage} alt={card.header || 'Info'} className="w-full h-full object-cover" style={{ borderRadius: 'inherit' }} />
                     ) : (
                       <>
-                        {/* RIGHT IMAGE LAYER (behind text), vertically centered & right aligned */}
+                        {/* RIGHT IMAGE (behind text), fills height & stays right */}
                         {card.image && (
                           <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
                             <img
                               src={card.image}
                               alt=""
                               className="object-cover"
-                              style={{
-                                height: '100%',
-                                maxWidth: '55%',
-                                borderRadius: '0 16px 16px 0',
-                              }}
+                              style={{ height: '100%',
+                                maxWidth: '100%',
+                                borderRadius: '0 16px 16px 0' }}
                             />
                           </div>
                         )}
 
-                        {/* Optional soft fade over right edge to keep text readable */}
+                        {/* Soft fade over right edge to keep text readable */}
                         <div
                           className="absolute inset-y-0 right-0"
                           style={{
                             width: '55%',
-                            background:
-                              'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
+                            background: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
                             pointerEvents: 'none',
                           }}
                         />
 
-                        {/* TEXT LAYER (constrained width, sits above image) */}
+                        {/* TEXT (constrained, above image) */}
                         <div className="relative z-10 h-full flex items-center">
-                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[70%] md:max-w-[60%] lg:max-w-[55%]">
-                            <div className="text-white font-semibold text-[16px] md:text-[22px] lg:text-[24px]">
+                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[55%]">
+                            <div className="text-white font-light text-[22px] md:text-[28px] leading-none tracking-tight lg:text-[30px]">
                               {card.header || '—'}
                             </div>
-
                             {card.preview && (
-                              <div className="mt-2 text-white/90 leading-snug text-[11px] md:text-[14px]">
-                                {card.preview}
-                              </div>
+                              <div className="mt-2 text-white/90 leading-snug font-light text-[11px] md:text-[14px]">{card.preview}</div>
                             )}
-
                             {card.link && card.linkText && (
                               <a
                                 href={card.link}
@@ -492,13 +399,8 @@ export default function Home() {
 
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">
-              New Arrivals
-            </div>
-            <button
-              className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600"
-              onClick={() => setShowNewArrivalsModal(true)}
-            >
+            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
+            <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600" onClick={() => setShowNewArrivalsModal(true)}>
               view all
             </button>
           </div>
@@ -512,8 +414,7 @@ export default function Home() {
               let startX = e.pageX - el.offsetLeft;
               let scrollLeft = el.scrollLeft;
               function onMove(ev) {
-                el.scrollLeft =
-                  scrollLeft - (ev.pageX - el.offsetLeft - startX);
+                el.scrollLeft = scrollLeft - (ev.pageX - el.offsetLeft - startX);
               }
               function onUp() {
                 window.removeEventListener('mousemove', onMove);
@@ -529,11 +430,7 @@ export default function Home() {
                   <ProductCard
                     product={p}
                     onOpen={() => handleProductOpen(p.id)}
-                    onAdd={() =>
-                      user
-                        ? addToCart(user.uid, p.id, 1)
-                        : alert('Please sign in')
-                    }
+                    onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
                     cardWidth="110px"
                     cardHeight="128px"
                     nameSize="11px"
@@ -564,20 +461,14 @@ export default function Home() {
               >
                 &times;
               </button>
-              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">
-                All New Products
-              </div>
+              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
                 {allNewArrivals.map((p) => (
                   <div className="relative flex flex-col items-center" key={p.id || p.sku}>
                     <ProductCard
                       product={p}
                       onOpen={() => handleProductOpen(p.id)}
-                      onAdd={() =>
-                        user
-                          ? addToCart(user.uid, p.id, 1)
-                          : alert('Please sign in')
-                      }
+                      onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
                       cardWidth="110px"
                       cardHeight="128px"
                       nameSize="11px"
@@ -600,9 +491,7 @@ export default function Home() {
         )}
 
         <div className="mt-10">
-          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">
-            Popular Products
-          </div>
+          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularProducts.map((p) => (
               <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
@@ -610,9 +499,7 @@ export default function Home() {
                   key={p.id || p.sku}
                   product={p}
                   onOpen={() => handleProductOpen(p.id)}
-                  onAdd={() =>
-                    user ? addToCart(user.uid, p.id, 1) : alert('Please sign in')
-                  }
+                  onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
                   cardWidth="128px"
                   cardHeight="120px"
                   nameSize="12px"
