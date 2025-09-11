@@ -173,11 +173,11 @@ export default function Home() {
               <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
                 <div className="flex flex-col justify-center">
                   <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">Hello{user?`, ${user.displayName?.split(' ')[0]||'Friend'}`:''}</div>
-                  <span className="text-zinc-500 text-[12px] md:text-[14px] lg:text-[16px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>{location}</span>
+                  <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>{location}</span>
                 </div>
                 <div className="flex flex-col justify-center items-end">
-                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5"/>
-                  <span className="text-[12px] md:text-[14px] lg:text-[16px] font-poppins font-thin text-right leading-tight mt-0.5">
+                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5"/>
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
                     {eta && closestPharmacy ? `${eta} min${eta !== 1 ? 's' : ''} to ${closestPharmacy.name}` : 'Finding closest pharmacy...'}
                   </span>
                 </div>
@@ -274,7 +274,7 @@ export default function Home() {
                       cardWidth="110px"
                       cardHeight="128px"
                       nameSize="11px"
-                      nameWeight="semibold"
+                      nameWeight="semi-bold"
                       nameTracking="-0.5px"
                       priceSize="9px"
                       priceColor="#BDBDBD"
@@ -302,7 +302,7 @@ export default function Home() {
                   cardWidth="128px"
                   cardHeight="120px"
                   nameSize="12px"
-                  nameWeight="semibold"
+                  nameWeight="semi-bold"
                   nameTracking="-0.5px"
                   nameLineHeight="-1.1"
                   priceSize="11px"
