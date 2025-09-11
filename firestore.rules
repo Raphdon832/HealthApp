@@ -38,6 +38,11 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
 
+    match /infoCards/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superuser';
+    }
+
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

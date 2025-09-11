@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
-import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNavigate } from 'react-router-dom';
 import Modal from '@/components/Modal';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const drugCategories = [
   'Controlled Substances',
@@ -23,7 +24,8 @@ const dashboardTabs = [
   { key: 'carts', label: 'Carts' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'moderation', label: 'Moderation' },
-  { key: 'export', label: 'Export' }
+  { key: 'export', label: 'Export' },
+  { key: 'infoCards', label: 'Info Cards' }, // New tab
 ];
 
 const TABS_PER_PAGE = 3;
@@ -35,13 +37,18 @@ export default function SuperuserDashboard() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [orders, setOrders] = useState([]);
   const [carts, setCarts] = useState([]);
+  const [infoCards, setInfoCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [creatingUser, setCreatingUser] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [userForm, setUserForm] = useState({ displayName: '', email: '', address: '', phone: '', role: '', suspended: false });
+  const [editingInfoCard, setEditingInfoCard] = useState(null);
+  const [creatingInfoCard, setCreatingInfoCard] = useState(false);
+  const [userForm, setUserForm] = useState({ displayName: '', email: '', address: '', phone: '', role: '', suspended: false, password: '' });
   const [productForm, setProductForm] = useState({ name: '', image: '', description: '', stock: '', price: '', sku: '', category: '' });
+  const [infoCardForm, setInfoCardForm] = useState({ header: '', preview: '', link: '', linkText: '', image: '', fullImage: '', bgColor: '#f0f8ff' });
   const [activeTab, setActiveTab] = useState('users');
   const [userModalTab, setUserModalTab] = useState('profile');
   const [userPrescriptions, setUserPrescriptions] = useState([]);
@@ -49,6 +56,8 @@ export default function SuperuserDashboard() {
   const [userCart, setUserCart] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [tabPage, setTabPage] = useState(0);
+  const [addUserError, setAddUserError] = useState('');
+  const [infoCardError, setInfoCardError] = useState('');
   const tabContainerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -71,12 +80,16 @@ export default function SuperuserDashboard() {
     const unsubCarts = onSnapshot(collection(db, 'carts'), (cartsSnap) => {
       setCarts(cartsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
+    const unsubInfoCards = onSnapshot(collection(db, 'infoCards'), (snap) => {
+      setInfoCards(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => {
       unsubUsers();
       unsubProducts();
       unsubPrescriptions();
       unsubOrders();
       unsubCarts();
+      unsubInfoCards();
     };
   }, [user]);
 
@@ -91,6 +104,7 @@ export default function SuperuserDashboard() {
         phone: editingUser.phone || '',
         role: editingUser.role || '',
         suspended: editingUser.role === 'suspended',
+        password: '' // Always include password field
       });
       // Prescriptions
       unsubPres = onSnapshot(query(collection(db, 'prescriptions'), where('userId', '==', editingUser.id)), (presSnap) => {
@@ -105,6 +119,7 @@ export default function SuperuserDashboard() {
         setUserCart(cartSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
     } else {
+      setUserForm({ displayName: '', email: '', address: '', phone: '', role: '', suspended: false, password: '' });
       setUserPrescriptions([]);
       setUserOrders([]);
       setUserCart([]);
@@ -130,6 +145,21 @@ export default function SuperuserDashboard() {
       });
     }
   }, [editingProduct]);
+
+  // Prefill info card form when editingInfoCard changes
+  useEffect(() => {
+    if (editingInfoCard) {
+      setInfoCardForm({
+        header: editingInfoCard.header || '',
+        preview: editingInfoCard.preview || '',
+        link: editingInfoCard.link || '',
+        linkText: editingInfoCard.linkText || '',
+        image: editingInfoCard.image || '',
+        fullImage: editingInfoCard.fullImage || '',
+        bgColor: editingInfoCard.bgColor || '#f0f8ff',
+      });
+    }
+  }, [editingInfoCard]);
 
   // Scroll to active tab when changed
   useEffect(() => {
@@ -183,7 +213,10 @@ export default function SuperuserDashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="text-[15px] font-semibold tracking-wide text-sky-500">Users</div>
-            <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={()=>{/* open create user modal */}}>Add User</button>
+            <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={()=>{
+              setUserForm({ displayName: '', email: '', address: '', phone: '', role: 'customer', suspended: false });
+              setCreatingUser(true);
+            }}>Add User</button>
           </div>
           <div className="space-y-2">
             {(showAllUsers ? users : users.slice(0,3)).map(u => (
@@ -426,13 +459,17 @@ export default function SuperuserDashboard() {
         </button>
       </div>
       {/* User Edit Modal with Tabs */}
-      {editingUser && (
+      {(editingUser || creatingUser) && (
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:1000,background:'rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full border border-sky-100">
-            <div className="text-[16px] font-semibold tracking-wide text-sky-500 mb-4">Edit User</div>
+            <div className="text-[16px] font-semibold tracking-wide text-sky-500 mb-4">{creatingUser ? 'Add User' : 'Edit User'}</div>
+            {addUserError && <div className="text-red-500 text-xs mb-2">{addUserError}</div>}
             <div className="space-y-3">
               <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={userForm.displayName} onChange={e=>setUserForm(f=>({...f,displayName:e.target.value}))} placeholder="Name" />
               <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={userForm.email} onChange={e=>setUserForm(f=>({...f,email:e.target.value}))} placeholder="Email" />
+              {creatingUser && (
+                <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" type="password" value={userForm.password} onChange={e=>setUserForm(f=>({...f,password:e.target.value}))} placeholder="Password" />
+              )}
               <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={userForm.address} onChange={e=>setUserForm(f=>({...f,address:e.target.value}))} placeholder="Address" />
               <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={userForm.phone} onChange={e=>setUserForm(f=>({...f,phone:e.target.value}))} placeholder="Phone Number" />
               <select className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={userForm.role} onChange={e=>setUserForm(f=>({...f,role:e.target.value}))}>
@@ -443,17 +480,38 @@ export default function SuperuserDashboard() {
               </select>
               <div className="flex gap-2 mt-4">
                 <button className="px-4 py-2 rounded bg-sky-500 text-white font-medium text-[13px] shadow hover:bg-sky-600" onClick={async()=>{
-                  await updateDoc(doc(db,'users',editingUser.id),{
-                    displayName:userForm.displayName,
-                    email:userForm.email,
-                    address:userForm.address,
-                    phone:userForm.phone,
-                    role:userForm.role
-                  });
-                  setUsers(users.map(u=>u.id===editingUser.id?{...u,...userForm}:u));
-                  setEditingUser(null);
-                }}>Save</button>
-                {userForm.role==='suspended' ? (
+                  setAddUserError('');
+                  if (creatingUser) {
+                    // Add new user to Auth first
+                    const auth = getAuth();
+                    try {
+                      const userCredential = await createUserWithEmailAndPassword(auth, userForm.email, userForm.password);
+                      const newUser = { ...userForm };
+                      delete newUser.password;
+                      const docRef = await import('firebase/firestore').then(firestore => firestore.addDoc(collection(db, 'users'), { ...newUser, uid: userCredential.user.uid }));
+                      setUsers([...users, { id: docRef.id, ...newUser, uid: userCredential.user.uid }]);
+                      setCreatingUser(false);
+                    } catch (err) {
+                      setAddUserError(err.message || 'Failed to create user. Check email, password, and permissions.');
+                    }
+                  } else {
+                    // Edit user
+                    try {
+                      await updateDoc(doc(db,'users',editingUser.id),{
+                        displayName:userForm.displayName,
+                        email:userForm.email,
+                        address:userForm.address,
+                        phone:userForm.phone,
+                        role:userForm.role
+                      });
+                      setUsers(users.map(u=>u.id===editingUser.id?{...u,...userForm}:u));
+                      setEditingUser(null);
+                    } catch (err) {
+                      setAddUserError(err.message || 'Failed to update user.');
+                    }
+                  }
+                }}>{creatingUser ? 'Add' : 'Save'}</button>
+                {!creatingUser && (userForm.role==='suspended' ? (
                   <button className="px-4 py-2 rounded bg-green-500 text-white font-medium text-[13px] shadow hover:bg-green-600" onClick={async()=>{
                     await updateDoc(doc(db,'users',editingUser.id),{role:'customer'});
                     setUsers(users.map(u=>u.id===editingUser.id?{...u,role:'customer'}:u));
@@ -465,8 +523,12 @@ export default function SuperuserDashboard() {
                     setUsers(users.map(u=>u.id===editingUser.id?{...u,role:'suspended'}:u));
                     setEditingUser(null);
                   }}>Suspend</button>
-                )}
-                <button className="px-4 py-2 rounded bg-zinc-100 text-zinc-700 font-medium text-[13px] shadow hover:bg-zinc-200" onClick={()=>setEditingUser(null)}>Cancel</button>
+                ))}
+                <button className="px-4 py-2 rounded bg-zinc-100 text-zinc-700 font-medium text-[13px] shadow hover:bg-zinc-200" onClick={()=>{
+                  setEditingUser(null);
+                  setCreatingUser(false);
+                  setAddUserError('');
+                }}>Cancel</button>
               </div>
             </div>
           </div>
@@ -499,6 +561,80 @@ export default function SuperuserDashboard() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Info Cards Section */}
+      {activeTab==='infoCards' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl font-semibold text-sky-500">Info Cards</div>
+            <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={()=>{
+              setInfoCardForm({ header: '', preview: '', link: '', linkText: '', image: '', fullImage: '', bgColor: '#f0f8ff' });
+              setCreatingInfoCard(true);
+              setInfoCardError('');
+            }}>Add Info Card</button>
+          </div>
+          <div className="space-y-4">
+            {infoCards.map(card => (
+              <div key={card.id} className="border border-sky-100 rounded-lg p-4 flex items-center justify-between bg-white group hover:shadow-md transition cursor-pointer">
+                <div className="flex-1" onClick={()=>setEditingInfoCard(card)}>
+                  <div className="font-semibold text-[15px] text-sky-700">{card.header}</div>
+                  <div className="text-[13px] text-zinc-600">{card.preview}</div>
+                  {card.link && card.linkText && <a href={card.link} className="text-sky-500 text-[13px] underline" target="_blank" rel="noopener noreferrer">{card.linkText}</a>}
+                  {card.image && <img src={card.image} alt="Info" className="mt-2 rounded-lg" style={{maxWidth:'120px',maxHeight:'60px'}} />}
+                  {card.fullImage && <img src={card.fullImage} alt="Full" className="mt-2 rounded-lg" style={{maxWidth:'180px',maxHeight:'100px'}} />}
+                  <div className="text-[11px] text-zinc-400">BG: {card.bgColor}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-2 py-1 rounded bg-sky-100 text-sky-500 text-[12px] font-medium" onClick={e=>{e.stopPropagation();setEditingInfoCard(card);}}>Edit</button>
+                  <button className="px-2 py-1 rounded bg-red-100 text-red-600 text-[12px] font-medium" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'infoCards',card.id));}}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Modal for create/edit info card */}
+          {(editingInfoCard || creatingInfoCard) && (
+            <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:1000,background:'rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full border border-sky-100">
+                <div className="text-[16px] font-semibold tracking-wide text-sky-500 mb-4">{creatingInfoCard ? 'Add Info Card' : 'Edit Info Card'}</div>
+                {infoCardError && <div className="text-red-500 text-xs mb-2">{infoCardError}</div>}
+                <div className="space-y-3">
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.header} onChange={e=>setInfoCardForm(f=>({...f,header:e.target.value}))} placeholder="Header" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.preview} onChange={e=>setInfoCardForm(f=>({...f,preview:e.target.value}))} placeholder="Preview text" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.link} onChange={e=>setInfoCardForm(f=>({...f,link:e.target.value}))} placeholder="Link (optional)" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.linkText} onChange={e=>setInfoCardForm(f=>({...f,linkText:e.target.value}))} placeholder="Link Text (optional)" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.image} onChange={e=>setInfoCardForm(f=>({...f,image:e.target.value}))} placeholder="Image URL (right side, optional)" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.fullImage} onChange={e=>setInfoCardForm(f=>({...f,fullImage:e.target.value}))} placeholder="Full Card Image URL (optional, 16:9)" />
+                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.bgColor} onChange={e=>setInfoCardForm(f=>({...f,bgColor:e.target.value}))} placeholder="Background Color (e.g. #f0f8ff)" />
+                  <div className="flex gap-2 mt-4">
+                    <button className="px-4 py-2 rounded bg-sky-500 text-white font-medium text-[13px] shadow hover:bg-sky-600" onClick={async()=>{
+                      setInfoCardError('');
+                      if (creatingInfoCard) {
+                        try {
+                          await addDoc(collection(db,'infoCards'), infoCardForm);
+                          setCreatingInfoCard(false);
+                        } catch (err) {
+                          setInfoCardError(err.message || 'Failed to add info card.');
+                        }
+                      } else if (editingInfoCard) {
+                        try {
+                          await updateDoc(doc(db,'infoCards',editingInfoCard.id), infoCardForm);
+                          setEditingInfoCard(null);
+                        } catch (err) {
+                          setInfoCardError(err.message || 'Failed to update info card.');
+                        }
+                      }
+                    }}>{creatingInfoCard ? 'Add' : 'Save'}</button>
+                    <button className="px-4 py-2 rounded bg-zinc-100 text-zinc-700 font-medium text-[13px] shadow hover:bg-zinc-200" onClick={()=>{
+                      setEditingInfoCard(null);
+                      setCreatingInfoCard(false);
+                      setInfoCardError('');
+                    }}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
