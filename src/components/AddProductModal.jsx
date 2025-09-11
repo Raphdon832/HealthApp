@@ -24,7 +24,9 @@ export default function AddProductModal({ pharmacyId, onClose }) {
         await uploadBytes(storageRef, file);
         imageUrl = await getDownloadURL(storageRef);
       }
-      await addProduct({ ...form, image: imageUrl, price: Number(form.price), pharmacyId });
+      // Parse tags into array
+      const tagsArr = (form.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+      await addProduct({ ...form, image: imageUrl, price: Number(form.price), pharmacyId, tags: tagsArr });
       onClose();
     } catch (e) {
       alert(e.message);
@@ -55,6 +57,7 @@ export default function AddProductModal({ pharmacyId, onClose }) {
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Stock" type="number" value={form.stock} onChange={(e)=>setForm({...form,stock:e.target.value})} />
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="SKU" value={form.sku} onChange={(e)=>setForm({...form,sku:e.target.value})} />
           <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Price" type="number" value={form.price} onChange={(e)=>setForm({...form,price:e.target.value})} />
+          <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="Tags (comma separated, e.g. pain relief, children)" value={form.tags||''} onChange={e=>setForm({...form, tags: e.target.value})} />
           <div className="flex flex-col gap-2 pt-2">
             <label className="text-[13px] font-light text-zinc-500">Product Image</label>
             <input type="file" accept="image/*" className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2" onChange={(e)=>setFile(e.target.files?.[0]||null)} />

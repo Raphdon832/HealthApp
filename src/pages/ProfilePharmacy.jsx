@@ -31,6 +31,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [pharmacyProfile, setPharmacyProfile] = useState({ address: '', phone: '' });
+  const [editDesc, setEditDesc] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => { if (user) return listenProducts(setInventory, user.uid); }, [user]);
@@ -68,14 +69,9 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     await generatePharmacyReport(user);
   }
 
-  
-
   async function handleSaveProduct() {
     if (!editingProduct) return;
     let imageUrl = editImage;
-    // If a file is selected, upload to storage (not implemented here)
-    // For now, just use the URL or keep the old image
-    // TODO: Add upload logic if needed
     await updateDoc(doc(db, 'products', editingProduct.id), {
       name: editName,
       category: editCategory,
@@ -83,6 +79,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       sku: editSKU,
       price: Number(editPrice),
       image: imageUrl || editingProduct.image || '',
+      description: editDesc,
     });
     setEditingProduct(null);
   }
@@ -102,6 +99,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       setEditPrice(editingProduct.price || '');
       setEditImage(editingProduct.image || '');
       setEditImageFile(null);
+      setEditDesc(editingProduct.description || '');
     }
   }, [editingProduct]);
 
@@ -109,8 +107,32 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     return <LoadingSkeleton lines={4} className="my-8" />;
   }
 
+  // Superuser Dashboard Entry (for demonstration)
+  function SuperuserDashboard({ user }) {
+    if (!user || user.role !== 'superuser') return null;
+    return (
+      <div className="mt-8 rounded-3xl border bg-yellow-50 border-yellow-400 p-4 flex flex-col items-start relative">
+        <div className="text-[20px] font-bold text-yellow-700 mb-2">Superuser Dashboard</div>
+        <ul className="space-y-2 text-[15px] text-yellow-900">
+          <li>Manage all users (view, edit, suspend, delete)</li>
+          <li>Product oversight (add, edit, remove, approve/reject)</li>
+          <li>Prescription management</li>
+          <li>Analytics & reports</li>
+          <li>Moderation (reviews, chats, reported content)</li>
+          <li>System settings</li>
+          <li>Bulk operations</li>
+          <li>Audit logs</li>
+          <li>Impersonate users</li>
+        </ul>
+        <div className="mt-4 text-[13px] text-yellow-700">(Feature scaffolding: UI and logic for each capability can be expanded here.)</div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+      {/* Superuser Dashboard */}
+      <SuperuserDashboard user={user} />
       {/* Sticky header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
         <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Pharmacy<br/>Profile</div>
@@ -264,6 +286,17 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                     className="h-16 w-16 object-cover rounded-xl border mt-2"
                   />
                 )}
+              </div>
+              {/* Description field */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] text-zinc-500 font-light">Product Description</label>
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  rows={4}
+                  value={editDesc}
+                  onChange={e => setEditDesc(e.target.value)}
+                  placeholder="Enter product description"
+                />
               </div>
             </div>
             <div className="flex gap-2 mt-6 items-center">

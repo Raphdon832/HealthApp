@@ -26,6 +26,7 @@ import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
 import Dashboard from '@/pages/Dashboard';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
+import SuperuserDashboard from '@/pages/SuperuserDashboard';
 
 // Auth flow pages
 import Landing from '@/pages/auth/Landing';
@@ -175,11 +176,14 @@ function ProfileRouter() {
 
 function Shell() {
   const { user, profile } = useAuth();
-
-  // Optional: pass scrollTo from query to ChatThread (used by full-page route)
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const scrollTo = params.get('scrollTo') ? parseInt(params.get('scrollTo'), 10) : undefined;
+
+  // Show loading until profile is loaded
+  if (user && profile === undefined) {
+    return <LoadingSkeleton lines={4} className="my-8" />;
+  }
 
   // Block unverified users
   if (user && !user.emailVerified) {
@@ -189,6 +193,11 @@ function Shell() {
         <Route path="*" element={<Navigate to="/verify-email" replace />} />
       </Routes>
     );
+  }
+
+  // Redirect superuser to /superuser ONLY if on root path
+  if (profile && profile.role === 'superuser' && location.pathname === '/') {
+    return <Navigate to="/superuser" replace />;
   }
 
   return (
@@ -214,13 +223,18 @@ function Shell() {
         />
       </Route>
 
+      {/* Superuser route - only for superuser role, uses BareLayout (no BottomNav) */}
+      <Route element={<BareLayout />}>
+        <Route path="/superuser" element={<RequireAuth><SuperuserDashboard /></RequireAuth>} />
+      </Route>
       {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
-      <Route element={<AppLayout />}>
+      <Route element={<AppLayout />}> 
+        {/* Remove / route for superuser, only show for pharmacy/customer */}
         {profile && profile.role === 'pharmacy' ? (
           <Route path="/" element={<Dashboard />} />
-        ) : (
+        ) : profile && profile.role === 'customer' ? (
           <Route path="/" element={<Home />} />
-        )}
+        ) : null}
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route

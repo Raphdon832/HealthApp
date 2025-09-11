@@ -29,7 +29,8 @@ export default function Home() {
     products.filter(p => {
       const matchesSearch = ((p.name || '') + (p.category || '')).toLowerCase().includes(q.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-      return matchesSearch && matchesCategory;
+      const matchesTag = Array.isArray(p.tags) && p.tags.some(tag => tag.toLowerCase().includes(q.toLowerCase()));
+      return matchesSearch || matchesCategory || matchesTag;
     })
   , [products, q, selectedCategory]);
 
@@ -160,6 +161,9 @@ export default function Home() {
     }
   };
 
+  // Helper: is pharmacy user
+  const isPharmacy = user && user.role === 'pharmacy';
+
   if (!products.length) {
     return <LoadingSkeleton lines={6} className="my-8" />;
   }
@@ -178,7 +182,7 @@ export default function Home() {
                 <div className="flex flex-col justify-center items-end">
                   <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5"/>
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
-                    {eta && closestPharmacy ? `${eta} min${eta !== 1 ? 's' : ''} to ${closestPharmacy.name}` : 'Finding closest pharmacy...'}
+                    {eta && closestPharmacy ? `${eta} min${eta !== 1 ? 's' : ''} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}` : 'Fetching ETA...'}
                   </span>
                 </div>
               </div>
@@ -196,7 +200,7 @@ export default function Home() {
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
-            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map(cat => (
+            {["All", "Prescription", "Over-the-counter", "Syrup", "Therapeutic", "Controlled", "Target System"].map(cat => (
               <button
                 key={cat}
                 className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${selectedCategory===cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''}`}
@@ -293,7 +297,7 @@ export default function Home() {
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularProducts.map((p) => (
-              <div className="flex justify-center" key={p.id || p.sku + '-wrapper'}>
+              <div className="flex justify-center relative" key={p.id || p.sku + '-wrapper'}>
                 <ProductCard
                   key={p.id || p.sku}
                   product={p}
