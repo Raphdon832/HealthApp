@@ -15,10 +15,24 @@ const drugCategories = [
   'Therapeutic'
 ];
 
+const dashboardTabs = [
+  { key: 'users', label: 'Users' },
+  { key: 'products', label: 'Products' },
+  { key: 'prescriptions', label: 'Prescriptions' },
+  { key: 'orders', label: 'Orders' },
+  { key: 'carts', label: 'Carts' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'moderation', label: 'Moderation' },
+  { key: 'export', label: 'Export' }
+];
+
 export default function SuperuserDashboard() {
   const { user, logout } = useAuth();
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
@@ -31,6 +45,7 @@ export default function SuperuserDashboard() {
   const [userPrescriptions, setUserPrescriptions] = useState([]);
   const [userOrders, setUserOrders] = useState([]);
   const [userCart, setUserCart] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,9 +58,21 @@ export default function SuperuserDashboard() {
     const unsubProducts = onSnapshot(collection(db, 'products'), (productsSnap) => {
       setProducts(productsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
+    const unsubPrescriptions = onSnapshot(collection(db, 'prescriptions'), (presSnap) => {
+      setPrescriptions(presSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (ordersSnap) => {
+      setOrders(ordersSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubCarts = onSnapshot(collection(db, 'carts'), (cartsSnap) => {
+      setCarts(cartsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => {
       unsubUsers();
       unsubProducts();
+      unsubPrescriptions();
+      unsubOrders();
+      unsubCarts();
     };
   }, [user]);
 
@@ -107,40 +134,46 @@ export default function SuperuserDashboard() {
     <div className="pt-10 pb-28 w-full max-w-4xl mx-auto px-4 min-h-screen flex flex-col">
       {/* Horizontal Tabs */}
       <div className="flex gap-4 mb-8 border-b">
-        <button className={`px-4 py-2 font-semibold ${activeTab==='users'?'border-b-2 border-yellow-600 text-yellow-700':'text-zinc-500'}`} onClick={()=>setActiveTab('users')}>Users</button>
-        <button className={`px-4 py-2 font-semibold ${activeTab==='products'?'border-b-2 border-yellow-600 text-yellow-700':'text-zinc-500'}`} onClick={()=>setActiveTab('products')}>Products</button>
-        {/* Future tabs: Prescriptions, Analytics, Moderation, etc. */}
+        {dashboardTabs.map(tab => (
+          <button key={tab.key} className={`px-4 py-2 font-semibold ${activeTab===tab.key?'border-b-2 border-yellow-600 text-yellow-700':'text-zinc-500'}`} onClick={()=>{setActiveTab(tab.key);setSelectedItems([]);}}>{tab.label}</button>
+        ))}
       </div>
       {/* Users Section */}
       {activeTab==='users' && (
         <div className="mb-8">
-          <div className="text-xl font-semibold mb-2">Users</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl font-semibold">Users</div>
+            <button className="px-3 py-1 rounded bg-yellow-600 text-white text-xs" onClick={()=>{/* open create user modal */}}>Add User</button>
+          </div>
           <div className="space-y-2">
             {(showAllUsers ? users : users.slice(0,3)).map(u => (
-              <div key={u.id} className="border rounded p-3 flex items-center justify-between bg-white group hover:shadow-lg transition cursor-pointer" 
-                onClick={(e)=>{
-                  if (e.target.tagName !== 'BUTTON') setEditingUser(u);
-                }}>
-                <div className="flex-1">
+              <div key={u.id} className="border rounded p-3 flex items-center justify-between bg-white group hover:shadow-lg transition cursor-pointer">
+                <input type="checkbox" checked={selectedItems.includes(u.id)} onChange={e=>setSelectedItems(sel=>e.target.checked?[...sel,u.id]:sel.filter(id=>id!==u.id))} />
+                <div className="flex-1" onClick={(e)=>{if(e.target.tagName!=='BUTTON')setEditingUser(u);}}>
                   <div className="font-bold">{u.displayName || u.email}</div>
                   <div className="text-sm text-zinc-500">{u.email}</div>
                   <div className="text-xs text-zinc-400">Role: {u.role || 'customer'}</div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs" onClick={async (e) => {
-                    e.stopPropagation();
-                    await updateDoc(doc(db, 'users', u.id), { role: 'suspended' });
-                    setUsers(users.map(us => us.id === u.id ? { ...us, role: 'suspended' } : us));
-                  }}>Suspend</button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async (e) => {
-                    e.stopPropagation();
-                    await deleteDoc(doc(db, 'users', u.id));
-                    setUsers(users.filter(us => us.id !== u.id));
-                  }}>Delete</button>
+                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs" onClick={async(e)=>{e.stopPropagation();await updateDoc(doc(db,'users',u.id),{role:'suspended'});}}>Suspend</button>
+                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'users',u.id));}}>Delete</button>
                 </div>
               </div>
             ))}
           </div>
+          {/* Batch actions */}
+          {selectedItems.length>0 && (
+            <div className="flex gap-2 mt-2">
+              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){await deleteDoc(doc(db,'users',id));}
+                setSelectedItems([]);
+              }}>Delete Selected</button>
+              <button className="px-3 py-1 rounded bg-yellow-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){await updateDoc(doc(db,'users',id),{role:'suspended'});}
+                setSelectedItems([]);
+              }}>Suspend Selected</button>
+            </div>
+          )}
           {users.length > 3 && !showAllUsers && (
             <button className="mt-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs" onClick={()=>setShowAllUsers(true)}>See more</button>
           )}
@@ -187,7 +220,158 @@ export default function SuperuserDashboard() {
           )}
         </div>
       )}
-      {/* Add more tabs for prescriptions, analytics, moderation, etc. */}
+      {/* Prescriptions Section */}
+      {activeTab==='prescriptions' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl font-semibold">Prescriptions</div>
+            <button className="px-3 py-1 rounded bg-yellow-600 text-white text-xs" onClick={()=>{/* open create prescription modal */}}>Add Prescription</button>
+          </div>
+          <div className="space-y-2">
+            {prescriptions.map(pres => (
+              <div key={pres.id} className="border rounded p-3 flex items-center justify-between bg-white group hover:shadow-lg transition cursor-pointer">
+                <input type="checkbox" checked={selectedItems.includes(pres.id)} onChange={e=>setSelectedItems(sel=>e.target.checked?[...sel,pres.id]:sel.filter(id=>id!==pres.id))} />
+                <div className="flex-1" onClick={()=>{/* open prescription modal */}}>
+                  <div className="font-bold">{pres.title || pres.id}</div>
+                  <div className="text-xs text-zinc-500">{pres.createdAt ? new Date(pres.createdAt.seconds*1000).toLocaleString() : ''}</div>
+                  <div className="text-xs text-zinc-400">Drugs: {Array.isArray(pres.drugs) ? pres.drugs.join(', ') : pres.drugs}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'prescriptions',pres.id));}}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {selectedItems.length>0 && (
+            <div className="flex gap-2 mt-2">
+              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){await deleteDoc(doc(db,'prescriptions',id));}
+                setSelectedItems([]);
+              }}>Delete Selected</button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Orders Section */}
+      {activeTab==='orders' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl font-semibold">Orders</div>
+          </div>
+          <div className="space-y-2">
+            {orders.map(order => (
+              <div key={order.id} className="border rounded p-3 flex items-center justify-between bg-white group hover:shadow-lg transition cursor-pointer">
+                <input type="checkbox" checked={selectedItems.includes(order.id)} onChange={e=>setSelectedItems(sel=>e.target.checked?[...sel,order.id]:sel.filter(id=>id!==order.id))} />
+                <div className="flex-1" onClick={()=>{/* open order modal */}}>
+                  <div className="font-bold">Order #{order.id}</div>
+                  <div className="text-xs text-zinc-500">{order.createdAt ? new Date(order.createdAt.seconds*1000).toLocaleString() : ''}</div>
+                  <div className="text-xs text-zinc-400">Products: {Array.isArray(order.products) ? order.products.map(p=>p.name).join(', ') : ''}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'orders',order.id));}}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {selectedItems.length>0 && (
+            <div className="flex gap-2 mt-2">
+              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){await deleteDoc(doc(db,'orders',id));}
+                setSelectedItems([]);
+              }}>Delete Selected</button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Carts Section */}
+      {activeTab==='carts' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl font-semibold">Carts</div>
+          </div>
+          <div className="space-y-2">
+            {carts.map(cart => (
+              <div key={cart.id} className="border rounded p-3 flex items-center justify-between bg-white group hover:shadow-lg transition cursor-pointer">
+                <input type="checkbox" checked={selectedItems.includes(cart.id)} onChange={e=>setSelectedItems(sel=>e.target.checked?[...sel,cart.id]:sel.filter(id=>id!==cart.id))} />
+                <div className="flex-1" onClick={()=>{/* open cart modal */}}>
+                  <div className="font-bold">Cart #{cart.id}</div>
+                  <div className="text-xs text-zinc-500">{cart.updatedAt ? new Date(cart.updatedAt.seconds*1000).toLocaleString() : ''}</div>
+                  <div className="text-xs text-zinc-400">Products: {Array.isArray(cart.products) ? cart.products.map(p=>p.name).join(', ') : ''}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'carts',cart.id));}}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {selectedItems.length>0 && (
+            <div className="flex gap-2 mt-2">
+              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){await deleteDoc(doc(db,'carts',id));}
+                setSelectedItems([]);
+              }}>Delete Selected</button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Add more tabs for analytics, moderation, etc. */}
+      {activeTab==='analytics' && (
+        <div className="mb-8">
+          <div className="text-xl font-semibold mb-4">Analytics</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-yellow-100 rounded p-4 text-center">
+              <div className="text-2xl font-bold">{users.length}</div>
+              <div className="text-xs text-zinc-600">Users</div>
+            </div>
+            <div className="bg-yellow-100 rounded p-4 text-center">
+              <div className="text-2xl font-bold">{products.length}</div>
+              <div className="text-xs text-zinc-600">Products</div>
+            </div>
+            <div className="bg-yellow-100 rounded p-4 text-center">
+              <div className="text-2xl font-bold">{prescriptions.length}</div>
+              <div className="text-xs text-zinc-600">Prescriptions</div>
+            </div>
+            <div className="bg-yellow-100 rounded p-4 text-center">
+              <div className="text-2xl font-bold">{orders.length}</div>
+              <div className="text-xs text-zinc-600">Orders</div>
+            </div>
+            <div className="bg-yellow-100 rounded p-4 text-center">
+              <div className="text-2xl font-bold">{carts.length}</div>
+              <div className="text-xs text-zinc-600">Carts</div>
+            </div>
+          </div>
+          {/* Placeholder for charts, can use chart libraries for more advanced analytics */}
+          <div className="mt-4 text-zinc-500 text-xs">Charts and advanced analytics coming soon.</div>
+        </div>
+      )}
+      {activeTab==='moderation' && (
+        <div className="mb-8">
+          <div className="text-xl font-semibold mb-4">Moderation</div>
+          {/* Placeholder: List flagged items, batch delete */}
+          <div className="text-zinc-500 mb-4">No flagged items yet. Moderation features coming soon.</div>
+          {/* Example batch delete UI */}
+          {selectedItems.length>0 && (
+            <div className="flex gap-2 mt-2">
+              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
+                for(const id of selectedItems){/* await deleteDoc(doc(db,'flagged',id)); */}
+                setSelectedItems([]);
+              }}>Delete Selected</button>
+            </div>
+          )}
+        </div>
+      )}
+      {activeTab==='export' && (
+        <div className="mb-8">
+          <div className="text-xl font-semibold mb-4">Export Data</div>
+          <div className="space-y-2">
+            <button className="px-4 py-2 rounded bg-yellow-600 text-white font-medium" onClick={()=>exportTSV(users,'users')}>Export Users TSV</button>
+            <button className="px-4 py-2 rounded bg-yellow-600 text-white font-medium" onClick={()=>exportTSV(products,'products')}>Export Products TSV</button>
+            <button className="px-4 py-2 rounded bg-yellow-600 text-white font-medium" onClick={()=>exportTSV(prescriptions,'prescriptions')}>Export Prescriptions TSV</button>
+            <button className="px-4 py-2 rounded bg-yellow-600 text-white font-medium" onClick={()=>exportTSV(orders,'orders')}>Export Orders TSV</button>
+            <button className="px-4 py-2 rounded bg-yellow-600 text-white font-medium" onClick={()=>exportTSV(carts,'carts')}>Export Carts TSV</button>
+          </div>
+        </div>
+      )}
       <div className="mt-6">
         <button
           onClick={async () => {
@@ -275,16 +459,19 @@ export default function SuperuserDashboard() {
               <div>
                 <div className="font-medium mb-2">Drugs Bought</div>
                 {userOrders.length === 0 ? (
-                  <div className="text-sm text-zinc-400">No orders found.</div>
+                  <div className="text-sm text-zinc-400">No drugs bought.</div>
                 ) : (
                   <ul className="space-y-2">
-                    {userOrders.map(order => (
-                      <li key={order.id} className="border rounded p-2">
-                        <div className="font-bold">Order #{order.id}</div>
-                        <div className="text-xs text-zinc-500">{order.createdAt ? new Date(order.createdAt.seconds*1000).toLocaleString() : ''}</div>
-                        <div className="text-xs text-zinc-400">Products: {Array.isArray(order.products) ? order.products.map(p=>p.name).join(', ') : ''}</div>
-                      </li>
-                    ))}
+                    {userOrders
+                      .flatMap(order => Array.isArray(order.products) ? order.products : [])
+                      .map((product, idx) => (
+                        <li key={product.id || idx} className="border rounded p-2">
+                          <div className="font-bold">{product.name || product.title || product.id || 'Unnamed Drug'}</div>
+                          {product.category && <div className="text-xs text-zinc-500">{product.category}</div>}
+                          {product.price && <div className="text-xs text-zinc-400">Price: ₦{product.price}</div>}
+                          {product.sku && <div className="text-xs text-zinc-400">SKU: {product.sku}</div>}
+                        </li>
+                      ))}
                   </ul>
                 )}
               </div>
@@ -296,13 +483,16 @@ export default function SuperuserDashboard() {
                   <div className="text-sm text-zinc-400">Cart is empty.</div>
                 ) : (
                   <ul className="space-y-2">
-                    {userCart.map(cart => (
-                      <li key={cart.id} className="border rounded p-2">
-                        <div className="font-bold">Cart #{cart.id}</div>
-                        <div className="text-xs text-zinc-500">{cart.updatedAt ? new Date(cart.updatedAt.seconds*1000).toLocaleString() : ''}</div>
-                        <div className="text-xs text-zinc-400">Products: {Array.isArray(cart.products) ? cart.products.map(p=>p.name).join(', ') : ''}</div>
-                      </li>
-                    ))}
+                    {userCart
+                      .flatMap(cart => Array.isArray(cart.products) ? cart.products : [])
+                      .map((product, idx) => (
+                        <li key={product.id || idx} className="border rounded p-2">
+                          <div className="font-bold">{product.name || product.title || product.id || 'Unnamed Drug'}</div>
+                          {product.category && <div className="text-xs text-zinc-500">{product.category}</div>}
+                          {product.price && <div className="text-xs text-zinc-400">Price: ₦{product.price}</div>}
+                          {product.sku && <div className="text-xs text-zinc-400">SKU: {product.sku}</div>}
+                        </li>
+                      ))}
                   </ul>
                 )}
               </div>
@@ -349,4 +539,30 @@ export default function SuperuserDashboard() {
       )}
     </div>
   );
+}
+
+function exportTSV(data, name) {
+  if (!data || !data.length) return;
+  const keys = Object.keys(data[0]);
+  // Helper to quote fields with tabs, newlines, or quotes
+  const quoteField = v => {
+    if (v == null) return '';
+    const str = String(v);
+    if (/[	\n\r"]/.test(str)) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+  // Add UTF-8 BOM for Excel compatibility
+  const BOM = '\uFEFF';
+  const tsv = BOM + [keys.join('\t')].concat(
+    data.map(row => keys.map(k => quoteField(row[k])).join('\t'))
+  ).join('\n');
+  const blob = new Blob([tsv], { type: 'text/tab-separated-values' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name}.tsv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
