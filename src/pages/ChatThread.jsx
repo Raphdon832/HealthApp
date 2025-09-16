@@ -19,7 +19,8 @@ import { createPrescription } from '@/lib/db';
 import { Menu } from '@headlessui/react';
 import Modal from '@/components/Modal';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import ChatBgUrl from '@/icons/ChatBg.svg?url';
+// Use the SVG placed in the `public/` folder so production (Netlify) serves it at root
+const ChatBgUrl = '/ChatBg.svg';
 
 /**
  * Props (either/or):
@@ -40,7 +41,7 @@ function getDateLabel(date) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose, overlayOpacity = 0.5 }) {
+export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose, overlayOpacity = 0.1 }) {
   const { user, profile } = useAuth();
   const [threadId, setThreadId] = useState(threadIdProp || null);
 
@@ -211,6 +212,16 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
     <div className="h-screen w-full flex flex-col items-stretch overflow-hidden" style={{ position: 'relative' }}>
+      {/* DEBUG: visible test image to confirm public asset loads (remove in prod) */}
+      <img
+        src={ChatBgUrl}
+        alt="bg-debug"
+        aria-hidden
+        onLoad={() => console.log('DEBUG: ChatBg.svg loaded ->', ChatBgUrl)}
+        onError={(e) => console.error('DEBUG: ChatBg.svg failed to load ->', ChatBgUrl, e)}
+        style={{ position: 'fixed', right: 12, bottom: 12, width: 48, height: 48, zIndex: 9999, border: '1px solid rgba(0,0,0,0.08)', background: 'white' }}
+      />
+
       {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
       <div
         aria-hidden
