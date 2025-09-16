@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Card } from './ui/card';
 
@@ -16,30 +17,70 @@ export default function ProductCard({
   addColor = '#36A5FF',
   borderRadius,
 }) {
+  const [imgError, setImgError] = useState(false);
+
+  const showImage = product?.image && !imgError;
+
   return (
     <Card
-      className="p-3 cursor-pointer relative flex flex-col justify-between"
+      className="p-3 cursor-pointer relative flex flex-col justify-between overflow-hidden"
       onClick={onOpen}
       style={{ width: cardWidth, height: cardHeight, borderRadius: borderRadius || '10px' }}
     >
-      <div className="overflow-hidden flex items-center justify-center bg-white" style={{ height: `calc(${cardHeight} * 0.6)`, borderRadius: borderRadius || '3px' }}>
-        <img src={product.image} alt={product.name} className="object-contain h-full" />
+      <div
+        className="overflow-hidden flex items-center justify-center bg-white"
+        style={{ height: `calc(${cardHeight} * 0.6)`, borderRadius: borderRadius || '3px' }}
+      >
+        {showImage ? (
+          <img
+            src={product.image}
+            alt={product.name || 'product image'}
+            className="object-contain h-full w-full"
+            onError={() => setImgError(true)}
+            style={{ maxWidth: '100%' }}
+          />
+        ) : (
+          <div
+            className="flex items-center justify-center w-full h-full"
+            style={{ padding: 8 }}
+          >
+            {/* Pill-style avatar placeholder using first letter of product name */}
+            <div
+              role="img"
+              aria-label={product.name ? `${product.name} placeholder` : 'product placeholder'}
+              className="flex items-center justify-center"
+              style={{
+                width: 84,
+                height: 48
+              }}
+            >
+              <span className="text-[#BDBDBD] font-semibold" style={{ fontSize: 20 }}>
+                {(product.name && product.name.charAt(0).toUpperCase()) || '?'}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="mt-1 text-xs text-zinc-500 font-poppins font-light" style={{ fontSize: '10px' }}>
+
+      <div className="mt-1 text-xs text-zinc-500 font-poppins font-light truncate" style={{ fontSize: '10px', maxWidth: '100%' }}>
         {vendorName}
       </div>
+
       <div
         className="mt-1 font-poppins"
-        style={{ fontSize: nameSize, fontWeight: nameWeight }}
+        style={{ fontSize: nameSize, fontWeight: nameWeight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        title={product.name}
       >
         {product.name}
       </div>
+
       <div
         className="font-poppins"
-        style={{ fontSize: priceSize, color: priceColor, fontWeight: priceWeight }}
+        style={{ fontSize: priceSize, color: priceColor, fontWeight: priceWeight, overflow: 'hidden' }}
       >
         ₦{Number(product.price).toLocaleString()}
       </div>
+
       <button
         onClick={(e) => { e.stopPropagation(); onAdd(); }}
         className="absolute bottom-3 right-3 h-7 w-7 flex items-center justify-center border border-solid"

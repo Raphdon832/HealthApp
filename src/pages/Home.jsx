@@ -240,7 +240,14 @@ export default function Home() {
     const tick = setInterval(() => {
       if (userInteracting) return;
       const next = (activeIdx + 1) % cardRefs.current.length;
-      cardRefs.current[next]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      // Use horizontal scroll on the carousel container instead of scrollIntoView
+      // to avoid scrolling the whole page vertically in some browsers.
+      const card = cardRefs.current[next];
+      if (card && wrap) {
+        const cardLeft = card.offsetLeft;
+        const targetLeft = Math.max(0, Math.round(cardLeft - (wrap.clientWidth - card.clientWidth) / 2));
+        wrap.scrollTo({ left: targetLeft, behavior: 'smooth' });
+      }
     }, 3000); // interval between auto-advances (ms)
 
     return () => {
