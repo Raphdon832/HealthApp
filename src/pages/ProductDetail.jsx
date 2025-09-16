@@ -1,4 +1,5 @@
 import { MapPin, Clock, Phone, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { addToCart } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,14 @@ export default function ProductDetail({ product, pharmacy }) {
   if (!product) return <LoadingSkeleton lines={5} className="my-8" />;
 
   const price = Number(product.price || 0);
+  const [imageError, setImageError] = useState(false);
+  const initials = (product?.name || '')
+    .trim()
+    .split(/\s+/)
+    .map((s) => s[0] || '')
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   // Optional: gate by auth, as in your original
   if (!user) {
@@ -30,7 +39,7 @@ export default function ProductDetail({ product, pharmacy }) {
   return (
     <div className="min-h-screen bg-white">
       {/* Page container */}
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0">
+      <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
         {/* Sticky back button */}
         <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2">
           <button
@@ -41,21 +50,29 @@ export default function ProductDetail({ product, pharmacy }) {
           </button>
         </div>
 
-        {/* Grey details sheet */}
-        <div className="mt-8 rounded-t-3xl border border-zinc-100">
-          <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
+        {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
+        <div className="mt-8 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100">
+          <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
 
             {/* CENTRAL CONTENT: two-column on desktop, stacked on mobile */}
             <div className="mx-auto w-full">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
                 {/* LEFT: Product image (widget-style) */}
-                <div className=" rounded-2xl p-4 border flex flex-col items-center justify-center">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="max-h-[360px] w-full object-contain"
-                  />
+                <div className=" rounded-2xl p-4 border flex flex-col items-center justify-center w-full">
+                  {/* show image when available and not errored; otherwise show initials avatar */}
+                  {product?.image && !imageError ? (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      onError={() => setImageError(true)}
+                      className="max-h-[360px] w-full object-contain"
+                    />
+                  ) : (
+                    <div className="h-[200px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800">
+                      {initials || 'NA'}
+                    </div>
+                  )}
 
                   {/* CTAs moved here: stacked vertically under the image (desktop only) */}
                   <div className="w-full mt-4 hidden lg:flex flex-col gap-3">
@@ -162,7 +179,7 @@ export default function ProductDetail({ product, pharmacy }) {
 
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
         <div className="fixed left-0 right-0 bottom-24 z-30 lg:hidden">
-          <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-5 md:px-8 lg:px-12 xl:px-0">
+          <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
             <div className="flex flex-col gap-3">
               <button
                 onClick={async () => {
