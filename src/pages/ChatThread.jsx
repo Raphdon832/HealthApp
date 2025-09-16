@@ -360,7 +360,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
                 return (
                   <React.Fragment key={m.id}>
                     {showDate && t && (
-                      <div className="flex justify-center my-2">
+                      <div className="flex justify-center my-6 mb-6">
                         <span className="bg-zinc-200 text-zinc-600 text-[10px] px-3 py-1 rounded-full shadow-sm">
                           {getDateLabel(t)}
                         </span>
