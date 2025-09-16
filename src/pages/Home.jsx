@@ -36,6 +36,10 @@ export default function Home() {
     cardRefs.current[i] = el || null;
   };
 
+  // Pagination state for product lists
+  const [popularPage, setPopularPage] = useState(1);
+  const [allNewPage, setAllNewPage] = useState(1);
+
   // Filtered products by search and category
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -175,6 +179,20 @@ export default function Home() {
       .filter((p) => p.createdAt)
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
   }, [products]);
+
+  // Pagination calculations (client-side)
+  const popularPerPage = 30;
+  const popularTotalPages = Math.max(1, Math.ceil(popularProducts.length / popularPerPage));
+  // "Load more" semantics: show cumulative items up to (page * perPage)
+  const popularVisible = popularProducts.slice(0, popularPage * popularPerPage);
+
+  const allNewPerPage = 12;
+  const allNewTotalPages = Math.max(1, Math.ceil(allNewArrivals.length / allNewPerPage));
+  const allNewVisible = allNewArrivals.slice(0, allNewPage * allNewPerPage);
+
+  // Reset page indices when data set sizes change
+  useEffect(() => setPopularPage(1), [popularProducts.length]);
+  useEffect(() => setAllNewPage(1), [allNewArrivals.length]);
 
   const handleProductOpen = async (productId) => {
     navigate(`/product/${productId}`);
@@ -470,29 +488,41 @@ export default function Home() {
               </button>
               <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-                {allNewArrivals.map((p) => (
-                  <div className="relative flex flex-col items-center" key={p.id || p.sku}>
-                    <ProductCard
-                      product={p}
-                      onOpen={() => handleProductOpen(p.id)}
-                      onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
-                      cardWidth="110px"
-                      cardHeight="128px"
-                      nameSize="11px"
-                      nameWeight="semi-bold"
-                      nameTracking="-0.5px"
-                      priceSize="9px"
-                      priceColor="#BDBDBD"
-                      priceWeight="medium"
-                      addColor="#36A5FF"
-                      addSize="9px"
-                    />
-                    <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                      New
-                    </span>
-                  </div>
+                {allNewVisible.map((p) => (
+                   <div className="relative flex flex-col items-center" key={p.id || p.sku}>
+                     <ProductCard
+                       product={p}
+                       onOpen={() => handleProductOpen(p.id)}
+                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                       cardWidth="110px"
+                       cardHeight="128px"
+                       nameSize="11px"
+                       nameWeight="semi-bold"
+                       nameTracking="-0.5px"
+                       priceSize="9px"
+                       priceColor="#BDBDBD"
+                       priceWeight="medium"
+                       addColor="#36A5FF"
+                       addSize="9px"
+                     />
+                     <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
+                       New
+                     </span>
+                   </div>
                 ))}
               </div>
+              {/* All New "Load more" (cumulative) */}
+              {allNewTotalPages > 1 && allNewPage < allNewTotalPages && (
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <button
+                    className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
+                    onClick={() => setAllNewPage((p) => Math.min(allNewTotalPages, p + 1))}
+                    aria-label="Load more new arrivals"
+                  >
+                    Load more
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -500,30 +530,43 @@ export default function Home() {
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
-            {popularProducts.map((p) => (
-              <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
-                <ProductCard
-                  key={p.id || p.sku}
-                  product={p}
-                  onOpen={() => handleProductOpen(p.id)}
-                  onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
-                  cardWidth="128px"
-                  cardHeight="120px"
-                  nameSize="12px"
-                  nameWeight="semi-bold"
-                  nameTracking="-0.5px"
-                  nameLineHeight="-1.1"
-                  priceSize="11px"
-                  priceColor="#BDBDBD"
-                  priceWeight="medium"
-                  priceLineHeight="1.1"
-                  addColor="#36A5FF"
-                  addSize="9px"
-                  borderRadius="10px"
-                />
-              </div>
+            {popularVisible.map((p) => (
+               <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
+                 <ProductCard
+                   key={p.id || p.sku}
+                   product={p}
+                   onOpen={() => handleProductOpen(p.id)}
+                   onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                   cardWidth="128px"
+                   cardHeight="120px"
+                   nameSize="12px"
+                   nameWeight="semi-bold"
+                   nameTracking="-0.5px"
+                   nameLineHeight="-1.1"
+                   priceSize="11px"
+                   priceColor="#BDBDBD"
+                   priceWeight="medium"
+                   priceLineHeight="1.1"
+                   addColor="#36A5FF"
+                   addSize="9px"
+                   borderRadius="10px"
+                 />
+               </div>
             ))}
           </div>
+
+          {/* Popular "Load more" (cumulative) */}
+          {popularTotalPages > 1 && popularPage < popularTotalPages && (
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <button
+                className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
+                onClick={() => setPopularPage((p) => Math.min(popularTotalPages, p + 1))}
+                aria-label="Load more popular products"
+              >
+                Load more
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
