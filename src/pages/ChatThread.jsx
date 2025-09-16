@@ -264,9 +264,9 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         <style>{`.hide-scrollbar::-webkit-scrollbar{display:none} .hide-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}`}</style>
          {/* Audio for message tone */}
          <audio ref={audioRef} src={notificationSound} preload="auto" />
-        {/* Header */}
-        <div className="w-full max-w-md md:max-w-2xl border-b lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
-          <div className="px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
+        {/* Header (full-bleed background, centered content) */}
+        <div className="w-full sticky top-0 z-20 bg-white/1 pt-1 pb-1">
+          <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
@@ -384,24 +384,26 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
             <div ref={bottomRef} />
           </div>
 
-          {/* Composer */}
-          <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
-            <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
-              <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
-                <Paperclip className="h-5 w-5 text-zinc-400" />
-              </label>
-              <input
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder="Type a message"
-                className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
-                style={{ fontSize: 13, height: 34 }}
-              />
-              <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
-                <img src={SendButtonUrl} alt="Send" className="h-5 w-5" />
-              </button>
-            </form>
-            <div style={{ height: 6 }} />
+          {/* Composer (full-bleed background, centered content) */}
+          <div className="w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
+            <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full">
+              <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
+                <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
+                  <Paperclip className="h-5 w-5 text-zinc-400" />
+                </label>
+                <input
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  placeholder="Type a message"
+                  className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
+                  style={{ fontSize: 13, height: 34 }}
+                />
+                <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
+                  <img src={SendButtonUrl} alt="Send" className="h-5 w-5" />
+                </button>
+              </form>
+              <div style={{ height: 6 }} />
+            </div>
           </div>
         </div>
 
