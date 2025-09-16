@@ -183,13 +183,13 @@ export default function VendorProfile() {
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
             <div className={`border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20' : ''}`}>
               <div>
-                <div className="text-[18px] font-poppins font-medium">Products by {vendor.name}</div>
+                <div className="text-[18px] font-poppins font-medium">Products by<br/>{vendor.name}</div>
                 <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
               </div>
               <div>
                 {products.length > 3 && !showAll && (
                   <button
-                    className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
+                    className="text-sky-600 text-[12px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
                     onClick={() => setShowAll(true)}
                   >
                     See more
