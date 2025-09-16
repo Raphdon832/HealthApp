@@ -165,60 +165,64 @@ export default function VendorProfile() {
 
           {/* PRODUCTS: mobile order 2, md+ order 2 (right column spanning 2 cols) */}
           <div className="order-2 md:order-2 md:col-span-2">
-            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4">
-              <div className="text-[18px] font-poppins font-medium">Products by {vendor.name}</div>
-              <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
-            </div>
-
-            <div className="space-y-3">
-              {(showAll ? products : products.slice(0, 3)).map((p) => (
-                <div
-                  key={p.id}
-                  className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition overflow-hidden"
-                  onClick={() => navigate(`/product/${p.id}`)}
-                >
-                  <div className="flex-shrink-0">
-                    <ProductAvatar name={p.name} image={p.image} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
-                    <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
-                      {p.category} • Stock: {p.stock} • SKU: {p.sku}
-                    </div>
-                  </div>
-                  <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0">₦{Number(p.price).toLocaleString()}</div>
-                </div>
-              ))}
-              {products.length === 0 && (
-                <div className="text-zinc-500 text-[13px] font-poppins font-light">No products yet.</div>
-              )}
-
-              {products.length > 3 && !showAll && (
-                <div className="mt-3">
+            {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
+            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20">
+              <div>
+                <div className="text-[18px] font-poppins font-medium">Products by {vendor.name}</div>
+                <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
+              </div>
+              <div>
+                {products.length > 3 && !showAll && (
                   <button
                     className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
                     onClick={() => setShowAll(true)}
                   >
                     See more
                   </button>
-                </div>
-              )}
+                )}
 
-              {products.length > 3 && showAll && (
-                <div className="flex justify-end mt-2">
+                {products.length > 3 && showAll && (
                   <button
                     className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
                     onClick={() => setShowAll(false)}
                   >
                     See less
                   </button>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+
+            <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-4">
+              <div className="space-y-3 px-0">
+                {(showAll ? products : products.slice(0, 3)).map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition overflow-hidden"
+                    onClick={() => navigate(`/product/${p.id}`)}
+                  >
+                    <div className="flex-shrink-0">
+                      <ProductAvatar name={p.name} image={p.image} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
+                      <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
+                        {p.category} • Stock: {p.stock} • SKU: {p.sku}
+                      </div>
+                    </div>
+                    <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0">₦{Number(p.price).toLocaleString()}</div>
+                  </div>
+                ))}
+                {products.length === 0 && (
+                  <div className="text-zinc-500 text-[13px] font-poppins font-light">No products yet.</div>
+                )}
+
+                
+              </div>
             </div>
           </div>
 
-          {/* VENDOR DETAILS + MESSAGE: mobile order 1 (shown above products), md+ order 2 (right column) */}
-          <aside className="order-1 md:order-1 md:col-span-1">
+          {/* VENDOR DETAILS + MESSAGE: mobile order 1 (shown above products), md+ order 1 (left column) */}
+          <aside className="order-1 md:order-1 md:col-span-1 md:self-start md:sticky md:top-20">
             <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-4 w-full flex flex-col items-start">
               <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
                 <span className="text-[32px] font-poppins font-light text-sky-600">{vendor.name?.charAt(0)}</span>
