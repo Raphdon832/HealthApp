@@ -12,6 +12,10 @@ import { db } from '@/lib/firebase';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [vendors, setVendors] = useState({});
+  const [pharmacies, setPharmacies] = useState([]);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [serverResults, setServerResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,13 +46,49 @@ export default function Home() {
 
   // Filtered products by search and category
   const filtered = useMemo(() => {
+    // If server results are available and query active, prefer server-side results (more complete & scalable).
+    const ql = q.trim().toLowerCase();
+    if (ql && serverResults?.products && Array.isArray(serverResults.products)) {
+      return serverResults.products;
+    }
+
+    if (!ql) return products;
     return products.filter((p) => {
-      const matchesSearch = ((p.name || '') + (p.category || '')).toLowerCase().includes(q.toLowerCase());
-      const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-      const matchesTag = Array.isArray(p.tags) && p.tags.some((tag) => tag.toLowerCase().includes(q.toLowerCase()));
-      return matchesSearch || matchesCategory || matchesTag;
+      const name = (p.name || '').toLowerCase();
+      const category = (p.category || '').toLowerCase();
+      const tags = Array.isArray(p.tags) ? p.tags.join(' ').toLowerCase() : '';
+      // vendor meta
+      const v = p.vendorId ? (vendors[p.vendorId] || {}) : {};
+      const vendorName = (v.name || '').toLowerCase();
+      const vendorLocation = (v.location || '').toLowerCase();
+      // price fields - try a few common names
+      const priceFields = [p.price, p.mrp, p.cost, p.listPrice].map((x) => (x == null ? '' : String(x))).join(' ').toLowerCase();
+
+      const matchesText = name.includes(ql) || category.includes(ql) || tags.includes(ql) || vendorName.includes(ql) || vendorLocation.includes(ql) || priceFields.includes(ql);
+
+      // If q looks like a numeric price or contains currency symbol, try numeric matching
+      const numeric = ql.replace(/[^0-9.]/g, '');
+      const matchesNumeric = numeric && (priceFields.includes(numeric) || (p.price && String(p.price).includes(numeric)));
+
+      return matchesText || !!matchesNumeric;
     });
-  }, [products, q, selectedCategory]);
+  }, [products, q, selectedCategory, vendors, serverResults]);
+
+  // Pharmacy suggestions for the search box (prefer server results if provided)
+  const pharmacyMatches = useMemo(() => {
+    const ql = q.trim().toLowerCase();
+    if (!ql) return [];
+    if (serverResults?.pharmacies && Array.isArray(serverResults.pharmacies)) {
+      return serverResults.pharmacies.slice(0, 6);
+    }
+    return pharmacies
+      .filter((ph) => {
+        const n = (ph.name || ph.displayName || '').toLowerCase();
+        const addr = (ph.address || ph.city || ph.location || '').toLowerCase();
+        return n.includes(ql) || addr.includes(ql);
+      })
+      .slice(0, 6);
+  }, [pharmacies, q, serverResults]);
 
   useEffect(() => listenProducts(setProducts), []);
 
@@ -143,7 +183,14 @@ export default function Home() {
         vendorIds.map(async (vid) => {
           try {
             const snap = await getDoc(doc(db, 'pharmacies', vid));
-            if (snap.exists()) vendorMap[vid] = snap.data().name || 'Pharmacy';
+            if (snap.exists()) {
+              const data = snap.data() || {};
+              vendorMap[vid] = {
+                name: data.name || 'Pharmacy',
+                location: data.address || data.city || data.location || '',
+                coords: data.coordinates || null,
+              };
+            }
           } catch {}
         })
       );
@@ -151,6 +198,53 @@ export default function Home() {
     }
     if (products.length) fetchVendors();
   }, [products]);
+
+  // Fetch all pharmacies for local fallback and places matching
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const all = await getAllPharmacies();
+        if (!mounted) return;
+        setPharmacies(Array.isArray(all) ? all : []);
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Server-side search: debounce and query a serverless endpoint. Fall back to client-side filtering if missing.
+  useEffect(() => {
+    const ql = q.trim();
+    if (!ql) {
+      setServerResults(null);
+      setIsSearching(false);
+      return;
+    }
+    const controller = new AbortController();
+    const id = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        // This assumes a Netlify/Cloud Function at /.netlify/functions/search
+        const res = await fetch(`/.netlify/functions/search?q=${encodeURIComponent(ql)}`, {
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) throw new Error('server search failed');
+        const json = await res.json();
+        // Expecting shape { products: [...], pharmacies: [...] }
+        setServerResults(json || null);
+      } catch (err) {
+        setServerResults(null);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300); // debounce
+
+    return () => {
+      controller.abort();
+      clearTimeout(id);
+    };
+  }, [q]);
 
   // Info cards from Firestore
   useEffect(() => {
@@ -335,16 +429,50 @@ export default function Home() {
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => { setQ(e.target.value); setShowSearchSuggestions(true); }}
             placeholder="Search drugs, pharmacies"
             className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
           />
-          <div className="flex gap-1 text-zinc-400">
-            <div className="h-1 w-1 bg-current rounded-full" />
-            <div className="h-1 w-1 bg-current rounded-full" />
-            <div className="h-1 w-1 bg-current rounded-full" />
-          </div>
         </div>
+
+        {/* Search suggestions: show matching pharmacies/places */}
+        {showSearchSuggestions && q.trim().length > 0 && pharmacyMatches.length > 0 && (
+          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto">
+            {pharmacyMatches.map((ph) => (
+              <button
+                key={ph.id || ph.vendorId || ph.name}
+                onClick={() => {
+                  // set query to pharmacy name and close suggestions
+                  setQ(ph.name || ph.displayName || '');
+                  setShowSearchSuggestions(false);
+                  // Navigate to the pharmacy/vendor profile if we have an id
+                  const vendorId = ph.id || ph.vendorId;
+                  if (vendorId) {
+                    try {
+                      navigate(`/vendor/${vendorId}`);
+                    } catch (err) {
+                      // fallback: set location to help debugging
+                      window.location.href = `/vendor/${vendorId}`;
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const vendorId = ph.id || ph.vendorId;
+                    if (vendorId) navigate(`/vendor/${vendorId}`);
+                  }
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-zinc-50"
+                role="option"
+                tabIndex={0}
+              >
+                <div className="font-medium text-sm">{ph.name || ph.displayName}</div>
+                <div className="text-[12px] text-zinc-500">{ph.address || ph.city || ph.location || ''}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
