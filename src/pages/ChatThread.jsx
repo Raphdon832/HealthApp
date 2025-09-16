@@ -212,7 +212,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
-    <div className="h-screen w-full flex flex-col items-stretch overflow-hidden" style={{ position: 'relative' }}>
+    <div className="h-screen w-full flex flex-col items-stretch overflow-visible" style={{ position: 'relative' }}>
       {/* DEBUG: visible test image to confirm public asset loads (remove in prod) */}
       <img
         src={ChatBgUrl}
@@ -264,9 +264,19 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         <style>{`.hide-scrollbar::-webkit-scrollbar{display:none} .hide-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}`}</style>
          {/* Audio for message tone */}
          <audio ref={audioRef} src={notificationSound} preload="auto" />
-        {/* Header (full-bleed background, centered content) */}
-        <div className="w-full sticky top-0 z-20 bg-white/90 pt-1 pb-1">
-          <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
+        {/* Header (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
+        <div
+          className="sticky top-0 z-20 bg-white/90 pt-1 pb-1"
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0)',
+            // Force the header background to span the full viewport width even when content is centered with max-width
+            width: '100vw',
+            marginLeft: 'calc(50% - 50vw)',
+            // Respect safe-area on notch devices
+            paddingRight: 'env(safe-area-inset-right, 0)'
+          }}
+        >
+          <div className="w-full px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
@@ -342,7 +352,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         </div>
 
         {/* Messages */}
-        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col min-h-0">
+        <div className="w-full flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-28 min-h-0 hide-scrollbar" style={{ paddingTop: 12 }}>
             {(() => {
               let lastDate = null;
@@ -384,9 +394,19 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
             <div ref={bottomRef} />
           </div>
 
-          {/* Composer (full-bleed background, centered content) */}
-          <div className="w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
-            <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full">
+          {/* Composer (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
+          <div
+            className="w-full sticky bottom-0 z-20 bg-white/85 backdrop-blur"
+            style={{
+              paddingBottom: 'env(safe-area-inset-bottom, 0)',
+              // Make the composer background truly full-bleed across the viewport
+              width: '100vw',
+              marginLeft: 'calc(50% - 50vw)',
+              paddingLeft: 'env(safe-area-inset-left, 0)',
+              paddingRight: 'env(safe-area-inset-right, 0)'
+            }}
+          >
+            <div className="w-full">
               <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
                 <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
                   <Paperclip className="h-5 w-5 text-zinc-400" />
