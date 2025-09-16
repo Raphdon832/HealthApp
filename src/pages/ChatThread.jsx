@@ -209,174 +209,188 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center"
-      style={{
-        backgroundImage: `url(${ChatBgUrl})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center center',
-        backgroundSize: 'cover'
-      }}
-    >
-      {/* Audio for message tone */}
-      <audio ref={audioRef} src={notificationSound} preload="auto" />
-      {/* Header */}
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
-        <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
-              className="rounded-full border px-3 sm:px-4 py-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            {/* Customer: show pharmacy name as link */}
-            {profile?.role === 'customer' ? (
+    // Make the chat UI cover the full viewport and allow inner scrolling to work
+    <div className="h-screen w-full flex flex-col items-stretch overflow-hidden" style={{ position: 'relative' }}>
+      {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundImage: `url(${ChatBgUrl})`,
+          backgroundRepeat: 'repeat',
+          backgroundPosition: 'center center',
+          backgroundSize: 'cover',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+
+      {/* Main content wrapper sits above the fixed background */}
+      <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col">
+        {/* Audio for message tone */}
+        <audio ref={audioRef} src={notificationSound} preload="auto" />
+        {/* Header */}
+        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
+          <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-3">
               <button
-                className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none"
-                onClick={() => {
-                  if (threadId) {
-                    const [vId] = threadId.split('__');
-                    navigate(`/vendor/${vId}`);
-                  }
-                }}
-                title={otherName}
+                onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
+                className="rounded-full border px-3 sm:px-4 py-1"
               >
-                {otherName || '...'}
+                <ArrowLeft className="h-4 w-4" />
               </button>
-            ) : (
-              <div className="min-w-0">
-                <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
-                <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
-              </div>
+              {/* Customer: show pharmacy name as link */}
+              {profile?.role === 'customer' ? (
+                <button
+                  className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none"
+                  onClick={() => {
+                    if (threadId) {
+                      const [vId] = threadId.split('__');
+                      navigate(`/vendor/${vId}`);
+                    }
+                  }}
+                  title={otherName}
+                >
+                  {otherName || '...'}
+                </button>
+              ) : (
+                <div className="min-w-0">
+                  <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
+                  <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
+                </div>
+              )}
+            </div>
+            {/* Call button for customer */}
+            {profile?.role === 'customer' && (
+              <a
+                href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
+                className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50' : 'opacity-40 cursor-not-allowed'}`}
+                style={{ minWidth: 32 }}
+                title={pharmacyPhone ? `Call ${otherName}` : 'No phone number'}
+                tabIndex={pharmacyPhone ? 0 : -1}
+                aria-disabled={!pharmacyPhone}
+              >
+                <CallIcon className="h-3 w-3 mr-1" /> Call
+              </a>
+            )}
+            {/* Dropdown for pharmacy actions */}
+            {profile?.role === 'pharmacy' && threadId && (
+              <Menu as="div" className="relative inline-block text-left ml-2">
+                <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">Actions ▾</Menu.Button>
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white border border-sky-200 divide-y divide-gray-100 rounded-[5px] shadow-lg focus:outline-none z-50">
+                  <div className="py-1">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                          onClick={() => setShowPrescriptionModal(true)}
+                        >
+                          Create Prescription
+                        </button>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                          onClick={() => setShowPrescriptionHistory(true)}
+                        >
+                          View Prescription History
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
+                </Menu.Items>
+              </Menu>
             )}
           </div>
-          {/* Call button for customer */}
-          {profile?.role === 'customer' && (
-            <a
-              href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
-              className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50' : 'opacity-40 cursor-not-allowed'}`}
-              style={{ minWidth: 32 }}
-              title={pharmacyPhone ? `Call ${otherName}` : 'No phone number'}
-              tabIndex={pharmacyPhone ? 0 : -1}
-              aria-disabled={!pharmacyPhone}
-            >
-              <CallIcon className="h-3 w-3 mr-1" /> Call
-            </a>
-          )}
-          {/* Dropdown for pharmacy actions */}
-          {profile?.role === 'pharmacy' && threadId && (
-            <Menu as="div" className="relative inline-block text-left ml-2">
-              <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">Actions ▾</Menu.Button>
-              <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white border border-sky-200 divide-y divide-gray-100 rounded-[5px] shadow-lg focus:outline-none z-50">
-                <div className="py-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
-                        onClick={() => setShowPrescriptionModal(true)}
-                      >
-                        Create Prescription
-                      </button>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
-                        onClick={() => setShowPrescriptionHistory(true)}
-                      >
-                        View Prescription History
-                      </button>
-                    )}
-                  </Menu.Item>
-                </div>
-              </Menu.Items>
-            </Menu>
-          )}
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        <div className="flex-1 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto relative">
-          <div className="overflow-y-auto px-2 sm:px-3 pb-2" style={{ paddingTop: 12 }}>
-            {(() => {
-              let lastDate = null;
-              return messages.map((m, i) => {
-                const isMine = m.senderId === user?.uid;
-                const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
-                let showDate = false;
-                if (t) {
-                  const dayStr = t.toDateString();
-                  if (lastDate !== dayStr) {
-                    showDate = true;
-                    lastDate = dayStr;
+        {/* Messages */}
+        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col min-h-0">
+          <div className="flex-1 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto relative min-h-0">
+            <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-2 min-h-0" style={{ paddingTop: 12 }}>
+              {(() => {
+                let lastDate = null;
+                return messages.map((m, i) => {
+                  const isMine = m.senderId === user?.uid;
+                  const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
+                  let showDate = false;
+                  if (t) {
+                    const dayStr = t.toDateString();
+                    if (lastDate !== dayStr) {
+                      showDate = true;
+                      lastDate = dayStr;
+                    }
                   }
-                }
-                return (
-                  <React.Fragment key={m.id}>
-                    {showDate && t && (
-                      <div className="flex justify-center my-2">
-                        <span className="bg-zinc-200 text-zinc-600 text-[10px] px-3 py-1 rounded-full shadow-sm">
-                          {getDateLabel(t)}
-                        </span>
+                  return (
+                    <React.Fragment key={m.id}>
+                      {showDate && t && (
+                        <div className="flex justify-center my-2">
+                          <span className="bg-zinc-200 text-zinc-600 text-[10px] px-3 py-1 rounded-full shadow-sm">
+                            {getDateLabel(t)}
+                          </span>
+                        </div>
+                      )}
+                      <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
+                        <div
+                          className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
+                          style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
+                        >
+                          {m.text}
+                        </div>
+                        <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
+                          {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </div>
                       </div>
-                    )}
-                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
-                      <div
-                        className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
-                        style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
-                      >
-                        {m.text}
-                      </div>
-                      <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
-                        {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              });
-            })()}
-            <div ref={bottomRef} />
+                    </React.Fragment>
+                  );
+                });
+              })()}
+              <div ref={bottomRef} />
+            </div>
+          </div>
+
+          {/* Composer */}
+          <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
+            <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
+              <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
+                <Paperclip className="h-5 w-5 text-zinc-400" />
+              </label>
+              <input
+                value={text}
+                onChange={e => setText(e.target.value)}
+                placeholder="Type a message"
+                className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
+                style={{ fontSize: 13, height: 34 }}
+              />
+              <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
+                <Send className="h-5 w-5" />
+              </button>
+            </form>
+            <div style={{ height: 6 }} />
           </div>
         </div>
 
-        {/* Composer */}
-        <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full sticky bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur">
-          <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
-            <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
-              <Paperclip className="h-5 w-5 text-zinc-400" />
-            </label>
-            <input
-              value={text}
-              onChange={e => setText(e.target.value)}
-              placeholder="Type a message"
-              className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
-              style={{ fontSize: 13, height: 34 }}
-            />
-            <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
-              <Send className="h-5 w-5" />
-            </button>
-          </form>
-          <div style={{ height: 6 }} />
-        </div>
+        {/* Create Prescription Modal */}
+        <CreatePrescriptionModal
+          open={showPrescriptionModal}
+          onClose={() => setShowPrescriptionModal(false)}
+          products={pharmacyProducts}
+          onSubmit={handleCreatePrescription}
+        />
+        {/* Prescription History Modal */}
+        <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
+          <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
+        </Modal>
+
+        {/* Prescription Quick Actions (for customer) */}
+        {/* Removed PrescriptionList from chat thread view as per requirements */}
       </div>
-
-      {/* Create Prescription Modal */}
-      <CreatePrescriptionModal
-        open={showPrescriptionModal}
-        onClose={() => setShowPrescriptionModal(false)}
-        products={pharmacyProducts}
-        onSubmit={handleCreatePrescription}
-      />
-      {/* Prescription History Modal */}
-      <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
-        <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
-      </Modal>
-
-      {/* Prescription Quick Actions (for customer) */}
-      {/* Removed PrescriptionList from chat thread view as per requirements */}
     </div>
   );
 }
