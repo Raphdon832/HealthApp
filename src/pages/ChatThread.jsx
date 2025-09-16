@@ -19,6 +19,7 @@ import { createPrescription } from '@/lib/db';
 import { Menu } from '@headlessui/react';
 import Modal from '@/components/Modal';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import ChatBgUrl from '@/icons/ChatBg.svg?url';
 
 /**
  * Props (either/or):
@@ -208,7 +209,15 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-white">
+    <div
+      className="min-h-screen w-full flex flex-col items-center"
+      style={{
+        backgroundImage: `url(${ChatBgUrl})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center center',
+        backgroundSize: 'cover'
+      }}
+    >
       {/* Audio for message tone */}
       <audio ref={audioRef} src={notificationSound} preload="auto" />
       {/* Header */}
