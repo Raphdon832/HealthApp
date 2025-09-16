@@ -14,6 +14,21 @@ export default function VendorProfile() {
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  // treat vertical (portrait) screens as mobile layout to avoid spillover on tall devices (e.g. iPad portrait)
+  const [isPortrait, setIsPortrait] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(orientation: portrait)');
+    const onChange = (e) => setIsPortrait(e.matches);
+    setIsPortrait(mq.matches);
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else mq.addListener(onChange);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', onChange);
+      else mq.removeListener(onChange);
+    };
+  }, []);
+  const useMobileLayout = isPortrait;
   const navigate = useNavigate();
   const { user, profile } = useAuth();         // need role to enforce “customer-only”
 
@@ -161,12 +176,12 @@ export default function VendorProfile() {
 
       {/* Central responsive area: on mobile stacked (vendor then products), on md+ grid with products (left) and vendor details + message (right) */}
       <div className="w-full mx-auto mt-6">
-        <div className="flex flex-col md:grid md:grid-cols-3 gap-6">
+        <div className={`flex flex-col ${!useMobileLayout ? 'md:grid md:grid-cols-3' : ''} gap-6`}>
 
           {/* PRODUCTS: mobile order 2, md+ order 2 (right column spanning 2 cols) */}
-          <div className="order-2 md:order-2 md:col-span-2">
+          <div className={`order-2 ${!useMobileLayout ? 'md:order-2 md:col-span-2' : ''}`}>
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
-            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20">
+            <div className={`border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20' : ''}`}>
               <div>
                 <div className="text-[18px] font-poppins font-medium">Products by {vendor.name}</div>
                 <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
@@ -192,7 +207,7 @@ export default function VendorProfile() {
               </div>
             </div>
 
-            <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-4">
+            <div className={`${!useMobileLayout ? 'md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-4' : ''}`}>
               <div className="space-y-3 px-0">
                 {(showAll ? products : products.slice(0, 3)).map((p) => (
                   <div
@@ -222,7 +237,7 @@ export default function VendorProfile() {
           </div>
 
           {/* VENDOR DETAILS + MESSAGE: mobile order 1 (shown above products), md+ order 1 (left column) */}
-          <aside className="order-1 md:order-1 md:col-span-1 md:self-start md:sticky md:top-20">
+          <aside className={`order-1 ${!useMobileLayout ? 'md:order-1 md:col-span-1 md:self-start md:sticky md:top-20' : ''}`}>
             <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-4 w-full flex flex-col items-start">
               <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
                 <span className="text-[32px] font-poppins font-light text-sky-600">{vendor.name?.charAt(0)}</span>
