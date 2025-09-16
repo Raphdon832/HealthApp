@@ -40,7 +40,7 @@ function getDateLabel(date) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose }) {
+export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose, overlayOpacity = 0.7 }) {
   const { user, profile } = useAuth();
   const [threadId, setThreadId] = useState(threadIdProp || null);
 
@@ -228,6 +228,23 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           zIndex: 0
         }}
       />
+
+      {/* Optional semi-transparent overlay for contrast (configurable via prop `overlayOpacity`) */}
+      {overlayOpacity > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: `rgba(255,255,255, ${overlayOpacity})`,
+            pointerEvents: 'none',
+            zIndex: 5
+          }}
+        />
+      )}
 
       {/* Main content wrapper sits above the fixed background */}
       <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col">
