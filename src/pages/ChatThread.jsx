@@ -265,7 +265,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
          {/* Audio for message tone */}
          <audio ref={audioRef} src={notificationSound} preload="auto" />
         {/* Header (full-bleed background, centered content) */}
-        <div className="w-full sticky top-0 z-20 bg-white/1 pt-1 pb-1">
+        <div className="w-full sticky top-0 z-20 bg-white/50 pt-1 pb-1">
           <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button
