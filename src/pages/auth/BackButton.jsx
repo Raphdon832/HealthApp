@@ -8,7 +8,7 @@ const navigate = useNavigate();
 return (
 <button
   onClick={() => (to ? navigate(to) : navigate(-1))}
-  className="w-[78px] h-[27px] font-poppins font-extralight tracking-tight text-[16px] flex items-center justify-center rounded-full bg-white border border-zinc-300 shadow-sm"
+  className="mb-5 w-[70px] h-[20px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300"
 >
   ← Back
 </button>

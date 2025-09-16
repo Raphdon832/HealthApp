@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { sendReset } from '@/lib/email';
-//import ForgotPasswordIllustration from '@/icons/illustrations/ForgotPasswordIllustration.png'; // <-- adjust name if different
+import AuthLayout from './AuthLayout';
+import BackButton from './BackButton';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,8 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5">
+    <AuthLayout>
+      <BackButton to="/auth/landing" />
       <div className="w-full max-w-md text-center bg-white rounded-2xl  p-8">
         {/* Illustration above heading */}
         <img
@@ -63,6 +65,6 @@ export default function ForgotPassword() {
           </form>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 }
