@@ -248,8 +248,10 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
       {/* Main content wrapper sits above the fixed background */}
       <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col min-h-0">
-        {/* Audio for message tone */}
-        <audio ref={audioRef} src={notificationSound} preload="auto" />
+        {/* Scoped CSS to visually hide scrollbar but keep scrolling functional */}
+        <style>{`.hide-scrollbar::-webkit-scrollbar{display:none} .hide-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}`}</style>
+         {/* Audio for message tone */}
+         <audio ref={audioRef} src={notificationSound} preload="auto" />
         {/* Header */}
         <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
           <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
@@ -329,7 +331,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
 
         {/* Messages */}
         <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-28 min-h-0" style={{ paddingTop: 12 }}>
+          <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-28 min-h-0 hide-scrollbar" style={{ paddingTop: 12 }}>
             {(() => {
               let lastDate = null;
               return messages.map((m) => {
