@@ -213,15 +213,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
     <div className="h-screen w-full flex flex-col items-stretch overflow-hidden" style={{ position: 'relative' }}>
-      {/* DEBUG: visible test image to confirm public asset loads (remove in prod) */}
-      <img
-        src={ChatBgUrl}
-        alt="bg-debug"
-        aria-hidden
-        onLoad={() => console.log('DEBUG: ChatBg.svg loaded ->', ChatBgUrl)}
-        onError={(e) => console.error('DEBUG: ChatBg.svg failed to load ->', ChatBgUrl, e)}
-        style={{ position: 'fixed', right: 12, bottom: 12, width: 48, height: 48, zIndex: 9999, border: '1px solid rgba(0,0,0,0.08)', background: 'white' }}
-      />
+      
 
       {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
       <div
