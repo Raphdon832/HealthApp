@@ -20,17 +20,14 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     { key: '/profile', label: 'Profile', icon: ProfileIcon },
   ];
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center">
-      <div
-        className="mx-auto max-w-md px-6 py-3 shadow-sm flex-1"
-        style={{
-          borderRadius: '40px',
-          border: '0.86px solid rgba(54, 165, 255, 0.25)',
-          background: 'rgba(255,255,255,0.09)',
-          backdropFilter: 'blur(16.3px)',
-        }}
+    <div className="fixed bottom-3 left-0 right-0 flex justify-center" aria-hidden={false}>
+      <nav
+        role="navigation"
+        aria-label="Bottom navigation"
+        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3"
       >
-        <div className="flex items-center justify-between">
+        {/* Use gap-based layout with fixed-size cells so icons are spaced evenly and not cramped */}
+        <div className="flex items-center justify-center gap-[-1] px-2">
           {items.map((it) => {
             const isActive = tab === it.key;
             const IconComponent = it.icon;
@@ -38,24 +35,31 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
             return (
-              <button key={it.key} onClick={() => setTab(it.key)} className={`relative flex flex-col items-center text-xs ${isActive ? 'text-sky-600' : 'text-zinc-500'}`}>
-                <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
-                {isCart && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
-                    {cartCount}
-                  </span>
-                )}
-                {isMessages && unreadMessages > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
-                    {unreadMessages}
-                  </span>
-                )}
-                <span className="font-medium">{it.label}</span>
-              </button>
+              <div key={it.key} className="flex-none">
+                <button
+                  onClick={() => setTab(it.key)}
+                  aria-label={it.label}
+                  aria-pressed={isActive}
+                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none ${isActive ? 'text-sky-600' : 'text-zinc-500'}`}
+                >
+                  <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                  {isCart && cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
+                      {cartCount}
+                    </span>
+                  )}
+                  {isMessages && unreadMessages > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
+                      {unreadMessages}
+                    </span>
+                  )}
+                  <span className="font-medium truncate max-w-[72px] block text-center">{it.label}</span>
+                </button>
+              </div>
             );
           })}
         </div>
-      </div>
+      </nav>
     </div>
   );
 }

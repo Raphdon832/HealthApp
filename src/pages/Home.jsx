@@ -194,6 +194,23 @@ export default function Home() {
   useEffect(() => setPopularPage(1), [popularProducts.length]);
   useEffect(() => setAllNewPage(1), [allNewArrivals.length]);
 
+  // Normalize and classify links from info cards so clicks open the intended target
+  const normalizeHref = (link) => {
+    if (!link) return '';
+    const l = String(link).trim();
+    // already absolute or protocol-relative or mail/tel
+    if (/^(https?:)?\/\//i.test(l) || /^mailto:/i.test(l) || /^tel:/i.test(l)) return l;
+    // internal route
+    if (l.startsWith('/')) return l;
+    // no protocol and not internal -> assume https
+    return `https://${l}`;
+  };
+
+  const isExternalHref = (href) => {
+    if (!href) return false;
+    return /^(https?:)?\/\//i.test(href) || /^mailto:/i.test(href) || /^tel:/i.test(href);
+  };
+
   const handleProductOpen = async (productId) => {
     navigate(`/product/${productId}`);
     setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p)));
@@ -402,14 +419,26 @@ export default function Home() {
                               <div className="mt-2 text-white/90 leading-snug font-light text-[11px] md:text-[14px]">{card.preview}</div>
                             )}
                             {card.link && card.linkText && (
-                              <a
-                                href={card.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
-                              >
-                                {card.linkText}
-                              </a>
+                              (() => {
+                                const href = normalizeHref(card.link);
+                                const external = isExternalHref(href);
+                                return (
+                                  <a
+                                    href={href}
+                                    onClick={(e) => {
+                                      // For internal routes use react-router navigation to avoid full page reloads.
+                                      if (!external) {
+                                        e.preventDefault();
+                                        try { navigate(href); } catch (err) { window.location.href = href; }
+                                      }
+                                    }}
+                                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                                    className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
+                                  >
+                                    {card.linkText}
+                                  </a>
+                                );
+                              })()
                             )}
                           </div>
                         </div>

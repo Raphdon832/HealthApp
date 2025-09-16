@@ -5,6 +5,8 @@ import { Card } from './ui/card';
 export default function ProductCard({
   product,
   vendorName,
+  vendorDistanceKm,
+  vendorEtaMins,
   onOpen,
   onAdd,
   cardWidth = '172px',
@@ -62,8 +64,15 @@ export default function ProductCard({
         )}
       </div>
 
-      <div className="mt-1 text-xs text-zinc-500 font-poppins font-light truncate" style={{ fontSize: '10px', maxWidth: '100%' }}>
-        {vendorName}
+      <div className="mt-1 text-xs text-zinc-500 font-poppins font-light truncate flex items-center gap-2" style={{ fontSize: '10px', maxWidth: '100%' }}>
+        <span className="truncate">{vendorName}</span>
+        {(typeof vendorDistanceKm === 'number' || typeof vendorEtaMins === 'number') && (
+          <span className="text-[9px] text-zinc-400 whitespace-nowrap">
+            {typeof vendorDistanceKm === 'number' ? `${vendorDistanceKm.toFixed(1)} km` : ''}
+            {typeof vendorDistanceKm === 'number' && typeof vendorEtaMins === 'number' ? ' · ' : ''}
+            {typeof vendorEtaMins === 'number' ? `${vendorEtaMins} min` : ''}
+          </span>
+        )}
       </div>
 
       <div
