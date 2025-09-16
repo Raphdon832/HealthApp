@@ -10,7 +10,8 @@ import {
   markThreadRead
 } from '@/lib/db';
 import { doc, getDoc } from 'firebase/firestore';
-import { Paperclip, Send } from 'lucide-react';
+import { Paperclip } from 'lucide-react';
+import SendButtonUrl from '@/icons/SendButton.svg?url';
 import CallIcon from '@/icons/react/CallIcon';
 import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
 import CreatePrescriptionModal from '@/components/CreatePrescriptionModal';
@@ -264,8 +265,8 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
          {/* Audio for message tone */}
          <audio ref={audioRef} src={notificationSound} preload="auto" />
         {/* Header */}
-        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
-          <div className="px-4 sm:px-5 pt-6 pb-3 border-b flex items-center gap-3 justify-between">
+        <div className="w-full max-w-md md:max-w-2xl border-b lg:max-w-4xl xl:max-w-6xl mx-auto pt-1 pb-1 sticky top-0 z-20 bg-white/80 backdrop-blur">
+          <div className="px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
@@ -397,7 +398,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
                 style={{ fontSize: 13, height: 34 }}
               />
               <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
-                <Send className="h-5 w-5" />
+                <img src={SendButtonUrl} alt="Send" className="h-5 w-5" />
               </button>
             </form>
             <div style={{ height: 6 }} />
