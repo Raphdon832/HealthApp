@@ -159,78 +159,97 @@ export default function VendorProfile() {
         <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Vendor&nbsp;Profile</div>
       </div>
 
-      <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-6 w-full flex flex-col items-start">
-        <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
-          <span className="text-[32px] font-poppins font-light text-sky-600">{vendor.name?.charAt(0)}</span>
-        </div>
-        <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 mb-1">{vendor.name}</div>
-        <div className="text-zinc-500 text-[13px] font-poppins font-light mb-1">{vendor.email}</div>
-        <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
-          <MapPin className="h-3 w-3" /> {vendor.address}
-        </div>
-        <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
-          <Clock className="h-3 w-3" /> {vendor.etaMins || 25} mins to {vendor.name}
-        </div>
-        <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light">
-          <Phone className="h-3 w-3" /> {vendor.phone}
-        </div>
-      </div>
+      {/* Central responsive area: on mobile stacked (vendor then products), on md+ grid with products (left) and vendor details + message (right) */}
+      <div className="w-full mx-auto mt-6">
+        <div className="flex flex-col md:grid md:grid-cols-3 gap-6">
 
-      <button
-        onClick={handleMessageVendor}
-        className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2 mb-8"
-      >
-        <MessageCircle className="h-4 w-4" /> Message Vendor
-      </button>
-
-      
-
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-[17px] font-poppins font-medium">Products by {vendor.name}</div>
-        {products.length > 3 && !showAll && (
-          <button
-            className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
-            onClick={() => setShowAll(true)}
-          >
-            See more
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        {(showAll ? products : products.slice(0, 3)).map((p) => (
-          <div
-            key={p.id}
-            className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition overflow-hidden"
-            onClick={() => navigate(`/product/${p.id}`)}
-          >
-            <div className="flex-shrink-0">
-              <ProductAvatar name={p.name} image={p.image} />
+          {/* PRODUCTS: mobile order 2, md+ order 2 (right column spanning 2 cols) */}
+          <div className="order-2 md:order-2 md:col-span-2">
+            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4">
+              <div className="text-[18px] font-poppins font-medium">Products by {vendor.name}</div>
+              <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
-              <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
-                {p.category} • Stock: {p.stock} • SKU: {p.sku}
+
+            <div className="space-y-3">
+              {(showAll ? products : products.slice(0, 3)).map((p) => (
+                <div
+                  key={p.id}
+                  className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition overflow-hidden"
+                  onClick={() => navigate(`/product/${p.id}`)}
+                >
+                  <div className="flex-shrink-0">
+                    <ProductAvatar name={p.name} image={p.image} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
+                    <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
+                      {p.category} • Stock: {p.stock} • SKU: {p.sku}
+                    </div>
+                  </div>
+                  <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0">₦{Number(p.price).toLocaleString()}</div>
+                </div>
+              ))}
+              {products.length === 0 && (
+                <div className="text-zinc-500 text-[13px] font-poppins font-light">No products yet.</div>
+              )}
+
+              {products.length > 3 && !showAll && (
+                <div className="mt-3">
+                  <button
+                    className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
+                    onClick={() => setShowAll(true)}
+                  >
+                    See more
+                  </button>
+                </div>
+              )}
+
+              {products.length > 3 && showAll && (
+                <div className="flex justify-end mt-2">
+                  <button
+                    className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
+                    onClick={() => setShowAll(false)}
+                  >
+                    See less
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* VENDOR DETAILS + MESSAGE: mobile order 1 (shown above products), md+ order 2 (right column) */}
+          <aside className="order-1 md:order-1 md:col-span-1">
+            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-4 w-full flex flex-col items-start">
+              <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
+                <span className="text-[32px] font-poppins font-light text-sky-600">{vendor.name?.charAt(0)}</span>
+              </div>
+              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 mb-1">{vendor.name}</div>
+              <div className="text-zinc-500 text-[13px] font-poppins font-light mb-1">{vendor.email}</div>
+              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
+                <MapPin className="h-3 w-3" /> {vendor.address}
+              </div>
+              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
+                <Clock className="h-3 w-3" /> {vendor.etaMins || 25} mins to {vendor.name}
+              </div>
+              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light">
+                <Phone className="h-3 w-3" /> {vendor.phone}
               </div>
             </div>
-            <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0">₦{Number(p.price).toLocaleString()}</div>
-          </div>
-        ))}
-        {products.length === 0 && (
-          <div className="text-zinc-500 text-[13px] font-poppins font-light">No products yet.</div>
-        )}
+
+            {/* Message button: visible on all screens inside the aside so mobile shows it under vendor details and md+ keeps it on the right */}
+            <div className="w-full mb-4">
+              <button
+                onClick={handleMessageVendor}
+                className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="h-4 w-4" /> Message Vendor
+              </button>
+            </div>
+          </aside>
+
+        </div>
       </div>
 
-      {products.length > 3 && showAll && (
-        <div className="flex justify-end mt-2">
-          <button
-            className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition"
-            onClick={() => setShowAll(false)}
-          >
-            See less
-          </button>
-        </div>
-      )}
     </div>
   );
 }
