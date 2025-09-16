@@ -50,7 +50,7 @@ export default function ProductDetail({ product, pharmacy }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
                 {/* LEFT: Product image (widget-style) */}
-                <div className="bg-white rounded-2xl p-4 border border-zinc-100 flex flex-col items-center justify-center">
+                <div className=" rounded-2xl p-4 border flex flex-col items-center justify-center">
                   <img
                     src={product.image}
                     alt={product.name}

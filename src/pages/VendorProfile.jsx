@@ -125,6 +125,27 @@ export default function VendorProfile() {
     doc.save(`${vendor.name || 'pharmacy'}-report.pdf`);
   };
 
+  // Small avatar component for products: shows image when valid, otherwise a letter avatar
+  const ProductAvatar = ({ name, image }) => {
+    const [errored, setErrored] = useState(false);
+    const initial = name?.charAt(0)?.toUpperCase() || '?';
+    if (!image || errored) {
+      return (
+        <div className="h-16 w-16 rounded-2xl bg-zinc-100 flex items-center justify-center border border-zinc-100">
+          <span className="text-[20px] font-poppins font-light text-sky-600">{initial}</span>
+        </div>
+      );
+    }
+    return (
+      <img
+        src={image}
+        alt={name}
+        className="h-16 w-16 object-cover rounded-2xl border border-zinc-100"
+        onError={() => setErrored(true)}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
       {/* Sticky header with back button and title */}
@@ -180,17 +201,19 @@ export default function VendorProfile() {
         {(showAll ? products : products.slice(0, 3)).map((p) => (
           <div
             key={p.id}
-            className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition"
+            className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition overflow-hidden"
             onClick={() => navigate(`/product/${p.id}`)}
           >
-            <img src={p.image} className="h-16 w-16 object-cover rounded-2xl border border-zinc-100" />
-            <div className="flex-1">
-              <div className="font-poppins font-medium text-[15px] tracking-tight mb-1">{p.name}</div>
-              <div className="text-zinc-500 text-[12px] font-poppins font-light">
+            <div className="flex-shrink-0">
+              <ProductAvatar name={p.name} image={p.image} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
+              <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
                 {p.category} • Stock: {p.stock} • SKU: {p.sku}
               </div>
             </div>
-            <div className="text-[15px] font-poppins font-medium text-sky-600">₦{Number(p.price).toLocaleString()}</div>
+            <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0">₦{Number(p.price).toLocaleString()}</div>
           </div>
         ))}
         {products.length === 0 && (
