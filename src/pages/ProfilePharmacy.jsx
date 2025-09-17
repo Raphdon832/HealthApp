@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Clock, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { listenProducts, removeProduct } from '@/lib/db';
+import { listenProducts } from '@/lib/db';
 import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
@@ -10,6 +10,8 @@ import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { generatePharmacyReport } from '@/lib/pdfReport';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout } = useAuth();
@@ -38,35 +40,43 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [searchScope, setSearchScope] = useState('products'); // 'products' | 'orders' | 'all'
+
   // Default to searching both products and orders for pharmacy users
   useEffect(() => {
     if (!user) return;
     if (user.role === 'pharmacy') setSearchScope('all');
   }, [user]);
+
   const [ordersCache, setOrdersCache] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => { if (user) return listenProducts(setInventory, user.uid); }, [user]);
+  useEffect(() => {
+    if (user) return listenProducts(setInventory, user.uid);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     // Fetch products sold
     getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', user.uid))).then(snapshot => {
       let sold = 0;
-      snapshot.forEach(doc => {
-        const order = doc.data();
-        sold += (order.items || []).reduce((sum, item) => sum + (item.count || 1), 0);
+      snapshot.forEach(docSnap => {
+        const order = docSnap.data();
+        sold += (order.items || []).reduce((sum, item) => sum + (item.count || item.qty || item.quantity || 1), 0);
       });
       setProductsSold(sold);
-    });
+    }).catch(() => {});
+
     // Fetch active chats
     getDocs(query(collection(db, 'threads'), where('vendorId', '==', user.uid))).then(snapshot => {
       setActiveChats(snapshot.size);
-    });
+    }).catch(() => {});
+
     // Fetch reviews
     getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', user.uid))).then(snapshot => {
       setReviews(snapshot.size);
-    });
+    }).catch(() => {});
+
     // Fetch pharmacy profile (address, phone)
     getDoc(doc(db, 'pharmacies', user.uid)).then(snap => {
       if (snap.exists()) {
@@ -75,7 +85,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           phone: snap.data().phone || ''
         });
       }
-    });
+    }).catch(() => {});
   }, [user]);
 
   async function downloadReport() {
@@ -142,7 +152,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setOrdersCache(orders);
       }
-      orders.forEach(o => {
+      (orders || []).forEach(o => {
         const hay = `${o.id} ${(o.items || []).map(it => it.name).join(' ')} ${o.customerName || ''}`.toLowerCase();
         if (hay.includes(q)) {
           results.push({ type: 'order', title: `Order ${o.id}`, subtitle: `${o.items?.length || 0} items — ₦${Number(o.total || 0).toLocaleString()}`, item: o });
@@ -181,6 +191,72 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     return () => clearTimeout(id);
   }, [searchQuery, searchScope, showSearch]);
 
+  // CSV/XLSX export helpers
+  function formatCreatedAt(val) {
+    try {
+      return val && val.toDate ? val.toDate().toISOString() : (val || '');
+    } catch (e) { return ''; }
+  }
+
+  function downloadInventoryCsv() {
+    if (!inventory || inventory.length === 0) {
+      alert('No products to export');
+      return;
+    }
+    const rows = inventory.map(p => ({
+      id: p.id,
+      name: p.name || '',
+      category: p.category || '',
+      sku: p.sku || '',
+      price: Number(p.price || 0),
+      stock: Number(p.stock || 0),
+      description: p.description || '',
+      image: p.image || '',
+      createdAt: formatCreatedAt(p.createdAt)
+    }));
+    const csv = Papa.unparse(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pharmacy-inventory-${user?.uid || 'inventory'}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadInventoryXlsx() {
+    if (!inventory || inventory.length === 0) {
+      alert('No products to export');
+      return;
+    }
+    const rows = inventory.map(p => ({
+      id: p.id,
+      name: p.name || '',
+      category: p.category || '',
+      sku: p.sku || '',
+      price: Number(p.price || 0),
+      stock: Number(p.stock || 0),
+      description: p.description || '',
+      image: p.image || '',
+      createdAt: formatCreatedAt(p.createdAt)
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pharmacy-inventory-${user?.uid || 'inventory'}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   if (!user) {
     return <LoadingSkeleton lines={4} className="my-8" />;
   }
@@ -211,6 +287,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
       {/* Superuser Dashboard */}
       <SuperuserDashboard user={user} />
+
       {/* Sticky header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
         <div className="w-full flex items-center justify-between">
@@ -250,25 +327,25 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       {/* Search modal */}
       {showSearch && (
         <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white/10 backdrop-blur-md rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
             <div className="mb-3">
               <div className="flex items-center gap-3 w-full">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center border-b border-[#ffffff] px-3 py-2 w-full overflow-hidden">
-                    <Search className="h-4 w-4 text-white mr-2 flex-shrink-0" />
+                  <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
+                    <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
                     <input
                       autoFocus
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
                       placeholder="Search products, orders, customers..."
-                      className="flex-1 min-w-0 bg-transparent text-sm text-white outline-none truncate"
+                      className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
                       aria-label="Search query"
                     />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="border-b border-[#f6f6f6] bg-transparent text-[#f6f6f6] px-3 py-2 text-sm w-36">
+                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
                     <option value="products">Products</option>
                     <option value="orders">Orders</option>
                     <option value="all">All</option>
@@ -276,12 +353,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 </div>
               </div>
 
-              <div className="w-full mt-3"/>
+              <div className="w-full border-t mt-3" style={{borderColor:'#E6F7FF'}} />
             </div>
 
             <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
               {searchResults.length === 0 ? (
-                <div className="text-zinc-500 p-4 text-[15px] font-light text-center">No results yet</div>
+                <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
@@ -423,6 +500,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 </button>
               )}
             </div>
+
             <div className="space-y-3">
               {(showAllProducts ? inventory : inventory.slice(0,3)).map(p => (
                 <button
@@ -455,11 +533,18 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               ))}
               {inventory.length===0 && <div className="text-zinc-500">No products yet. Use the buttons above to add or bulk‑upload.</div>}
             </div>
+
+            <div className="w-full flex justify-end mt-3">
+              <button onClick={downloadInventoryCsv} className="mr-2 px-4 py-2 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light hover:bg-[#E3F3FF]">Download CSV</button>
+              <button onClick={downloadInventoryXlsx} className="px-4 py-2 rounded-full bg-sky-600 text-white text-[13px] font-light hover:bg-sky-700">Download Excel</button>
+            </div>
           </div>
         </section>
       </div>
+
       {showAdd && <AddProductModal pharmacyId={user.uid} onClose={()=>setShowAdd(false)} />}
       {showBulk && <BulkUploadModal pharmacyId={user.uid} onClose={()=>setShowBulk(false)} />}
+
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] relative">
@@ -474,12 +559,14 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 )}
               </div>
             </div>
+
             <div className="space-y-3" onClick={()=>showAdvanced && setShowAdvanced(false)}>
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editName} onChange={e=>setEditName(e.target.value)} placeholder="Name" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editCategory} onChange={e=>setEditCategory(e.target.value)} placeholder="Category" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder="Stock" type="number" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editSKU} onChange={e=>setEditSKU(e.target.value)} placeholder="SKU" />
               <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder="Price" type="number" />
+
               {/* Image field */}
               <div className="flex flex-col gap-1">
                 <label className="text-[12px] text-zinc-500 font-light">Product Image</label>
@@ -510,6 +597,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   />
                 )}
               </div>
+
               {/* Description field */}
               <div className="flex flex-col gap-1">
                 <label className="text-[12px] text-zinc-500 font-light">Product Description</label>
@@ -522,10 +610,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 />
               </div>
             </div>
+
             <div className="flex gap-2 mt-6 items-center">
               <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>Save</button>
               <button className="flex-1 rounded-full border border-zinc-300 text-zinc-500 text-[12px] font-light py-2" onClick={()=>setEditingProduct(null)}>Cancel</button>
             </div>
+
             {showDeleteConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-3xl" onClick={()=>setShowDeleteConfirm(false)}>
                 <div className="bg-white rounded-2xl p-5 shadow-xl border border-[#9ED3FF] text-center" onClick={e=>e.stopPropagation()}>
@@ -540,6 +630,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           </div>
         </div>
       )}
+
       <div className="mt-6 lg:hidden">
          <button
            onClick={async () => {
