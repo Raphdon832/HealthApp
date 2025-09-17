@@ -5,7 +5,7 @@ import { listenProducts } from '@/lib/db';
 import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -35,7 +35,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [brokenImages, setBrokenImages] = useState(new Set());
   const handleImageError = (id) => setBrokenImages(prev => { const s = new Set(prev); s.add(id); return s; });
   const handleImageLoad = (id) => setBrokenImages(prev => { const s = new Set(prev); s.delete(id); return s; });
-  const [pharmacyProfile, setPharmacyProfile] = useState({ address: '', phone: '' });
+  const [pharmacyProfile, setPharmacyProfile] = useState({ displayName: user?.displayName || 'Pharmacy', address: '', phone: '', email: user?.email || '' });
   const [editDesc, setEditDesc] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -77,15 +77,31 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       setReviews(snapshot.size);
     }).catch(() => {});
 
-    // Fetch pharmacy profile (address, phone)
-    getDoc(doc(db, 'pharmacies', user.uid)).then(snap => {
-      if (snap.exists()) {
-        setPharmacyProfile({
-          address: snap.data().address || '',
-          phone: snap.data().phone || ''
-        });
+    // Subscribe to pharmacy profile document for real-time updates (name, address, phone, email)
+    const pharmacyDocRef = doc(db, 'pharmacies', user.uid);
+    const unsubProfile = onSnapshot(pharmacyDocRef, snap => {
+      if (snap && snap.exists()) {
+        const d = snap.data();
+        setPharmacyProfile(prev => ({
+          displayName: d.displayName || user.displayName || prev.displayName,
+          address: d.address || prev.address || '',
+          phone: d.phone || d.phoneNumber || prev.phone || '',
+          email: d.email || user.email || prev.email || ''
+        }));
+      } else {
+        // fallback to auth user data
+        setPharmacyProfile(prev => ({
+          displayName: user.displayName || prev.displayName,
+          address: prev.address || '',
+          phone: prev.phone || '',
+          email: user.email || prev.email || ''
+        }));
       }
-    }).catch(() => {});
+    }, () => {});
+
+    return () => {
+      try { unsubProfile && unsubProfile(); } catch (e) {}
+    };
   }, [user]);
 
   async function downloadReport() {
@@ -412,23 +428,23 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] shadow" />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF] shadow">
-                  <span className="text-sky-600 text-2xl font-light">{user?.displayName?.charAt(0) || 'P'}</span>
+                  <span className="text-sky-600 text-2xl font-light">{(pharmacyProfile.displayName && pharmacyProfile.displayName.charAt(0)) || 'P'}</span>
                 </div>
               )}
             </div>
-            <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight truncate">{user?.displayName || 'Pharmacy'}</div>
+            <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight truncate">{pharmacyProfile.displayName || 'Pharmacy'}</div>
             <div className="w-full border-b mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
-            <div className="text-[13px] text-zinc-500 font-light mb-1 truncate">{user?.email}</div>
+            <div className="text-[13px] text-zinc-500 font-light mb-1 truncate">{pharmacyProfile.email || user?.email}</div>
             {pharmacyProfile.address && (
               <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate"><MapPin className="h-4 w-4 mr-1" />{pharmacyProfile.address}</div>
             )}
             {pharmacyProfile.phone && (
               <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate">
-                {/* Phone icon SVG from /src/icons/PhoneIcon.svg */}
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1"><path d="M2.41333 5.19333C3.37333 7.08 4.92 8.62667 6.80667 9.58667L8.27333 8.12C8.46 7.93333 8.72 7.88 8.95333 7.95333C9.7 8.2 10.5 8.33333 11.3333 8.33333C11.5101 8.33333 11.6797 8.40357 11.8047 8.5286C11.9298 8.65362 12 8.82319 12 9V11.3333C12 11.5101 11.9298 11.6797 11.8047 11.8047C11.6797 11.9298 11.5101 12 11.3333 12C8.32755 12 5.44487 10.806 3.31946 8.68054C1.19404 6.55513 0 3.67245 0 0.666667C0 0.489856 0.0702379 0.320286 0.195262 0.195262C0.320286 0.0702379 0.489856 0 0.666667 0H3C3.17681 0 3.34638 0.0702379 3.4714 0.195262C3.59643 0.320286 3.66667 0.489856 3.66667 0.666667C3.66667 1.5 3.8 2.3 4.04667 3.04667C4.12 3.28 4.06667 3.54 3.88 3.72667L2.41333 5.19333Z" fill="#7D7D7D"/></svg>
+                 {/* Phone icon SVG from /src/icons/PhoneIcon.svg */}
+                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1"><path d="M2.41333 5.19333C3.37333 7.08 4.92 8.62667 6.80667 9.58667L8.27333 8.12C8.46 7.93333 8.72 7.88 8.95333 7.95333C9.7 8.2 10.5 8.33333 11.3333 8.33333C11.5101 8.33333 11.6797 8.40357 11.8047 8.5286C11.9298 8.65362 12 8.82319 12 9V11.3333C12 11.5101 11.9298 11.6797 11.8047 11.8047C11.6797 11.9298 11.5101 12 11.3333 12C8.32755 12 5.44487 10.806 3.31946 8.68054C1.19404 6.55513 0 3.67245 0 0.666667C0 0.489856 0.0702379 0.320286 0.195262 0.195262C0.320286 0.0702379 0.489856 0 0.666667 0H3C3.17681 0 3.34638 0.0702379 3.4714 0.195262C3.59643 0.320286 3.66667 0.489856 3.66667 0.666667C3.66667 1.5 3.8 2.3 4.04667 3.04667C4.12 3.28 4.06667 3.54 3.88 3.72667L2.41333 5.19333Z" fill="#7D7D7D"/></svg>
                 {pharmacyProfile.phone}
-              </div>
-            )}
+               </div>
+             )}
             {/* Desktop-only logout under profile card */}
             <div className="w-full mt-4 hidden lg:flex justify-start">
               <button

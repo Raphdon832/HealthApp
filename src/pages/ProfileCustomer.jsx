@@ -4,21 +4,29 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState(user?.displayName || '');
-  const [editPhone, setEditPhone] = useState(user?.phoneNumber || '');
-  const [editAddress, setEditAddress] = useState('Kuje, Abuja, Nigeria');
+  // edit fields start empty and will be populated from real-time `customerProfile` when available
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
   const [editPassword, setEditPassword] = useState("");
   const [showAllDrugs, setShowAllDrugs] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [activeChats, setActiveChats] = useState(0);
   const [drugsBought, setDrugsBought] = useState([]);
+  // Real-time customer profile from Firestore (name, address, email, phone)
+  const [customerProfile, setCustomerProfile] = useState({
+    displayName: user?.displayName || 'Customer',
+    address: 'Kuje, Abuja, Nigeria',
+    phone: user?.phoneNumber || '',
+    email: user?.email || ''
+  });
   // Search state for customer profile
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -66,7 +74,38 @@ export default function ProfileCustomer() {
       const drugsArr = Object.values(drugs).sort((a, b) => (b.lastDate || 0) - (a.lastDate || 0));
       setDrugsBought(drugsArr);
     });
+    // Subscribe to real-time user profile document
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsub = onSnapshot(userDocRef, snap => {
+      if (snap && snap.exists()) {
+        const d = snap.data();
+        setCustomerProfile(prev => {
+          // Prefer explicit phoneNumber/phone fields, but guard against data mistakes (e.g. an email accidentally stored in phone)
+          let phoneVal = d.phoneNumber ?? d.phone ?? prev.phone ?? '';
+          if (typeof phoneVal === 'string' && phoneVal.includes('@')) {
+            phoneVal = prev.phone ?? '';
+          }
+          return {
+            displayName: d.displayName || user.displayName || prev.displayName,
+            address: d.address || prev.address || '',
+            phone: phoneVal,
+            email: d.email || user.email || prev.email || ''
+          };
+        });
+      }
+    }, () => {});
+
+    return () => unsub && unsub();
   }, [user]);
+
+  // Keep edit fields in sync with realtime profile when not actively editing
+  useEffect(() => {
+    if (!editing && customerProfile) {
+      setEditName(customerProfile.displayName || '');
+      setEditPhone(customerProfile.phone || '');
+      setEditAddress(customerProfile.address || 'Kuje, Abuja, Nigeria');
+    }
+  }, [customerProfile, editing]);
 
   // Perform search across prescriptions, orders and drugsBought
   async function performSearch() {
@@ -239,11 +278,11 @@ export default function ProfileCustomer() {
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover rounded-full" />
               ) : (
-                <span className="text-3xl text-zinc-400 font-light">{user?.displayName?.[0] || 'C'}</span>
+                <span className="text-3xl text-zinc-400 font-light">{(customerProfile.displayName && customerProfile.displayName[0]) || 'C'}</span>
               )}
             </div>
             <div className="w-full flex items-center justify-between mt-1">
-              <div className="text-[20px] font-medium text-sky-600 tracking-tighter">{user?.displayName||'Customer'}</div>
+              <div className="text-[20px] font-medium text-sky-600 tracking-tighter">{customerProfile.displayName || 'Customer'}</div>
               <button
                 className="ml-2 px-3 py-1 rounded-full border border-sky-200 text-sky-600 text-xs flex items-center gap-1 hover:bg-sky-50"
                 onClick={() => setEditing(true)}
@@ -262,9 +301,9 @@ export default function ProfileCustomer() {
                     onSubmit={async e => {
                       e.preventDefault();
                       if (
-                        editName !== user?.displayName ||
-                        editPhone !== user?.phoneNumber ||
-                        editAddress !== 'Kuje, Abuja, Nigeria'
+                        editName !== (customerProfile?.displayName || user?.displayName) ||
+                        editPhone !== (customerProfile?.phone || user?.phoneNumber) ||
+                        editAddress !== (customerProfile?.address || 'Address missing')
                       ) {
                         if (!editPassword) {
                           alert('Please enter your account password to save changes.');
@@ -334,9 +373,9 @@ export default function ProfileCustomer() {
               </div>
             )}
 
-            <div className="text-zinc-500 mt-1 text-[12px] font-light w-full pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>{user?.email}</div>
-            <div className="flex items-center gap-2 text-zinc-500 mt-2 text-[12px] font-light w-full pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}><MapPin className="h-2.5 w-2.5"/> Kuje, Abuja, Nigeria</div>
-            <div className="flex items-center gap-2 text-zinc-500 mt-1 text-[12px] font-light w-full" ><Phone className="h-2.5 w-2.5"/> 080123456789</div>
+            <div className="text-zinc-500 mt-1 text-[12px] font-light w-full pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>{customerProfile.email}</div>
+            <div className="flex items-center gap-2 text-zinc-500 mt-2 text-[12px] font-light w-full pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}><MapPin className="h-2.5 w-2.5"/> {customerProfile.address || 'Kuje, Abuja, Nigeria'}</div>
+            <div className="flex items-center gap-2 text-zinc-500 mt-1 text-[12px] font-light w-full" ><Phone className="h-2.5 w-2.5"/> {customerProfile.phone || 'phone number missing'}</div>
           </div>
 
           <div>
