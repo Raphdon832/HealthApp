@@ -252,8 +252,8 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
       <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col min-h-0">
         {/* Scoped CSS to visually hide scrollbar but keep scrolling functional */}
         <style>{`.hide-scrollbar::-webkit-scrollbar{display:none} .hide-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}`}</style>
-         {/* Audio for message tone */}
-         <audio ref={audioRef} src={notificationSound} preload="auto" />
+         {/* Audio for message tone (defer load until needed) */}
+         <audio ref={audioRef} src={notificationSound} preload="none" />
         {/* Header (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
         <div
           className="sticky top-0 z-20 bg-white/90 pt-1 pb-1"
