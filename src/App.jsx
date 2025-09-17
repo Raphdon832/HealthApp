@@ -110,16 +110,6 @@ function AppLayout() {
             cartCount={cartCount}
             unreadMessages={unreadMessages}
           />
-
-          {/* Floating unread counter (shows same unread total). Visible only when BottomNav is visible. */}
-          <button
-            onClick={() => navigate('/messages')}
-            aria-label={`Unread messages: ${unreadMessages}`}
-            title="Open messages"
-            className="fixed right-6 bottom-20 z-50 bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg focus:outline-none"
-          >
-            <span className="text-sm font-bold select-none">{unreadMessages > 99 ? '99+' : unreadMessages}</span>
-          </button>
         </>
       )}
 
