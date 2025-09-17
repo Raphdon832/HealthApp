@@ -178,19 +178,19 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     setText('');
   };
 
-  // Fetch pharmacy products for prescription modal
+  // Defer pharmacy products listener until the prescription modal opens
   useEffect(() => {
+    if (!showPrescriptionModal) return;
     let vId = null;
     if (profile?.role === 'pharmacy') vId = user?.uid;
     else if (threadId) [vId] = threadId.split('__');
     if (!vId) return;
-    // Use modular Firestore API
     const q = query(collection(db, 'products'), where('pharmacyId', '==', vId));
     const unsub = onSnapshot(q, snap => {
       setPharmacyProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return unsub;
-  }, [profile?.role, user?.uid, threadId]);
+    return () => unsub && unsub();
+  }, [showPrescriptionModal, profile?.role, user?.uid, threadId]);
 
   // Handle prescription creation
   const handleCreatePrescription = async ({ drugs, startDate, duration, notes }) => {
