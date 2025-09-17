@@ -10,7 +10,8 @@ import {
   useMatch,
   Outlet,
 } from 'react-router-dom';
-import { collection, query, onSnapshot, where, doc as firestoreDoc, getDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc as firestoreDoc, getDoc } from 'firebase/firestore';
+import { listenUserThreads } from '@/lib/db';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -63,52 +64,36 @@ function AppLayout() {
   }, [user, profile]);
 
   useEffect(() => {
-    if (!user) return setUnreadMessages(0);
-    // Listen for all threads where user is a participant
-    const threadsQ = query(collection(db, 'threads'), where('participants', 'array-contains', user.uid));
-    let unsubs = [];
-    const unsub = onSnapshot(threadsQ, (threadsSnap) => {
-      const threadIds = threadsSnap.docs.map(d => d.id);
-      if (!threadIds.length) {
-        setUnreadMessages(0);
-        unsubs.forEach(u => u());
-        unsubs = [];
-        return;
+    if (!user || !profile?.role) return setUnreadMessages(0);
+
+    // Use the same listener used by Messages.jsx to ensure we subscribe to the exact same
+    // set of threads (by customerId/vendorId) and compute unread total from thread docs.
+    const unsub = listenUserThreads({ uid: user.uid, role: profile.role }, (threads) => {
+      try {
+        const sum = threads.reduce((acc, t) => {
+          const u = t?.unread?.[user.uid];
+          return acc + (typeof u === 'number' ? u : 0);
+        }, 0);
+        setUnreadMessages(sum);
+        console.debug('[AppLayout] unread total from listenUserThreads', { sum, count: threads.length });
+      } catch (e) {
+        console.error('[AppLayout] error computing unread from threads', e);
       }
-      // Unsubscribe from previous listeners
-      unsubs.forEach(u => u());
-      unsubs = [];
-      let totalUnread = 0;
-      let counts = {};
-      let pending = threadIds.length;
-      threadIds.forEach(threadId => {
-        const unsubMsg = onSnapshot(
-          query(
-            collection(db, 'threads', threadId, 'messages'),
-            where('to', '==', user.uid),
-            where('read', '==', false)
-          ),
-          (msgSnap) => {
-            counts[threadId] = msgSnap.size;
-            pending--;
-            if (pending === 0) {
-              totalUnread = Object.values(counts).reduce((a, b) => a + b, 0);
-              setUnreadMessages(totalUnread);
-            }
-          }
-        );
-        unsubs.push(unsubMsg);
-      });
-    });
-    return () => {
-      unsub();
-      unsubs.forEach(u => u());
-    };
-  }, [user]);
+    }, (err) => console.error('[AppLayout] listenUserThreads error', err));
+
+    return () => unsub && unsub();
+  }, [user, profile?.role]);
 
   // Detect “chat modal open” via query param
   const params = new URLSearchParams(location.search);
   const chatModalOpen = !!params.get('chat'); // e.g. /messages?chat=<vendorId>
+
+  // Dev overlay flag
+  const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
+
+  useEffect(() => {
+    if (showDebug) console.debug('[AppLayout] render', { chatModalOpen, unreadMessages, tab, cartCount });
+  }, [showDebug, chatModalOpen, unreadMessages, tab, cartCount]);
 
   return (
     <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${chatModalOpen ? '' : 'pb-24'}`}>
@@ -118,12 +103,29 @@ function AppLayout() {
 
       {/* Hide BottomNav when chat modal flag is on */}
       {!chatModalOpen && (
-        <BottomNav
-          tab={tab}
-          setTab={(k) => navigate(k)}
-          cartCount={cartCount}
-          unreadMessages={unreadMessages}
-        />
+        <>
+          <BottomNav
+            tab={tab}
+            setTab={(k) => navigate(k)}
+            cartCount={cartCount}
+            unreadMessages={unreadMessages}
+          />
+
+          {/* Floating unread counter (shows same unread total). Visible only when BottomNav is visible. */}
+          <button
+            onClick={() => navigate('/messages')}
+            aria-label={`Unread messages: ${unreadMessages}`}
+            title="Open messages"
+            className="fixed right-6 bottom-20 z-50 bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg focus:outline-none"
+          >
+            <span className="text-sm font-bold select-none">{unreadMessages > 99 ? '99+' : unreadMessages}</span>
+          </button>
+        </>
+      )}
+
+      {/* Debug overlay to surface unread and chatModalOpen even if BottomNav not mounted */}
+      {showDebug && (
+        <div className="fixed bottom-24 right-4 z-60 bg-black/80 text-white text-xs px-3 py-1 rounded">AppDebug: chatModalOpen={String(chatModalOpen)} unread={String(unreadMessages)}</div>
       )}
     </div>
   );
