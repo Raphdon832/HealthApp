@@ -77,30 +77,67 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       setReviews(snapshot.size);
     }).catch(() => {});
 
-    // Subscribe to pharmacy profile document for real-time updates (name, address, phone, email)
-    const pharmacyDocRef = doc(db, 'pharmacies', user.uid);
-    const unsubProfile = onSnapshot(pharmacyDocRef, snap => {
-      if (snap && snap.exists()) {
-        const d = snap.data();
-        setPharmacyProfile(prev => ({
-          displayName: d.displayName || user.displayName || prev.displayName,
-          address: d.address || prev.address || '',
-          phone: d.phone || d.phoneNumber || prev.phone || '',
-          email: d.email || user.email || prev.email || ''
-        }));
-      } else {
-        // fallback to auth user data
-        setPharmacyProfile(prev => ({
-          displayName: user.displayName || prev.displayName,
-          address: prev.address || '',
-          phone: prev.phone || '',
-          email: user.email || prev.email || ''
-        }));
-      }
+    // Subscribe to both 'pharmacies' and 'users' documents for real-time profile updates
+    // This ensures we pick up live changes whichever doc the app stores profile data in.
+    const pharmRef = doc(db, 'pharmacies', user.uid);
+    const userRef = doc(db, 'users', user.uid);
+
+    let pharmData = null;
+    let userData = null;
+
+    const refreshProfile = () => {
+      // helper to avoid mistakenly showing emails as phone numbers and to ensure sensible phone values
+      const sanitizePhone = (val) => {
+        if (!val) return '';
+        const s = String(val).trim();
+        if (!s) return '';
+        // if it looks like an email, ignore
+        if (s.includes('@')) return '';
+        // require at least 6 digits to be considered a phone number
+        const digits = s.replace(/\D/g, '');
+        if (digits.length < 6) return '';
+        return s;
+      };
+
+      // DEBUG: log incoming Firestore data to help diagnose missing address/phone
+      try {
+        console.debug('[ProfilePharmacy] refreshProfile - pharmData:', pharmData, 'userData:', userData);
+      } catch (e) {}
+
+      setPharmacyProfile(prev => {
+        const displayName = (pharmData && pharmData.displayName) || (userData && userData.displayName) || user.displayName || prev.displayName;
+        // Use only the explicit 'address' field from Firestore documents (no fallbacks)
+        const address = (pharmData && pharmData.address) || (userData && userData.address) || prev.address || '';
+        // Use only the explicit 'phone' field from Firestore documents (no fallbacks)
+        const rawPhone = (pharmData && pharmData.phone) || (userData && userData.phone) || prev.phone || '';
+        const phone = sanitizePhone(rawPhone);
+        const email = (pharmData && pharmData.email) || (userData && userData.email) || user.email || prev.email || '';
+
+        // DEBUG: log computed values
+        try {
+          console.debug('[ProfilePharmacy] computed profile ->', { displayName, address, rawPhone, phone, email });
+        } catch (e) {}
+
+        return { displayName, address, phone, email };
+      });
+    };
+
+    const unsubPharm = onSnapshot(pharmRef, snap => {
+      pharmData = snap && snap.exists ? snap.data() : null;
+      refreshProfile();
     }, () => {});
 
+    const unsubUser = onSnapshot(userRef, snap => {
+      userData = snap && snap.exists ? snap.data() : null;
+      refreshProfile();
+    }, () => {});
+
+    // initial populate
+    refreshProfile();
+
     return () => {
-      try { unsubProfile && unsubProfile(); } catch (e) {}
+      try { unsubPharm && unsubPharm(); } catch (e) {}
+      try { unsubUser && unsubUser(); } catch (e) {}
     };
   }, [user]);
 
@@ -428,7 +465,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] shadow" />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF] shadow">
-                  <span className="text-sky-600 text-2xl font-light">{(pharmacyProfile.displayName && pharmacyProfile.displayName.charAt(0)) || 'P'}</span>
+                  <span className="text-sky-600 text-2xl font-light">{(pharmacyProfile.displayName && pharmacyProfile.displayName.charAt ? pharmacyProfile.displayName.charAt(0) : 'P')}</span>
                 </div>
               )}
             </div>
