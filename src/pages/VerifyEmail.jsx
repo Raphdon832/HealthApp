@@ -1,11 +1,13 @@
 import { useAuth } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 import { sendVerification } from '@/lib/email';
+import { useNavigate } from 'react-router-dom';
 
 export default function VerifyEmail() {
   const { user, logout } = useAuth();
   const [resent, setResent] = useState(false);
   const [sending, setSending] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user && !user.emailVerified) {
@@ -23,6 +25,20 @@ export default function VerifyEmail() {
     setSending(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      // ignore logout errors
+    }
+    // Go back to previous page if possible, otherwise send to landing
+    if (window.history && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/auth/landing');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <div className="bg-white p-8 max-w-md w-full text-center">
@@ -35,8 +51,8 @@ export default function VerifyEmail() {
         >{resent ? 'Verification Sent!' : sending ? 'Sending...' : 'Resend Email'}</button>
         <button
           className="block mt-4 mx-auto text-sm text-zinc-500 underline"
-          onClick={logout}
-        >Log out</button>
+          onClick={handleLogout}
+        >Back</button>
       </div>
     </div>
   );
