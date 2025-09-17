@@ -213,7 +213,7 @@ export default function ProfileCustomer() {
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {r.type === 'order' ? (
-                          <button onClick={() => { navigate(`/orders/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
+                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
                         ) : r.type === 'prescription' ? (
                           <button onClick={() => { navigate(`/prescriptions/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
                         ) : (
