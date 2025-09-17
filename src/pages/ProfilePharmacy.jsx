@@ -250,25 +250,25 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       {/* Search modal */}
       {showSearch && (
         <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+          <div onClick={e => e.stopPropagation()} className="bg-white/10 backdrop-blur-md rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
             <div className="mb-3">
               <div className="flex items-center gap-3 w-full">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
-                    <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
+                  <div className="flex items-center border-b border-[#ffffff] px-3 py-2 w-full overflow-hidden">
+                    <Search className="h-4 w-4 text-white mr-2 flex-shrink-0" />
                     <input
                       autoFocus
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
                       placeholder="Search products, orders, customers..."
-                      className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
+                      className="flex-1 min-w-0 bg-transparent text-sm text-white outline-none truncate"
                       aria-label="Search query"
                     />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="border-b border-[#f6f6f6] bg-transparent text-[#f6f6f6] px-3 py-2 text-sm w-36">
                     <option value="products">Products</option>
                     <option value="orders">Orders</option>
                     <option value="all">All</option>
@@ -276,12 +276,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 </div>
               </div>
 
-              <div className="w-full border-t mt-3" style={{borderColor:'#E6F7FF'}} />
+              <div className="w-full mt-3"/>
             </div>
 
             <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
               {searchResults.length === 0 ? (
-                <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
+                <div className="text-zinc-500 p-4 text-[15px] font-light text-center">No results yet</div>
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
