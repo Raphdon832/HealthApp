@@ -175,10 +175,12 @@ export default function Dashboard() {
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
         <h1 className="text-[25px] font-light text-black leading-none">My<br/>Dashboard</h1>
       </header>
-      <main className="flex-1 px-3 sm:px-4 py-6 flex flex-col items-center justify-start relative w-full">
-        <div className="w-full max-w-md">
-          {/* Best Selling Section */}
-          <div className="mb-8 mt-[-12px]">
+
+      <main className="flex-1 px-3 sm:px-4 py-6 relative w-full">
+        {/* Responsive grid: single column on mobile, two columns on lg+ */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
+          {/* LEFT COLUMN: Best Selling, Add Buttons, Sales Trends */}
+          <div className="flex flex-col gap-6">
             <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5">
               <h2 className="text-black font-light mb-3 text-lg tracking-tight">Best Selling</h2>
               {loading ? (
@@ -202,58 +204,73 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+
+            {/* Add Products / Bulk Upload buttons */}
+            <div className="flex gap-2 w-full">
+              <button
+                className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
+                onClick={() => setShowAdd(true)}
+              >
+                + Add Product
+              </button>
+              <button
+                className="flex-1 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
+                onClick={() => setShowBulk(true)}
+              >
+                Bulk Upload
+              </button>
+            </div>
+
+            {showAdd && <AddProductModal pharmacyId={profile?.uid} onClose={()=>setShowAdd(false)} />}
+            {showBulk && <BulkUploadModal pharmacyId={profile?.uid} onClose={()=>setShowBulk(false)} />}
+
+            {/* Sales Trends placed under Add buttons on left column */}
+            <div>
+              <SalesTrends data={salesTrends} />
+            </div>
           </div>
-          {/* Add Products Section (copied from ProfilePharmacy) */}
-          <div className="mt-4 flex gap-2 w-full">
-            <button
-              className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
-              onClick={() => setShowAdd(true)}
-            >
-              + Add Product
-            </button>
-            <button
-              className="flex-1 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
-              onClick={() => setShowBulk(true)}
-            >
-              Bulk Upload
-            </button>
+
+          {/* RIGHT COLUMN: Revenue, Vendor Stats, Messages */}
+          <div className="flex flex-col gap-6">
+            <div className="lg:-mt-8">
+              <RevenueGraph
+                data={revenueData}
+                filter={revenueFilter}
+                onFilterChange={setRevenueFilter}
+                topPeriod={topPeriod}
+              />
+            </div>
+
+            <div className="lg:-mt-4">
+              <VendorStatsCarousel
+                cards={[
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Total Products</div>
+                    <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalProducts}</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Total Orders</div>
+                    <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalOrders}</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Total Revenue</div>
+                    <div className="text-[19px] font-semibold text-sky-700 tracking-tight">₦{totalRevenue.toLocaleString()}</div>
+                  </div>
+                ]}
+              />
+            </div>
+
+            <div className="lg:-mt-9">
+              <MessagesPreview
+                threads={recentThreads}
+                unreadCount={unreadMessages}
+                onThreadClick={t => navigate(`/messages/${t.id}`)}
+              />
+            </div>
           </div>
-          {showAdd && <AddProductModal pharmacyId={profile?.uid} onClose={()=>setShowAdd(false)} />}
-          {showBulk && <BulkUploadModal pharmacyId={profile?.uid} onClose={()=>setShowBulk(false)} />}
-          {/* Revenue Graph Section */}
-          <RevenueGraph
-            data={revenueData}
-            filter={revenueFilter}
-            onFilterChange={setRevenueFilter}
-            topPeriod={topPeriod}
-          />
-          {/* Vendor Stats Carousel */}
-          <VendorStatsCarousel
-            cards={[
-              <div>
-                <div className="text-zinc-500 text-xs mb-1">Total Products</div>
-                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalProducts}</div>
-              </div>,
-              <div>
-                <div className="text-zinc-500 text-xs mb-1">Total Orders</div>
-                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">{totalOrders}</div>
-              </div>,
-              <div>
-                <div className="text-zinc-500 text-xs mb-1">Total Revenue</div>
-                <div className="text-[19px] font-semibold text-sky-700 tracking-tight">₦{totalRevenue.toLocaleString()}</div>
-              </div>
-            ]}
-          />
-          {/* Sales Trends Section */}
-          <SalesTrends data={salesTrends} />
-          {/* Messages Preview Section */}
-          <MessagesPreview
-            threads={recentThreads}
-            unreadCount={unreadMessages}
-            onThreadClick={t => navigate(`/messages/${t.id}`)}
-          />
         </div>
-        {/* Floating Add Product Button */}
+
+        {/* Floating Add Product Button (unchanged) */}
         <button
           className="fixed bottom-24 right-8 z-50 bg-sky-400 text-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center disabled:opacity-0 disabled:cursor-not-allowed"
           aria-label="Add Product"
