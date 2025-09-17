@@ -212,7 +212,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Pharmacy<br/>Profile</div>
           <div className="flex items-center gap-3">
             {/* Inline search bar for small+ screens */}
-            <div className="hidden sm:flex items-center bg-white border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
+            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
