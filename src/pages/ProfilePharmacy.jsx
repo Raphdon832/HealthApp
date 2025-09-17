@@ -248,72 +248,74 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-3 w-full">
-                <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full">
-                  <Search className="h-4 w-4 text-sky-600 mr-2" />
-                  <input
-                    autoFocus
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
-                    placeholder="Search products, orders, customers..."
-                    className="flex-1 bg-transparent text-sm outline-none truncate"
-                    aria-label="Search query"
-                  />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
+                    <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
+                    <input
+                      autoFocus
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
+                      placeholder="Search products, orders, customers..."
+                      className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
+                      aria-label="Search query"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                    <option value="products">Products</option>
+                    <option value="orders">Orders</option>
+                    <option value="all">All</option>
+                  </select>
+                  {/* removed explicit Close button — modal now closes when clicking outside or pressing Escape */}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white">
-                  <option value="products">Products</option>
-                  <option value="orders">Orders</option>
-                  <option value="all">All</option>
-                </select>
-                {/* removed explicit Close button — modal now closes when clicking outside or pressing Escape */}
-              </div>
-            </div>
 
-            <div className="border-t" style={{borderColor:'#E6F7FF'}} />
+              <div className="border-t" style={{borderColor:'#E6F7FF'}} />
 
-            <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
-              {searchResults.length === 0 ? (
-                <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
-              ) : (
-                <ul className="space-y-2">
-                  {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-shadow flex items-center gap-3 justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0">
-                          {r.type === 'product' ? (
-                            r.item && r.item.image ? (
-                              <img src={r.item.image} alt={r.item.name || 'Product'} className="h-12 w-12 object-cover rounded-lg border border-[#9ED3FF]" />
+              <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
+                {searchResults.length === 0 ? (
+                  <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
+                ) : (
+                  <ul className="space-y-2">
+                    {searchResults.map((r, idx) => (
+                      <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-shadow flex items-center gap-3 justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex-shrink-0">
+                            {r.type === 'product' ? (
+                              r.item && r.item.image ? (
+                                <img src={r.item.image} alt={r.item.name || 'Product'} className="h-12 w-12 object-cover rounded-lg border border-[#9ED3FF]" />
+                              ) : (
+                                <div className="h-12 w-12 rounded-lg bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF]">
+                                  <span className="text-sky-600 font-semibold">{r.item && r.item.name && r.item.name.charAt ? r.item.name.charAt(0).toUpperCase() : '?'}</span>
+                                </div>
+                              )
                             ) : (
-                              <div className="h-12 w-12 rounded-lg bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF]">
-                                <span className="text-sky-600 font-semibold">{r.item && r.item.name && r.item.name.charAt ? r.item.name.charAt(0).toUpperCase() : '?'}</span>
+                              <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8]">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500">
+                                  <path d="M3 7h18M3 12h18M3 17h18" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
+                                </svg>
                               </div>
-                            )
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-sm text-black truncate">{r.title}</div>
+                            <div className="text-xs text-zinc-500 truncate">{r.subtitle}</div>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                          {r.type === 'product' ? (
+                            <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Edit</button>
                           ) : (
-                            <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8]">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500">
-                                <path d="M3 7h18M3 12h18M3 17h18" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
-                              </svg>
-                            </div>
+                            <button onClick={() => { navigate(`/orders/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-sm text-black truncate">{r.title}</div>
-                          <div className="text-xs text-zinc-500 truncate">{r.subtitle}</div>
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0 flex items-center gap-2">
-                        {r.type === 'product' ? (
-                          <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Edit</button>
-                        ) : (
-                          <button onClick={() => { navigate(`/orders/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
         </div>
