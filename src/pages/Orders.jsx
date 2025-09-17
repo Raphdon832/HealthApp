@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Modal from '@/components/Modal';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
@@ -18,6 +18,8 @@ export default function Orders() {
   const [modalOrder, setModalOrder] = useState(null);
   const [modalOrderProducts, setModalOrderProducts] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [highlightOrderId, setHighlightOrderId] = useState(null);
 
   useEffect(() => {
     if (!user || !profile) return;
@@ -34,6 +36,35 @@ export default function Orders() {
     });
     return unsub;
   }, [user, profile]);
+
+  // If navigation included a highlight id (state or query param), set it when component mounts or location changes
+  useEffect(() => {
+    const stateId = location?.state?.highlightOrderId;
+    const qp = new URLSearchParams(location.search).get('highlight');
+    if (stateId) setHighlightOrderId(stateId);
+    else if (qp) setHighlightOrderId(qp);
+  }, [location]);
+
+  // When highlightOrderId is set and orders are loaded, scroll the matching order into view and auto-clear highlight
+  useEffect(() => {
+    if (!highlightOrderId || orders.length === 0) return;
+    const id = highlightOrderId;
+    // Give the DOM a moment to render
+    const t = setTimeout(() => {
+      const el = document.getElementById(`order-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 250);
+
+    // Clear the highlight after a few seconds
+    const clearT = setTimeout(() => setHighlightOrderId(null), 5000);
+
+    // Replace history state so reloading or navigating back doesn't re-trigger highlight
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => { clearTimeout(t); clearTimeout(clearT); };
+  }, [highlightOrderId, orders]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
@@ -127,7 +158,8 @@ export default function Orders() {
             return (
               <div
                 key={o.id}
-                className="relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition"
+                id={`order-${o.id}`}
+                className={`relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition ${highlightOrderId===o.id ? 'ring-4 ring-sky-200 bg-sky-50' : ''}`}
                 style={{ cursor: 'pointer' }}
                 onClick={e => {
                   // Only open modal if not clicking the see more/less button or status dropdown (pharmacy view)
