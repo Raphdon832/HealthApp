@@ -233,7 +233,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           width: '100vw',
           height: '100vh',
           backgroundImage: `url(${ChatBgUrl})`,
-          backgroundRepeat: 'repeat',
+          backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center center',
           backgroundSize: 'cover',
           pointerEvents: 'none',
