@@ -569,29 +569,46 @@ export default function SuperuserDashboard() {
           <div className="flex items-center justify-between mb-2">
             <div className="text-xl font-semibold text-sky-500">Info Cards</div>
             <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={()=>{
-              setInfoCardForm({ header: '', preview: '', link: '', linkText: '', image: '', fullImage: '', bgColor: '#f0f8ff' });
-              setCreatingInfoCard(true);
-              setInfoCardError('');
-            }}>Add Info Card</button>
-          </div>
+              setInfoCardForm({
+                header: '',
+                preview: '',
+                link: '',
+                linkText: '',
+                image: '',
+                fullImage: '',
+                // style fields
+                bgColor: '#f0f8ff',
+                headerColor: '#0ea5e9',
+                previewColor: '#475569',
+                linkColor: '#0ea5e9',
+                linkTextColor: '#0ea5e9',
+                headerFontSize: 16,
+                previewFontSize: 13,
+                linkFontSize: 13,
+                linkTextFontSize: 13
+              });
+               setCreatingInfoCard(true);
+               setInfoCardError('');
+             }}>Add Info Card</button>
+           </div>
           <div className="space-y-4">
             {infoCards.map(card => (
               <div key={card.id} className="border border-sky-100 rounded-lg p-4 flex items-center justify-between bg-white group hover:shadow-md transition cursor-pointer">
                 <div className="flex-1" onClick={()=>setEditingInfoCard(card)}>
-                  <div className="font-semibold text-[15px] text-sky-700">{card.header}</div>
-                  <div className="text-[13px] text-zinc-600">{card.preview}</div>
-                  {card.link && card.linkText && <a href={card.link} className="text-sky-500 text-[13px] underline" target="_blank" rel="noopener noreferrer">{card.linkText}</a>}
+                  <div style={{color: card.headerColor || '#0ea5e9', fontSize: (card.headerFontSize || 16) + 'px', fontWeight: 600}}>{card.header}</div>
+                  <div style={{color: card.previewColor || '#475569', fontSize: (card.previewFontSize || 13) + 'px'}} className="mt-1">{card.preview}</div>
+                  {card.link && card.linkText && <a href={card.link} style={{color: card.linkColor || '#0ea5e9', fontSize: (card.linkFontSize || 13) + 'px'}} className="underline" target="_blank" rel="noopener noreferrer">{card.linkText}</a>}
                   {card.image && <img src={card.image} alt="Info" className="mt-2 rounded-lg" style={{maxWidth:'120px',maxHeight:'60px'}} />}
                   {card.fullImage && <img src={card.fullImage} alt="Full" className="mt-2 rounded-lg" style={{maxWidth:'180px',maxHeight:'100px'}} />}
-                  <div className="text-[11px] text-zinc-400">BG: {card.bgColor}</div>
+                  <div className="text-[11px] text-zinc-400 mt-2">BG: {card.bgColor}</div>
                 </div>
-                <div className="flex gap-2">
-                  <button className="px-2 py-1 rounded bg-sky-100 text-sky-500 text-[12px] font-medium" onClick={e=>{e.stopPropagation();setEditingInfoCard(card);}}>Edit</button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-600 text-[12px] font-medium" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'infoCards',card.id));}}>Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
+                 <div className="flex gap-2">
+                   <button className="px-2 py-1 rounded bg-sky-100 text-sky-500 text-[12px] font-medium" onClick={e=>{e.stopPropagation();setEditingInfoCard(card);}}>Edit</button>
+                   <button className="px-2 py-1 rounded bg-red-100 text-red-600 text-[12px] font-medium" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'infoCards',card.id));}}>Delete</button>
+                 </div>
+               </div>
+             ))}
+           </div>
           {/* Modal for create/edit info card */}
           {(editingInfoCard || creatingInfoCard) && (
             <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:1000,background:'rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -601,40 +618,87 @@ export default function SuperuserDashboard() {
                 <div className="space-y-3">
                   <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.header} onChange={e=>setInfoCardForm(f=>({...f,header:e.target.value}))} placeholder="Header" />
                   <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.preview} onChange={e=>setInfoCardForm(f=>({...f,preview:e.target.value}))} placeholder="Preview text" />
-                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.link} onChange={e=>setInfoCardForm(f=>({...f,link:e.target.value}))} placeholder="Link (optional)" />
-                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.linkText} onChange={e=>setInfoCardForm(f=>({...f,linkText:e.target.value}))} placeholder="Link Text (optional)" />
-                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.image} onChange={e=>setInfoCardForm(f=>({...f,image:e.target.value}))} placeholder="Image URL (right side, optional)" />
-                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.fullImage} onChange={e=>setInfoCardForm(f=>({...f,fullImage:e.target.value}))} placeholder="Full Card Image URL (optional, 16:9)" />
-                  <input className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500 placeholder:text-zinc-400" value={infoCardForm.bgColor} onChange={e=>setInfoCardForm(f=>({...f,bgColor:e.target.value}))} placeholder="Background Color (e.g. #f0f8ff)" />
-                  <div className="flex gap-2 mt-4">
-                    <button className="px-4 py-2 rounded bg-sky-500 text-white font-medium text-[13px] shadow hover:bg-sky-600" onClick={async()=>{
-                      setInfoCardError('');
-                      if (creatingInfoCard) {
-                        try {
-                          await addDoc(collection(db,'infoCards'), infoCardForm);
-                          setCreatingInfoCard(false);
-                        } catch (err) {
-                          setInfoCardError(err.message || 'Failed to add info card.');
-                        }
-                      } else if (editingInfoCard) {
-                        try {
-                          await updateDoc(doc(db,'infoCards',editingInfoCard.id), infoCardForm);
-                          setEditingInfoCard(null);
-                        } catch (err) {
-                          setInfoCardError(err.message || 'Failed to update info card.');
-                        }
-                      }
-                    }}>{creatingInfoCard ? 'Add' : 'Save'}</button>
-                    <button className="px-4 py-2 rounded bg-zinc-100 text-zinc-700 font-medium text-[13px] shadow hover:bg-zinc-200" onClick={()=>{
-                      setEditingInfoCard(null);
-                      setCreatingInfoCard(false);
-                      setInfoCardError('');
-                    }}>Cancel</button>
+                  <div className="flex gap-2">
+                    <input className="flex-1 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.link} onChange={e=>setInfoCardForm(f=>({...f,link:e.target.value}))} placeholder="Link (optional)" />
+                    <input className="w-36 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.linkText} onChange={e=>setInfoCardForm(f=>({...f,linkText:e.target.value}))} placeholder="Link Text" />
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
+                  <div className="flex gap-2">
+                    <input className="flex-1 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.image} onChange={e=>setInfoCardForm(f=>({...f,image:e.target.value}))} placeholder="Image URL (right side, optional)" />
+                    <input className="w-36 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.fullImage} onChange={e=>setInfoCardForm(f=>({...f,fullImage:e.target.value}))} placeholder="Full Image URL" />
+                  </div>
+                  {/* Color pickers and font size controls */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-xs text-zinc-500">Header Color
+                      <input type="color" value={infoCardForm.headerColor || '#0ea5e9'} onChange={e=>setInfoCardForm(f=>({...f,headerColor:e.target.value}))} className="w-full h-8 mt-1 p-0 border-0" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Header Size
+                      <input type="range" min="12" max="28" value={infoCardForm.headerFontSize || 16} onChange={e=>setInfoCardForm(f=>({...f,headerFontSize:parseInt(e.target.value)}))} className="w-full mt-1" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Preview Color
+                      <input type="color" value={infoCardForm.previewColor || '#475569'} onChange={e=>setInfoCardForm(f=>({...f,previewColor:e.target.value}))} className="w-full h-8 mt-1 p-0 border-0" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Preview Size
+                      <input type="range" min="10" max="22" value={infoCardForm.previewFontSize || 13} onChange={e=>setInfoCardForm(f=>({...f,previewFontSize:parseInt(e.target.value)}))} className="w-full mt-1" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Link Color
+                      <input type="color" value={infoCardForm.linkColor || '#0ea5e9'} onChange={e=>setInfoCardForm(f=>({...f,linkColor:e.target.value}))} className="w-full h-8 mt-1 p-0 border-0" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Link Size
+                      <input type="range" min="10" max="22" value={infoCardForm.linkFontSize || 13} onChange={e=>setInfoCardForm(f=>({...f,linkFontSize:parseInt(e.target.value)}))} className="w-full mt-1" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Link Text Color
+                      <input type="color" value={infoCardForm.linkTextColor || '#0ea5e9'} onChange={e=>setInfoCardForm(f=>({...f,linkTextColor:e.target.value}))} className="w-full h-8 mt-1 p-0 border-0" />
+                    </label>
+                    <label className="text-xs text-zinc-500">Link Text Size
+                      <input type="range" min="10" max="22" value={infoCardForm.linkTextFontSize || 13} onChange={e=>setInfoCardForm(f=>({...f,linkTextFontSize:parseInt(e.target.value)}))} className="w-full mt-1" />
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <label className="text-xs text-zinc-500">Background Color</label>
+                    <input type="color" value={infoCardForm.bgColor || '#f0f8ff'} onChange={e=>setInfoCardForm(f=>({...f,bgColor:e.target.value}))} className="w-full h-10 mt-1 p-0 border-0" />
+                  </div>
+
+                  {/* Live preview */}
+                  <div className="mt-3">
+                    <div className="text-xs text-zinc-500 mb-2">Live preview</div>
+                    <div style={{background: infoCardForm.bgColor || '#f8fafc', padding: 12, borderRadius: 10, display: 'flex', gap: 12, alignItems: 'center'}}>
+                      <div style={{flex: 1}}>
+                        <div style={{color: infoCardForm.headerColor || '#0ea5e9', fontSize: (infoCardForm.headerFontSize || 16) + 'px', fontWeight: 700}}>{infoCardForm.header || 'Header'}</div>
+                        <div style={{color: infoCardForm.previewColor || '#475569', fontSize: (infoCardForm.previewFontSize || 13) + 'px', marginTop: 4}}>{infoCardForm.preview || 'Preview text goes here'}</div>
+                        {infoCardForm.linkText && <div style={{marginTop:6}}><a style={{color: infoCardForm.linkTextColor || infoCardForm.linkColor || '#0ea5e9', fontSize: (infoCardForm.linkTextFontSize || 13) + 'px'}} href={infoCardForm.link || '#'}>{infoCardForm.linkText}</a></div>}
+                      </div>
+                      {infoCardForm.image && <img src={infoCardForm.image} alt="Preview" style={{width: 80, height: 60, objectFit: 'cover', borderRadius: 6}} />}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                     <button className="px-4 py-2 rounded bg-sky-500 text-white font-medium text-[13px] shadow hover:bg-sky-600" onClick={async()=>{
+                       setInfoCardError('');
+                       if (creatingInfoCard) {
+                         try {
+                           await addDoc(collection(db,'infoCards'), infoCardForm);
+                           setCreatingInfoCard(false);
+                         } catch (err) {
+                           setInfoCardError(err.message || 'Failed to add info card.');
+                         }
+                       } else if (editingInfoCard) {
+                         try {
+                           await updateDoc(doc(db,'infoCards',editingInfoCard.id), infoCardForm);
+                           setEditingInfoCard(null);
+                         } catch (err) {
+                           setInfoCardError(err.message || 'Failed to save info card.');
+                         }
+                       }
+                     }}>{creatingInfoCard ? 'Add' : 'Save'}</button>
+                     <button className="px-4 py-2 rounded bg-zinc-100 text-zinc-700 font-medium text-[13px] shadow hover:bg-zinc-200" onClick={()=>{
+                       setEditingInfoCard(null);
+                       setCreatingInfoCard(false);
+                       setInfoCardError('');
+                     }}>Cancel</button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
         </div>
       )}
     </div>
