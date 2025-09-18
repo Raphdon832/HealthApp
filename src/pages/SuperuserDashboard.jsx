@@ -620,7 +620,7 @@ export default function SuperuserDashboard() {
            </div>
           <div className="space-y-4">
             {infoCards.map(card => (
-              <div key={card.id} className="border border-sky-100 rounded-lg p-4 flex items-center justify-between bg-white group hover:shadow-md transition cursor-pointer">
+              <div key={card.id} className="border border-sky-100 rounded-lg p-4 flex items-center justify-between group hover:shadow-md transition cursor-pointer" style={{background: card.bgColor || '#ffffff'}}>
                 <div className="flex-1" onClick={() => {
                   // open edit modal and preload form with existing card values
                   setEditingInfoCard(card);
