@@ -539,8 +539,8 @@ export default function Home() {
 
                         {/* TEXT (constrained, above image) */}
                         <div className="relative z-10 h-full flex items-center">
-                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[55%]">
-                            <div className="text-white font-light text-[22px] md:text-[28px] leading-none tracking-tight lg:text-[30px]">
+                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[60%]">
+                            <div className="text-white font-light text-[18px] md:text-[24px] leading-none tracking-tight lg:text-[27px]">
                               {card.header || '—'}
                             </div>
                             {card.preview && (
