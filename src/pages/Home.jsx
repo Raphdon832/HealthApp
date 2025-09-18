@@ -502,76 +502,85 @@ export default function Home() {
             <div className="flex gap-4 md:gap-6 min-w-max h-full">
               {infoCards.map((card, i) => {
                 const bg = card.bgColor || '#3BA3FF';
+                const headerColor = card.headerColor || '#ffffff';
+                const previewColor = card.previewColor || (card.headerColor ? card.headerColor + 'cc' : '#ffffffcc');
+                const linkColor = card.linkColor || card.linkTextColor || '#ffffff';
+                const headerFontSize = card.headerFontSize || 20; // px
+                const previewFontSize = card.previewFontSize || 13; // px
+                const linkFontSize = card.linkTextFontSize || card.linkFontSize || 13;
+
                 return (
                   <div
                     key={card.id}
                     ref={setCardRef(i)}
                     className="relative flex-shrink-0 snap-center rounded-2xl overflow-hidden"
-                    style={{ width: '90vw', maxWidth: 700, minWidth: 260, height: '100%', background: bg }}
+                    style={{ width: '90vw', maxWidth: 700, minWidth: 260, height: '100%', background: bg, position: 'relative' }}
                   >
-                    {card.fullImage ? (
-                      <img src={card.fullImage} alt={card.header || 'Info'} className="w-full h-full object-cover" style={{ borderRadius: 'inherit' }} />
-                    ) : (
-                      <>
-                        {/* RIGHT IMAGE (behind text), fills height & stays right */}
-                        {card.image && (
-                          <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
-                            <img
-                              src={card.image}
-                              alt=""
-                              className="object-cover"
-                              style={{ height: '100%',
-                                maxWidth: '100%',
-                                borderRadius: '0 16px 16px 0' }}
-                            />
-                          </div>
-                        )}
-
-                        {/* Soft fade over right edge to keep text readable */}
-                        <div
-                          className="absolute inset-y-0 right-0"
-                          style={{
-                            width: '55%',
-                            background: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
-                            pointerEvents: 'none',
-                          }}
-                        />
-
-                        {/* TEXT (constrained, above image) */}
-                        <div className="relative z-10 h-full flex items-center">
-                          <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[60%]">
-                            <div className="text-white font-light text-[18px] md:text-[24px] leading-none tracking-tight lg:text-[27px]">
-                              {card.header || '—'}
-                            </div>
-                            {card.preview && (
-                              <div className="mt-2 text-white/90 leading-snug font-light text-[11px] md:text-[14px]">{card.preview}</div>
-                            )}
-                            {card.link && card.linkText && (
-                              (() => {
-                                const href = normalizeHref(card.link);
-                                const external = isExternalHref(href);
-                                return (
-                                  <a
-                                    href={href}
-                                    onClick={(e) => {
-                                      // For internal routes use react-router navigation to avoid full page reloads.
-                                      if (!external) {
-                                        e.preventDefault();
-                                        try { navigate(href); } catch (err) { window.location.href = href; }
-                                      }
-                                    }}
-                                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                                    className="inline-block mt-3 text-white underline text-[12px] md:text-[13px] font-medium"
-                                  >
-                                    {card.linkText}
-                                  </a>
-                                );
-                              })()
-                            )}
-                          </div>
-                        </div>
-                      </>
+                    {/* If fullImage provided, render it as background and still overlay text */}
+                    {card.fullImage && (
+                      <img
+                        src={card.fullImage}
+                        alt={card.header || 'Info'}
+                        className="w-full h-full object-cover"
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     )}
+
+                    {/* RIGHT IMAGE (behind text), fills height & stays right (only used when not fullImage) */}
+                    {card.image && !card.fullImage && (
+                      <div className="absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none">
+                        <img
+                          src={card.image}
+                          alt=""
+                          className="object-cover"
+                          style={{ height: '100%', maxWidth: '100%', borderRadius: '0 16px 16px 0' }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Soft fade over right edge to keep text readable */}
+                    <div
+                      className="absolute inset-y-0 right-0"
+                      style={{
+                        width: '55%',
+                        background: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 60%, rgba(0,0,0,0.10) 100%)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+
+                    {/* TEXT (constrained, above image) */}
+                    <div className="relative z-10 h-full flex items-center">
+                      <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[60%]">
+                        <div style={{ color: headerColor, fontSize: headerFontSize + 'px', lineHeight: 1, fontWeight: 300, letterSpacing: '-0.02em' }}>
+                          {card.header || '—'}
+                        </div>
+                        {card.preview && (
+                          <div style={{ marginTop: 8, color: previewColor, fontSize: previewFontSize + 'px', lineHeight: 1.2 }}>{card.preview}</div>
+                        )}
+                        {card.link && card.linkText && (
+                          (() => {
+                            const href = normalizeHref(card.link);
+                            const external = isExternalHref(href);
+                            return (
+                              <a
+                                href={href}
+                                onClick={(e) => {
+                                  // For internal routes use react-router navigation to avoid full page reloads.
+                                  if (!external) {
+                                    e.preventDefault();
+                                    try { navigate(href); } catch (err) { window.location.href = href; }
+                                  }
+                                }}
+                                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                                style={{ display: 'inline-block', marginTop: 12, textDecoration: 'underline', color: linkColor, fontSize: linkFontSize + 'px', fontWeight: 500 }}
+                              >
+                                {card.linkText}
+                              </a>
+                            );
+                          })()
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
