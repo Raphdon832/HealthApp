@@ -161,6 +161,31 @@ export default function SuperuserDashboard() {
     }
   }, [editingInfoCard]);
 
+  // Ensure the edit modal preloads the selected card values when editingInfoCard is set
+  useEffect(() => {
+    if (typeof editingInfoCard !== 'undefined' && editingInfoCard && setInfoCardForm) {
+      setInfoCardForm({
+        header: editingInfoCard.header || '',
+        preview: editingInfoCard.preview || '',
+        link: editingInfoCard.link || '',
+        linkText: editingInfoCard.linkText || '',
+        image: editingInfoCard.image || '',
+        fullImage: editingInfoCard.fullImage || '',
+        bgColor: editingInfoCard.bgColor || '#f0f8ff',
+        headerColor: editingInfoCard.headerColor || '#0ea5e9',
+        previewColor: editingInfoCard.previewColor || '#475569',
+        linkColor: editingInfoCard.linkColor || editingInfoCard.linkTextColor || '#0ea5e9',
+        linkTextColor: editingInfoCard.linkTextColor || editingInfoCard.linkColor || '#0ea5e9',
+        headerFontSize: editingInfoCard.headerFontSize || 16,
+        previewFontSize: editingInfoCard.previewFontSize || 13,
+        linkFontSize: editingInfoCard.linkFontSize || 13,
+        linkTextFontSize: editingInfoCard.linkTextFontSize || 13
+      });
+      // ensure we are in edit mode (not create mode)
+      try { setCreatingInfoCard(false); } catch(e){}
+    }
+  }, [editingInfoCard]);
+
   // Scroll to active tab when changed
   useEffect(() => {
     if (!tabContainerRef.current) return;
@@ -568,33 +593,55 @@ export default function SuperuserDashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xl font-semibold text-sky-500">Info Cards</div>
-            <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={()=>{
-              setInfoCardForm({
-                header: '',
-                preview: '',
-                link: '',
-                linkText: '',
-                image: '',
-                fullImage: '',
-                // style fields
-                bgColor: '#f0f8ff',
-                headerColor: '#0ea5e9',
-                previewColor: '#475569',
-                linkColor: '#0ea5e9',
-                linkTextColor: '#0ea5e9',
-                headerFontSize: 16,
-                previewFontSize: 13,
-                linkFontSize: 13,
-                linkTextFontSize: 13
-              });
-               setCreatingInfoCard(true);
-               setInfoCardError('');
-             }}>Add Info Card</button>
+            <button className="px-3 py-1 rounded bg-sky-500 text-white text-[12px] font-medium shadow hover:bg-sky-600" onClick={() => {
+              // prepare form for creating a new card
+              try { setEditingInfoCard(null); } catch(e){}
+              try { setCreatingInfoCard(true); } catch(e){}
+              try {
+                setInfoCardForm({
+                  header: '',
+                  preview: '',
+                  link: '',
+                  linkText: '',
+                  image: '',
+                  fullImage: '',
+                  bgColor: '#f0f8ff',
+                  headerColor: '#0ea5e9',
+                  previewColor: '#475569',
+                  linkColor: '#0ea5e9',
+                  linkTextColor: '#0ea5e9',
+                  headerFontSize: 16,
+                  previewFontSize: 13,
+                  linkFontSize: 13,
+                  linkTextFontSize: 13
+                });
+              } catch(e){}
+            }}>Add Info Card</button>
            </div>
           <div className="space-y-4">
             {infoCards.map(card => (
               <div key={card.id} className="border border-sky-100 rounded-lg p-4 flex items-center justify-between bg-white group hover:shadow-md transition cursor-pointer">
-                <div className="flex-1" onClick={()=>setEditingInfoCard(card)}>
+                <div className="flex-1" onClick={() => {
+                  // open edit modal and preload form with existing card values
+                  setEditingInfoCard(card);
+                  setInfoCardForm({
+                    header: card.header || '',
+                    preview: card.preview || '',
+                    link: card.link || '',
+                    linkText: card.linkText || '',
+                    image: card.image || '',
+                    fullImage: card.fullImage || '',
+                    bgColor: card.bgColor || '#f0f8ff',
+                    headerColor: card.headerColor || '#0ea5e9',
+                    previewColor: card.previewColor || '#475569',
+                    linkColor: card.linkColor || card.linkTextColor || '#0ea5e9',
+                    linkTextColor: card.linkTextColor || card.linkColor || '#0ea5e9',
+                    headerFontSize: card.headerFontSize || 16,
+                    previewFontSize: card.previewFontSize || 13,
+                    linkFontSize: card.linkFontSize || 13,
+                    linkTextFontSize: card.linkTextFontSize || 13
+                  });
+                }}>
                   <div style={{color: card.headerColor || '#0ea5e9', fontSize: (card.headerFontSize || 16) + 'px', fontWeight: 600}}>{card.header}</div>
                   <div style={{color: card.previewColor || '#475569', fontSize: (card.previewFontSize || 13) + 'px'}} className="mt-1">{card.preview}</div>
                   {card.link && card.linkText && <a href={card.link} style={{color: card.linkColor || '#0ea5e9', fontSize: (card.linkFontSize || 13) + 'px'}} className="underline" target="_blank" rel="noopener noreferrer">{card.linkText}</a>}
@@ -603,7 +650,29 @@ export default function SuperuserDashboard() {
                   <div className="text-[11px] text-zinc-400 mt-2">BG: {card.bgColor}</div>
                 </div>
                  <div className="flex gap-2">
-                   <button className="px-2 py-1 rounded bg-sky-100 text-sky-500 text-[12px] font-medium" onClick={e=>{e.stopPropagation();setEditingInfoCard(card);}}>Edit</button>
+                   <button className="px-2 py-1 rounded bg-sky-100 text-sky-500 text-[12px] font-medium" onClick={(e) => {
+                     e.stopPropagation();
+                     // open edit modal and preload form with this card's values
+                     setEditingInfoCard(card);
+                     setCreatingInfoCard(false);
+                     setInfoCardForm({
+                       header: card.header || '',
+                       preview: card.preview || '',
+                       link: card.link || '',
+                       linkText: card.linkText || '',
+                       image: card.image || '',
+                       fullImage: card.fullImage || '',
+                       bgColor: card.bgColor || '#f0f8ff',
+                       headerColor: card.headerColor || '#0ea5e9',
+                       previewColor: card.previewColor || '#475569',
+                       linkColor: card.linkColor || card.linkTextColor || '#0ea5e9',
+                       linkTextColor: card.linkTextColor || card.linkColor || '#0ea5e9',
+                       headerFontSize: card.headerFontSize || 16,
+                       previewFontSize: card.previewFontSize || 13,
+                       linkFontSize: card.linkFontSize || 13,
+                       linkTextFontSize: card.linkTextFontSize || 13
+                     });
+                   }}>Edit</button>
                    <button className="px-2 py-1 rounded bg-red-100 text-red-600 text-[12px] font-medium" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'infoCards',card.id));}}>Delete</button>
                  </div>
                </div>
