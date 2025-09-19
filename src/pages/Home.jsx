@@ -390,6 +390,16 @@ export default function Home() {
 
   const isPharmacy = user && user.role === 'pharmacy';
 
+  // Map categories to SVG filenames in /public (leave 'All' without icon)
+  const categoryIcons = {
+    'Prescription': 'PrescriptionDrugs.svg',
+    'Over-the-counter': 'Over-the-counter Icon.svg',
+    'Syrup': 'Syrup.svg',
+    'Therapeutic': 'Therapeutic.svg',
+    'Controlled': 'ControlledSubstances.svg',
+    'Target System': 'TargetSystem.svg',
+  };
+
   if (!products.length) {
     return <LoadingSkeleton lines={6} className="my-8" />;
   }
@@ -476,17 +486,31 @@ export default function Home() {
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
-            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map((cat) => (
-              <button
-                key={cat}
-                className={`px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${
-                  selectedCategory === cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''
-                }`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map((cat) => {
+              const icon = categoryIcons[cat];
+              return (
+                <button
+                  key={cat}
+                  className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${
+                    selectedCategory === cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''
+                  }`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {icon ? (
+                    <>
+                      <img
+                        src={`/${encodeURIComponent(icon)}`}
+                        alt={`${cat} icon`}
+                        className="h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0"
+                      />
+                      <span className="truncate">{cat}</span>
+                    </>
+                  ) : (
+                    <span className="truncate">{cat}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
