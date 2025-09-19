@@ -1,13 +1,24 @@
-export default function LoadingSkeleton({ className = '', style = {}, lines = 3 }) {
+export default function LoadingSkeleton({ className = '', style = {}, lines = 3, desktopAlign = 'center' }) {
+  const desktopClass = desktopAlign === 'left' ? 'lg:justify-start lg:pl-12' : 'lg:justify-center';
+
   return (
-    <div className={className} style={style}>
-      {[...Array(lines)].map((_, i) => (
-        <div
-          key={i}
-          className="animate-pulse bg-zinc-200 rounded h-4 mb-2 last:mb-0"
-          style={{ width: `${80 + Math.random() * 20}%`, height: 16 }}
+    <div
+      className={`w-screen h-screen flex items-center justify-center ${desktopClass} bg-white ${className}`}
+      style={style}
+      role="status"
+      aria-live="polite"
+    >
+      <picture>
+        {/* Use DesktopLoading.svg for desktop viewports (>= 1024px) */}
+        <source media="(min-width: 1024px)" srcSet="/DesktopLoading.svg" />
+        {/* Fallback for smaller screens. Image will now fill the viewport while preserving aspect ratio */}
+        <img
+          src="/Loading.svg"
+          alt="Loading"
+          className="w-full h-full object-contain lg:object-cover lg:w-screen lg:h-screen"
         />
-      ))}
+      </picture>
+      <span className="sr-only">Loading</span>
     </div>
   );
 }
