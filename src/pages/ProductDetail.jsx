@@ -1,20 +1,41 @@
 import { MapPin, Clock, Phone, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { addToCart } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
 import ProductAvatar from '@/components/ProductAvatar';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  if (!product) return <LoadingSkeleton lines={5} className="my-8" />;
+  if (!product) return null;
 
   const price = Number(product.price || 0);
   const [imageError, setImageError] = useState(false);
-  // Use ProductAvatar for consistent fallback visuals
+  const [showCategoryProducts, setShowCategoryProducts] = useState(false);
+  const [categoryProducts, setCategoryProducts] = useState([]);
+  const [loadingCategoryProducts, setLoadingCategoryProducts] = useState(false);
+
+  async function fetchProductsByCategory(cat) {
+    if (!cat) return setCategoryProducts([]);
+    try {
+      setLoadingCategoryProducts(true);
+      const q = query(collection(db, 'products'), where('category', '==', cat));
+      const snap = await getDocs(q);
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setCategoryProducts(items);
+      setShowCategoryProducts(true);
+    } catch (err) {
+      console.error('Failed to fetch category products', err);
+      setCategoryProducts([]);
+      setShowCategoryProducts(true);
+    } finally {
+      setLoadingCategoryProducts(false);
+    }
+  }
 
   // Optional: gate by auth, as in your original
   if (!user) {
@@ -164,14 +185,30 @@ export default function ProductDetail({ product, pharmacy }) {
                     {/* Desktop: show label then value underneath */}
                     <div className="hidden lg:block">
                       <div className="text-[15px] tracking-tight text-black font-poppins font-medium">Category</div>
-                      <div className="text-[13px] text-[#fc7f26] font-poppins font-normal mt-0.5 mb-5">{product.category || 'General'}</div>
+                      <div className="mt-0.5 mb-5">
+                        <button
+                          type="button"
+                          onClick={async (e) => { e.stopPropagation(); await fetchProductsByCategory(product.category || 'General'); }}
+                          className="text-[13px] text-[#fc7f26] font-poppins font-normal underline hover:text-amber-500"
+                        >
+                          {product.category || 'General'}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Mobile/tablet: label left, value right on same line */}
                     <div className="block lg:hidden">
                       <div className="flex items-center justify-between">
                         <div className="text-[15px] text-black font-poppins font-medium mb-2">Category</div>
-                        <div className="text-[13px] text-[#fc7f26] font-poppins font-normal">{product.category || 'General'}</div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={async (e) => { e.stopPropagation(); await fetchProductsByCategory(product.category || 'General'); }}
+                            className="text-[13px] text-[#fc7f26] font-poppins font-normal underline hover:text-amber-500"
+                          >
+                            {product.category || 'General'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -212,6 +249,36 @@ export default function ProductDetail({ product, pharmacy }) {
             </div>
           </div>
         </div>
+
+        {/* Category products modal */}
+        {showCategoryProducts && (
+          <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true">
+            <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-lg font-medium">Products in "{product.category || 'General'}"</div>
+                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500">Close</button>
+              </div>
+
+              {loadingCategoryProducts ? (
+                <div className="p-4 text-center text-zinc-500">Loading…</div>
+              ) : categoryProducts.length === 0 ? (
+                <div className="p-4 text-zinc-500">No products found.</div>
+              ) : (
+                <div className="space-y-2">
+                  {categoryProducts.map(p => (
+                    <button key={p.id} onClick={() => { setShowCategoryProducts(false); navigate(`/product/${p.id}`); }} className="w-full text-left rounded-lg p-2 flex items-center gap-3 hover:bg-sky-50">
+                      <ProductAvatar name={p.name} image={p.image} category={p.category} size={48} className="flex-shrink-0" roundedClass="rounded-md" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{p.name}</div>
+                        <div className="text-xs text-zinc-500 truncate">{p.category}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
