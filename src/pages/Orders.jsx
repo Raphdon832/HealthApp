@@ -10,7 +10,6 @@ const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 export default function Orders() {
   const { user, profile } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrders, setExpandedOrders] = useState({}); // Track expanded state per order
   const [revealedNumbers, setRevealedNumbers] = useState({}); // Track revealed phone numbers per order
@@ -22,7 +21,6 @@ export default function Orders() {
 
   useEffect(() => {
     if (!user || !profile) return;
-    setLoading(true);
     let q;
     if (profile.role === 'pharmacy') {
       q = query(collection(db, 'orders'), where('pharmacyId', '==', user.uid), orderBy('createdAt', 'desc'));
@@ -31,7 +29,6 @@ export default function Orders() {
     }
     const unsub = onSnapshot(q, snap => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setLoading(false);
     });
     return unsub;
   }, [user, profile]);
@@ -119,10 +116,7 @@ export default function Orders() {
     );
   }
 
-  if (loading) {
-    // Loading skeleton removed per request — render nothing while loading.
-    return null;
-  }
+  // No loading screen — render immediately
 
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">

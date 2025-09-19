@@ -4,7 +4,6 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import PrescriptionList from '@/components/PrescriptionList';
 import { useAuth } from '@/lib/auth';
 import { fulfillPrescriptionIfOrdered } from '@/lib/db';
-import LoadingSkeleton from './LoadingSkeleton';
 
 // Helper: Parse frequency string like "2x/day" to number of times per day
 function parseFrequency(freq) {
@@ -91,13 +90,11 @@ function saveAlarms(prescriptions) {
 export default function MyPrescriptionsSection() {
   const { user } = useAuth();
   const [prescriptions, setPrescriptions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     async function fetchPrescriptions() {
-      setLoading(true);
       // Fulfill prescriptions if all drugs are purchased (after order completion)
       await fulfillPrescriptionIfOrdered({ customerId: user.uid });
       const q = query(collection(db, 'prescriptions'), where('customerId', '==', user.uid));
@@ -106,7 +103,6 @@ export default function MyPrescriptionsSection() {
       // Sort by startDate descending (most recent first)
       data = data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
       setPrescriptions(data);
-      setLoading(false);
       // Schedule notifications and save alarms
       if (Notification.permission === 'granted') {
         data.forEach(scheduleNotifications);
@@ -139,10 +135,9 @@ export default function MyPrescriptionsSection() {
           >Add to Calendar</button>
         )}
       </div>
-      {loading ? (
-        <LoadingSkeleton lines={3} className="my-4" />
-      ) : prescriptions.length === 0 ? (
-        <div className="text-zinc-400">No prescriptions found.</div>
+
+      {prescriptions.length === 0 ? (
+        <div className="text-zinc-400 text-[12px] font-light">No prescriptions found.</div>
       ) : (
         <>
           <PrescriptionList
