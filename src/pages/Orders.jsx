@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Modal from '@/components/Modal';
+import ProductAvatar from '@/components/ProductAvatar';
 
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
@@ -237,7 +238,9 @@ export default function Orders() {
                 const prod = modalOrderProducts.find(p => p && p.id === item.productId);
                 return (
                   <li key={item.productId} className="flex items-center gap-3">
-                    {prod && prod.image && <img src={prod.image} alt={prod.name} className="h-10 w-10 object-cover rounded-lg border" />}
+                    {prod ? (
+                      <ProductAvatar name={prod.name} image={prod.image} category={prod.category} size={40} roundedClass="rounded-lg" />
+                    ) : null}
                     <div className="flex-1">
                       <div className="font-poppins font-medium text-[14px]">{prod ? prod.name : item.productId}</div>
                       <div className="text-zinc-500 text-xs">Qty: {item.qty}</div>

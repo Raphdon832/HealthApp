@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Card } from './ui/card';
+import ProductAvatar from './ProductAvatar';
 
 export default function ProductCard({
   product,
@@ -46,20 +47,7 @@ export default function ProductCard({
             className="flex items-center justify-center w-full h-full"
             style={{ padding: 8 }}
           >
-            {/* Pill-style avatar placeholder using first letter of product name */}
-            <div
-              role="img"
-              aria-label={product.name ? `${product.name} placeholder` : 'product placeholder'}
-              className="flex items-center justify-center"
-              style={{
-                width: 84,
-                height: 48
-              }}
-            >
-              <span className="text-[#BDBDBD] font-semibold" style={{ fontSize: 20 }}>
-                {(product.name && product.name.charAt(0).toUpperCase()) || '?'}
-              </span>
-            </div>
+            <ProductAvatar name={product.name} image={product.image} category={product.category} size={Math.min(30, Math.max(48, parseInt(cardHeight, 10) / 2))} />
           </div>
         )}
       </div>

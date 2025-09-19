@@ -12,6 +12,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import ProductAvatar from '@/components/ProductAvatar';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout } = useAuth();
@@ -508,13 +509,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex-shrink-0">
                           {r.type === 'product' ? (
-                            r.item && r.item.image ? (
-                              <img src={r.item.image} alt={r.item.name || 'Product'} className="h-12 w-12 object-cover rounded-lg border border-[#9ED3FF]" />
-                            ) : (
-                              <div className="h-12 w-12 rounded-lg bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF]">
-                                <span className="text-sky-600 font-semibold">{r.item && r.item.name && r.item.name.charAt ? r.item.name.charAt(0).toUpperCase() : '?'}</span>
-                              </div>
-                            )
+                            <ProductAvatar name={r.item?.name} image={r.item?.image} category={r.item?.category} size={48} className="rounded-lg" />
                           ) : (
                             <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8]">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500">
@@ -655,20 +650,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   type="button"
                 >
                   <div className="flex-shrink-0">
-                    {p.image && !brokenImages.has(p.id) ? (
-                      <img
-                        src={p.image}
-                        alt={p.name || 'Product image'}
-                        className="h-14 w-14 object-cover rounded-xl border border-[#9ED3FF]"
-                        onError={() => handleImageError(p.id)}
-                        onLoad={() => handleImageLoad(p.id)}
-                      />
-                    ) : (
-                      <div className="h-14 w-14 rounded-xl bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF]">
-                        <span className="text-sky-600 text-lg font-semibold">{(p.name && p.name.charAt ? p.name.charAt(0).toUpperCase() : '?')}</span>
-                      </div>
-                    )}
-                  </div>
+                    <ProductAvatar name={p.name} image={p.image} category={p.category} size={30} className="border border-[#9ED3FF]" roundedClass="rounded-xl" />
+                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-[15px] text-black truncate">{p.name}</div>
                     <div className="text-zinc-500 text-[12px] font-light truncate">{p.category} • Stock: {p.stock} • SKU: {p.sku}</div>

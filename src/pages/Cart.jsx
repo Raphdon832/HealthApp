@@ -5,6 +5,7 @@ import { removeFromCart, placeOrder } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@/icons/react/DeleteIcon';
+import ProductAvatar from '@/components/ProductAvatar';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ export default function Cart() {
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
-            <img src={i.product?.image} className="h-12 w-12 object-cover rounded-xl"/>
+            <ProductAvatar name={i.product?.name} image={i.product?.image} category={i.product?.category} size={35} roundedClass="rounded-xl" />
             <div className="flex-1 w-full text-center">
               <div className="font-semibold text-[12px] sm:text-[13px] md:text-[14px] lg:text-[15px] truncate">{i.product?.name}</div>
               <div className="text-zinc-500 text-[10px] sm:text-[11px] md:text-[12px] lg:text-[13px]">₦{Number(i.product?.price||0).toLocaleString()}</div>

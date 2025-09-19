@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import ProductAvatar from '@/components/ProductAvatar';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
@@ -13,13 +14,7 @@ export default function ProductDetail({ product, pharmacy }) {
 
   const price = Number(product.price || 0);
   const [imageError, setImageError] = useState(false);
-  const initials = (product?.name || '')
-    .trim()
-    .split(/\s+/)
-    .map((s) => s[0] || '')
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  // Use ProductAvatar for consistent fallback visuals
 
   // Optional: gate by auth, as in your original
   if (!user) {
@@ -70,7 +65,7 @@ export default function ProductDetail({ product, pharmacy }) {
                     />
                   ) : (
                     <div className="h-[200px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800">
-                      {initials || 'NA'}
+                      <ProductAvatar name={product.name} image={product.image} category={product.category} size={80} roundedClass="rounded-md" />
                     </div>
                   )}
 

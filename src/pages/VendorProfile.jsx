@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import ProductAvatar from '@/components/ProductAvatar';
 
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
@@ -140,27 +141,6 @@ export default function VendorProfile() {
     doc.save(`${vendor.name || 'pharmacy'}-report.pdf`);
   };
 
-  // Small avatar component for products: shows image when valid, otherwise a letter avatar
-  const ProductAvatar = ({ name, image }) => {
-    const [errored, setErrored] = useState(false);
-    const initial = name?.charAt(0)?.toUpperCase() || '?';
-    if (!image || errored) {
-      return (
-        <div className="h-16 w-16 rounded-2xl bg-zinc-100 flex items-center justify-center border border-zinc-100">
-          <span className="text-[20px] font-poppins font-light text-sky-600">{initial}</span>
-        </div>
-      );
-    }
-    return (
-      <img
-        src={image}
-        alt={name}
-        className="h-16 w-16 object-cover rounded-2xl border border-zinc-100"
-        onError={() => setErrored(true)}
-      />
-    );
-  };
-
   return (
     <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
       {/* Sticky header with back button and title */}
@@ -216,7 +196,7 @@ export default function VendorProfile() {
                     onClick={() => navigate(`/product/${p.id}`)}
                   >
                     <div className="flex-shrink-0">
-                      <ProductAvatar name={p.name} image={p.image} />
+                      <ProductAvatar name={p.name} image={p.image} category={p.category} size={30} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
