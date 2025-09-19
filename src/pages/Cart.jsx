@@ -5,7 +5,6 @@ import { removeFromCart, placeOrder } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@/icons/react/DeleteIcon';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -67,7 +66,12 @@ export default function Cart() {
   }
 
   if (user && items.length === 0) {
-    return <LoadingSkeleton lines={3} className="my-8" />;
+    // Instead of a skeleton, show a lightweight empty state message
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="text-zinc-500 font-extralight text-[14px]">Your cart is empty.</div>
+      </div>
+    );
   }
 
   return (

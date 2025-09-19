@@ -4,7 +4,6 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Modal from '@/components/Modal';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
@@ -121,7 +120,8 @@ export default function Orders() {
   }
 
   if (loading) {
-    return <LoadingSkeleton lines={4} className="my-8" />;
+    // Loading skeleton removed per request — render nothing while loading.
+    return null;
   }
 
   return (

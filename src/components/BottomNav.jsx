@@ -37,7 +37,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
 
   return (
-    <div className="fixed bottom-7 left-0 right-0 flex justify-center" aria-hidden={false}>
+    <div className="fixed bottom-5 left-0 right-0 flex justify-center" aria-hidden={false}>
       <nav
         role="navigation"
         aria-label="Bottom navigation"
