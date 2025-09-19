@@ -159,9 +159,26 @@ export default function ProductDetail({ product, pharmacy }) {
                     </div>
                   )}
 
+                  {/* Category (responsive): stacked on lg, inline on smaller screens */}
+                  <div className="mt-2">
+                    {/* Desktop: show label then value underneath */}
+                    <div className="hidden lg:block">
+                      <div className="text-[15px] tracking-tight text-black font-poppins font-medium">Category</div>
+                      <div className="text-[13px] text-[#fc7f26] font-poppins font-normal mt-0.5 mb-5">{product.category || 'General'}</div>
+                    </div>
+
+                    {/* Mobile/tablet: label left, value right on same line */}
+                    <div className="block lg:hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[15px] text-black font-poppins font-medium mb-2">Category</div>
+                        <div className="text-[13px] text-[#fc7f26] font-poppins font-normal">{product.category || 'General'}</div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Product description */}
                   <div className="mt-2">
-                    <div className="text-[15px] font-poppins tracking-tighter text-zinc-800">Product Description</div>
+                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Product Description</div>
                     <p className="mt-2 text-zinc-600 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
                   </div>
 
@@ -173,7 +190,7 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
-        <div className="fixed left-0 right-0 bottom-24 z-30 lg:hidden">
+        <div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden">
           <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
             <div className="flex flex-col gap-3">
               <button
