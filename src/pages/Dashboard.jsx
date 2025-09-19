@@ -7,14 +7,12 @@ import RevenueGraph from '@/components/RevenueGraph';
 import VendorStatsCarousel from '@/components/VendorStatsCarousel';
 import SalesTrends from '@/components/SalesTrends';
 import MessagesPreview from '@/components/MessagesPreview';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
@@ -33,14 +31,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
       if (profile && profile.role === 'pharmacy') {
         const data = await getBestSellingProducts(5, profile.uid); // pass vendorId
         setBestSelling(data);
       } else {
         setBestSelling([]);
       }
-      setLoading(false);
     }
     fetchData();
   }, [profile]);
@@ -166,10 +162,6 @@ export default function Dashboard() {
     fetchThreads();
   }, [profile]);
 
-  if (loading) {
-    return <LoadingSkeleton lines={6} className="my-8" />;
-  }
-
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
@@ -183,9 +175,7 @@ export default function Dashboard() {
           <div className="flex flex-col gap-6">
             <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5">
               <h2 className="text-black font-light mb-3 text-lg tracking-tight">Best Selling</h2>
-              {loading ? (
-                <div className="text-zinc-400 text-sm">Loading...</div>
-              ) : bestSelling.length === 0 ? (
+              {bestSelling.length === 0 ? (
                 <div className="text-zinc-400 text-sm">No sales data yet.</div>
               ) : (
                 <div className="flex flex-col gap-3">

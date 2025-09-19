@@ -7,7 +7,6 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
 import ProductAvatar from '@/components/ProductAvatar';
 
 export default function VendorProfile() {
@@ -42,7 +41,7 @@ export default function VendorProfile() {
     return listenProducts(setProducts, id);
   }, [id]);
 
-  if (!vendor) return <LoadingSkeleton lines={4} className="my-8" />;
+  // Render immediately; use optional chaining / defaults for vendor fields until data arrives
 
   const handleMessageVendor = async () => {
     // must be signed in
@@ -163,7 +162,7 @@ export default function VendorProfile() {
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
             <div className={`border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20' : ''}`}>
               <div>
-                <div className="text-[18px] font-poppins font-medium">Products by<br/>{vendor.name}</div>
+                <div className="text-[18px] font-poppins font-medium">Products by<br/>{vendor?.name || 'Vendor'}</div>
                 <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
               </div>
               <div>
@@ -220,18 +219,18 @@ export default function VendorProfile() {
           <aside className={`order-1 ${!useMobileLayout ? 'md:order-1 md:col-span-1 md:self-start md:sticky md:top-20' : ''}`}>
             <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-4 w-full flex flex-col items-start">
               <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
-                <span className="text-[32px] font-poppins font-light text-sky-600">{vendor.name?.charAt(0)}</span>
+                <span className="text-[32px] font-poppins font-light text-sky-600">{vendor?.name?.charAt(0) || 'V'}</span>
               </div>
-              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 mb-1">{vendor.name}</div>
-              <div className="text-zinc-500 text-[13px] font-poppins font-light mb-1">{vendor.email}</div>
-              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
-                <MapPin className="h-3 w-3" /> {vendor.address}
-              </div>
-              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
-                <Clock className="h-3 w-3" /> {vendor.etaMins || 25} mins to {vendor.name}
+              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 mb-1">{vendor?.name || 'Vendor'}</div>
+              <div className="text-zinc-500 text-[13px] font-poppins font-light mb-1">{vendor?.email || ''}</div>
+               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
+                 <MapPin className="h-3 w-3" /> {vendor?.address || ''}
+               </div>
+               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
+                <Clock className="h-3 w-3" /> {vendor?.etaMins || 25} mins to {vendor?.name || 'vendor'}
               </div>
               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light">
-                <Phone className="h-3 w-3" /> {vendor.phone}
+                <Phone className="h-3 w-3" /> {vendor?.phone || ''}
               </div>
             </div>
 
