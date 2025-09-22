@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Routes,
   Route,
@@ -9,37 +9,43 @@ import {
   useParams,
   useMatch,
   Outlet,
-} from 'react-router-dom';
-import { collection, query, onSnapshot, doc as firestoreDoc, getDoc } from 'firebase/firestore';
-import { listenUserThreads } from '@/lib/db';
+} from "react-router-dom";
+import {
+  collection,
+  query,
+  onSnapshot,
+  doc as firestoreDoc,
+  getDoc,
+} from "firebase/firestore";
+import { listenUserThreads } from "@/lib/db";
 
-import BottomNav from '@/components/BottomNav';
-import Home from '@/pages/Home';
-import ProductDetail from '@/pages/ProductDetail';
-import Messages from '@/pages/Messages';
-import ChatThread from '@/pages/ChatThread';
-import Cart from '@/pages/Cart';
-import Orders from '@/pages/Orders';
-import ProfileCustomer from '@/pages/ProfileCustomer';
-import ProfilePharmacy from '@/pages/ProfilePharmacy';
-import { AuthProvider, useAuth } from '@/lib/auth';
-import { RequireAuth } from '@/components/Protected';
-import { db } from '@/lib/firebase';
-import Dashboard from '@/pages/Dashboard';
-import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
-import SuperuserDashboard from '@/pages/SuperuserDashboard';
+import BottomNav from "@/components/BottomNav";
+import Home from "@/pages/Home";
+import ProductDetail from "@/pages/ProductDetail";
+import Messages from "@/pages/Messages";
+import ChatThread from "@/pages/ChatThread";
+import Cart from "@/pages/Cart";
+import Orders from "@/pages/Orders";
+import ProfileCustomer from "@/pages/ProfileCustomer";
+import ProfilePharmacy from "@/pages/ProfilePharmacy";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { RequireAuth } from "@/components/Protected";
+import { db } from "@/lib/firebase";
+import Dashboard from "@/pages/Dashboard";
+import GlobalMessageNotifier from "@/components/GlobalMessageNotifier";
+import SuperuserDashboard from "@/pages/SuperuserDashboard";
 
 // Auth flow pages
-import Landing from '@/pages/auth/Landing';
-import CustomerRegister from '@/pages/auth/CustomerRegister';
-import CustomerSignIn from '@/pages/auth/CustomerSignIn';
-import PharmacyRegister from '@/pages/auth/PharmacyRegister';
-import PharmacySignIn from '@/pages/auth/PharmacySignIn';
-import VerifyEmail from '@/pages/VerifyEmail';
-import ForgotPassword from '@/pages/auth/ForgotPassword';
+import Landing from "@/pages/auth/Landing";
+import CustomerRegister from "@/pages/auth/CustomerRegister";
+import CustomerSignIn from "@/pages/auth/CustomerSignIn";
+import PharmacyRegister from "@/pages/auth/PharmacyRegister";
+import PharmacySignIn from "@/pages/auth/PharmacySignIn";
+import VerifyEmail from "@/pages/VerifyEmail";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
 
 // Extra
-import VendorProfile from '@/pages/VendorProfile';
+import VendorProfile from "@/pages/VendorProfile";
 
 /* ---------------------------
    LAYOUTS
@@ -57,8 +63,9 @@ function AppLayout() {
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
   useEffect(() => {
-    if (!user || (profile && profile.role === 'pharmacy')) return setCartCount(0);
-    const q = query(collection(db, 'users', user.uid, 'cart'));
+    if (!user || (profile && profile.role === "pharmacy"))
+      return setCartCount(0);
+    const q = query(collection(db, "users", user.uid, "cart"));
     const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
     return unsub;
   }, [user, profile]);
@@ -68,35 +75,54 @@ function AppLayout() {
 
     // Use the same listener used by Messages.jsx to ensure we subscribe to the exact same
     // set of threads (by customerId/vendorId) and compute unread total from thread docs.
-    const unsub = listenUserThreads({ uid: user.uid, role: profile.role }, (threads) => {
-      try {
-        const sum = threads.reduce((acc, t) => {
-          const u = t?.unread?.[user.uid];
-          return acc + (typeof u === 'number' ? u : 0);
-        }, 0);
-        setUnreadMessages(sum);
-        console.debug('[AppLayout] unread total from listenUserThreads', { sum, count: threads.length });
-      } catch (e) {
-        console.error('[AppLayout] error computing unread from threads', e);
-      }
-    }, (err) => console.error('[AppLayout] listenUserThreads error', err));
+    const unsub = listenUserThreads(
+      { uid: user.uid, role: profile.role },
+      (threads) => {
+        try {
+          const sum = threads.reduce((acc, t) => {
+            const u = t?.unread?.[user.uid];
+            return acc + (typeof u === "number" ? u : 0);
+          }, 0);
+          setUnreadMessages(sum);
+          console.debug("[AppLayout] unread total from listenUserThreads", {
+            sum,
+            count: threads.length,
+          });
+        } catch (e) {
+          console.error("[AppLayout] error computing unread from threads", e);
+        }
+      },
+      (err) => console.error("[AppLayout] listenUserThreads error", err)
+    );
 
     return () => unsub && unsub();
   }, [user, profile?.role]);
 
   // Detect “chat modal open” via query param
   const params = new URLSearchParams(location.search);
-  const chatModalOpen = !!params.get('chat'); // e.g. /messages?chat=<vendorId>
+  const chatModalOpen = !!params.get("chat"); // e.g. /messages?chat=<vendorId>
 
   // Dev overlay flag
-  const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
+  const showDebug =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("debugBottomNav") === "1";
 
   useEffect(() => {
-    if (showDebug) console.debug('[AppLayout] render', { chatModalOpen, unreadMessages, tab, cartCount });
+    if (showDebug)
+      console.debug("[AppLayout] render", {
+        chatModalOpen,
+        unreadMessages,
+        tab,
+        cartCount,
+      });
   }, [showDebug, chatModalOpen, unreadMessages, tab, cartCount]);
 
   return (
-    <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${chatModalOpen ? '' : 'pb-24'}`}>
+    <div
+      className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${
+        chatModalOpen ? "" : "pb-24"
+      }`}
+    >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
         <Outlet />
       </div>
@@ -115,7 +141,10 @@ function AppLayout() {
 
       {/* Debug overlay to surface unread and chatModalOpen even if BottomNav not mounted */}
       {showDebug && (
-        <div className="fixed bottom-24 right-4 z-60 bg-black/80 text-white text-xs px-3 py-1 rounded">AppDebug: chatModalOpen={String(chatModalOpen)} unread={String(unreadMessages)}</div>
+        <div className="fixed bottom-24 right-4 z-60 bg-black/80 text-white text-xs px-3 py-1 rounded">
+          AppDebug: chatModalOpen={String(chatModalOpen)} unread=
+          {String(unreadMessages)}
+        </div>
       )}
     </div>
   );
@@ -143,11 +172,13 @@ function ProductDetailRoute() {
 
   useEffect(() => {
     async function fetchData() {
-      const prodSnap = await getDoc(firestoreDoc(db, 'products', id));
+      const prodSnap = await getDoc(firestoreDoc(db, "products", id));
       const prodData = prodSnap.data();
       setProduct(prodData ? { id, ...prodData } : null);
       if (prodData?.pharmacyId) {
-        const pharmSnap = await getDoc(firestoreDoc(db, 'pharmacies', prodData.pharmacyId));
+        const pharmSnap = await getDoc(
+          firestoreDoc(db, "pharmacies", prodData.pharmacyId)
+        );
         setPharmacy(pharmSnap.data());
       }
     }
@@ -161,7 +192,7 @@ function ProductDetailRoute() {
 function ProfileRouter() {
   const { profile } = useAuth();
   if (!profile) return null;
-  if (profile.role === 'pharmacy')
+  if (profile.role === "pharmacy")
     return <ProfilePharmacy onSwitchToCustomer={() => {}} />;
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
@@ -170,7 +201,9 @@ function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const scrollTo = params.get('scrollTo') ? parseInt(params.get('scrollTo'), 10) : undefined;
+  const scrollTo = params.get("scrollTo")
+    ? parseInt(params.get("scrollTo"), 10)
+    : undefined;
 
   // Show loading until profile is loaded
   if (user && profile === undefined) {
@@ -188,7 +221,7 @@ function Shell() {
   }
 
   // Redirect superuser to /superuser ONLY if on root path
-  if (profile && profile.role === 'superuser' && location.pathname === '/') {
+  if (profile && profile.role === "superuser" && location.pathname === "/") {
     return <Navigate to="/superuser" replace />;
   }
 
@@ -217,14 +250,21 @@ function Shell() {
 
       {/* Superuser route - only for superuser role, uses BareLayout (no BottomNav) */}
       <Route element={<BareLayout />}>
-        <Route path="/superuser" element={<RequireAuth><SuperuserDashboard /></RequireAuth>} />
+        <Route
+          path="/superuser"
+          element={
+            <RequireAuth>
+              <SuperuserDashboard />
+            </RequireAuth>
+          }
+        />
       </Route>
       {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
-      <Route element={<AppLayout />}> 
+      <Route element={<AppLayout />}>
         {/* Remove / route for superuser, only show for pharmacy/customer */}
-        {profile && profile.role === 'pharmacy' ? (
+        {profile && profile.role === "pharmacy" ? (
           <Route path="/" element={<Dashboard />} />
-        ) : profile && profile.role === 'customer' ? (
+        ) : profile && profile.role === "customer" ? (
           <Route path="/" element={<Home />} />
         ) : null}
         <Route path="/vendor/:id" element={<VendorProfile />} />
@@ -237,9 +277,34 @@ function Shell() {
             </RequireAuth>
           }
         />
-        <Route path="/cart" element={<RequireAuth>{profile && profile.role === 'pharmacy' ? <Navigate to="/" /> : <Cart />}</RequireAuth>} />
-        <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
-        <Route path="/profile" element={<RequireAuth><ProfileRouter /></RequireAuth>} />
+        <Route
+          path="/cart"
+          element={
+            <RequireAuth>
+              {profile && profile.role === "pharmacy" ? (
+                <Navigate to="/" />
+              ) : (
+                <Cart />
+              )}
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <RequireAuth>
+              <Orders />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <ProfileRouter />
+            </RequireAuth>
+          }
+        />
       </Route>
 
       {/* Fallback */}
@@ -251,8 +316,8 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
-      <GlobalMessageNotifier />
       <Shell />
+      <GlobalMessageNotifier />
     </AuthProvider>
   );
 }
