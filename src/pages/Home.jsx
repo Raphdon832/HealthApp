@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { findClosestPharmacyWithETA } from '@/lib/eta';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -19,10 +21,11 @@ export default function Home() {
   const [q, setQ] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [location, setLocation] = useState('Fetching location...');
-  const [userCoords, setUserCoords] = useState(null);
+  
+  // Use shared location hook
+  const { userCoords, location } = useUserLocation();
   const [closestPharmacy, setClosestPharmacy] = useState(null);
-  const [eta, setEta] = useState(null);
+  const [etaInfo, setEtaInfo] = useState(null);
 
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -92,60 +95,29 @@ export default function Home() {
 
   useEffect(() => listenProducts(setProducts), []);
 
+  // Calculate ETA to closest pharmacy when user location or pharmacies change
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocation('Location not supported');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserCoords({ latitude, longitude });
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-          const data = await res.json();
-          setLocation(data.display_name || 'Location unavailable');
-        } catch {
-          setLocation('Unable to fetch address');
-        }
-      },
-      () => setLocation('Location permission denied')
-    );
-  }, []);
-
-  useEffect(() => {
-    async function fetchAndCalcETA() {
+    async function calculateETA() {
       if (!userCoords) return;
-      const pharmacies = await getAllPharmacies();
-      if (!pharmacies || pharmacies.length === 0) return;
-      function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = ((lat2 - lat1) * Math.PI) / 180;
-        const dLon = ((lon2 - lon1) * Math.PI) / 180;
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+      
+      let pharmacyList = pharmacies;
+      if (pharmacyList.length === 0) {
+        pharmacyList = await getAllPharmacies();
+        if (!pharmacyList || pharmacyList.length === 0) return;
       }
-      let minDist = Infinity, minPharm = null;
-      pharmacies.forEach((pharm) => {
-        if (pharm.coordinates) {
-          const dist = getDistance(
-            userCoords.latitude, userCoords.longitude,
-            pharm.coordinates.latitude, pharm.coordinates.longitude
-          );
-          if (dist < minDist) { minDist = dist; minPharm = pharm; }
-        }
-      });
-      setClosestPharmacy(minPharm);
-      const etaMins = Number.isFinite(minDist) ? Math.round((minDist / 25) * 60) : null;
-      setEta(etaMins);
+
+      const result = findClosestPharmacyWithETA(pharmacyList, userCoords, 'driving');
+      if (result) {
+        setClosestPharmacy(result.pharmacy);
+        setEtaInfo(result.eta);
+      } else {
+        setClosestPharmacy(null);
+        setEtaInfo(null);
+      }
     }
-    fetchAndCalcETA();
-  }, [userCoords]);
+    
+    calculateETA();
+  }, [userCoords, pharmacies]);
 
   // New Arrivals auto-scroll (unchanged)
   useEffect(() => {
@@ -422,9 +394,9 @@ export default function Home() {
                 <div className="flex flex-col justify-center items-end">
                   <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
-                    {eta && closestPharmacy
-                      ? `${eta} min${eta !== 1 ? 's' : ''} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}`
-                      : 'Fetching ETA...'}
+                    {etaInfo && closestPharmacy
+                      ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}`
+                      : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
                   </span>
                 </div>
               </div>

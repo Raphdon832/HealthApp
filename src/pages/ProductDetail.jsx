@@ -1,5 +1,5 @@
 import { MapPin, Clock, Phone, ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { addToCart } from '@/lib/db';
@@ -7,15 +7,30 @@ import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { calculatePharmacyETA } from '@/lib/eta';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { userCoords } = useUserLocation();
+  
   if (!product) return null;
 
   const price = Number(product.price || 0);
   const [imageError, setImageError] = useState(false);
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
+  const [etaInfo, setEtaInfo] = useState(null);
+
+  // Calculate ETA when user location or pharmacy changes
+  useEffect(() => {
+    if (pharmacy && userCoords) {
+      const eta = calculatePharmacyETA(pharmacy, userCoords, 'driving');
+      setEtaInfo(eta);
+    } else {
+      setEtaInfo(null);
+    }
+  }, [pharmacy, userCoords]);
   const [categoryProducts, setCategoryProducts] = useState([]);
   const [loadingCategoryProducts, setLoadingCategoryProducts] = useState(false);
 
@@ -162,7 +177,13 @@ export default function ProductDetail({ product, pharmacy }) {
 
                   {/* ETA below the address (mobile and desktop) */}
                   <div className="mb-3 flex items-center gap-2 text-zinc-600 text-[13px] font-poppins font-light">
-                    <Clock className="h-4 w-4" /> {pharmacy?.etaMins || 25} mins to {pharmacy?.name}
+                    <Clock className="h-4 w-4" /> 
+                    {etaInfo 
+                      ? `${etaInfo.formatted} to ${pharmacy?.name}` 
+                      : userCoords 
+                        ? 'Calculating ETA...' 
+                        : 'Fetching location...'
+                    }
                   </div>
 
                   {/* Get Directions for lg (desktop) - keep original placement on larger screens */}

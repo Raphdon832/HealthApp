@@ -8,12 +8,17 @@ import { useAuth } from '@/lib/auth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ProductAvatar from '@/components/ProductAvatar';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { calculatePharmacyETA } from '@/lib/eta';
 
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
+  const { userCoords } = useUserLocation();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [etaInfo, setEtaInfo] = useState(null);
+  
   // treat vertical (portrait) screens as mobile layout to avoid spillover on tall devices (e.g. iPad portrait)
   const [isPortrait, setIsPortrait] = useState(false);
   useEffect(() => {
@@ -40,6 +45,16 @@ export default function VendorProfile() {
     fetchVendor();
     return listenProducts(setProducts, id);
   }, [id]);
+
+  // Calculate ETA when user location or vendor changes
+  useEffect(() => {
+    if (vendor && userCoords) {
+      const eta = calculatePharmacyETA(vendor, userCoords, 'driving');
+      setEtaInfo(eta);
+    } else {
+      setEtaInfo(null);
+    }
+  }, [vendor, userCoords]);
 
   // Render immediately; use optional chaining / defaults for vendor fields until data arrives
 
@@ -227,7 +242,13 @@ export default function VendorProfile() {
                  <MapPin className="h-3 w-3" /> {vendor?.address || ''}
                </div>
                <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1">
-                <Clock className="h-3 w-3" /> {vendor?.etaMins || 25} mins to {vendor?.name || 'vendor'}
+                <Clock className="h-3 w-3" /> 
+                {etaInfo 
+                  ? `${etaInfo.formatted} to ${vendor?.name || 'vendor'}` 
+                  : userCoords 
+                    ? 'Calculating ETA...' 
+                    : 'Fetching location...'
+                }
               </div>
               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light">
                 <Phone className="h-3 w-3" /> {vendor?.phone || ''}
