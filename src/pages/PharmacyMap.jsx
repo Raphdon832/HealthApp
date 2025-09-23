@@ -154,7 +154,7 @@ export default function PharmacyMap() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-light sticky">Nearby Pharmacies</h1>
+            <h1 className="text-xl font-light">Nearby Pharmacies</h1>
           </div>
           <LoadingSkeleton lines={8} className="space-y-4" />
         </div>
@@ -376,60 +376,64 @@ export default function PharmacyMap() {
 
         {/* Enhanced Selected Pharmacy Details */}
         {selectedPharmacy && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 shadow-sm border border-blue-200">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-start gap-3 flex-1">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4 shadow-sm border border-blue-200">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg flex-shrink-0">
                   {sortedPharmacies.findIndex(p => p.id === selectedPharmacy.id) + 1}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 text-lg">{selectedPharmacy.name}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{selectedPharmacy.address}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-base truncate">{selectedPharmacy.name}</h3>
+                  <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                      <Clock className="h-3 w-3 text-blue-500" />
-                      <span className="font-medium">{selectedPharmacy.eta?.formatted || 'Calculating...'}</span>
+                      <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || 'Calculating...'}</span>
                     </div>
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                      <MapPin className="h-3 w-3 text-green-500" />
-                      <span className="font-medium">{selectedPharmacy.distance?.toFixed(1) || '0'} km away</span>
+                      <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
+                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.distance?.toFixed(1) || '0'} km</span>
                     </div>
                     {selectedPharmacy.phone && (
                       <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                        <Phone className="h-3 w-3 text-purple-500" />
-                        <span className="font-medium">{selectedPharmacy.phone}</span>
+                        <Phone className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                        <span className="font-medium text-xs truncate max-w-[80px]">{selectedPharmacy.phone}</span>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-              <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm flex-shrink-0 ml-2">
                 Closest
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <button
                 onClick={() => handleGetDirections(selectedPharmacy)}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 shadow-sm"
               >
-                <Navigation className="h-4 w-4" />
-                Get Directions
+                <Navigation className="h-3 w-3" />
+                <span className="hidden sm:inline">Get Directions</span>
+                <span className="sm:hidden">Get Directions</span>
               </button>
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
-                  className="bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                  title="Call pharmacy"
                 >
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-3 w-3" />
+                  <span className="hidden sm:inline">Call</span>
                 </button>
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-3 px-4 rounded-lg font-medium hover:bg-blue-50 transition-colors border border-blue-200 shadow-sm"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-colors border border-blue-200 shadow-sm"
               >
-                View Products
+                <span className="hidden sm:inline">View Products</span>
+                <span className="sm:hidden">View Products</span>
               </button>
             </div>
           </div>
@@ -468,7 +472,7 @@ export default function PharmacyMap() {
             sortedPharmacies.map((pharmacy, index) => (
               <div
                 key={pharmacy.id || index}
-                className={`bg-white rounded-lg p-4 shadow-sm border cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
                   selectedPharmacy?.id === pharmacy.id
                     ? 'border-blue-300 bg-blue-50 shadow-blue-100'
                     : 'border-gray-200 hover:border-gray-300'
@@ -476,31 +480,31 @@ export default function PharmacyMap() {
                 onClick={() => handlePharmacySelect(pharmacy)}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm ${
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0 ${
                       selectedPharmacy?.id === pharmacy.id ? 'bg-blue-500' : 'bg-gray-400'
                     }`}>
                       {index + 1}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900">{pharmacy.name}</h3>
+                        <h3 className="font-semibold text-gray-900 text-sm truncate">{pharmacy.name}</h3>
                         {index === 0 && (
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                          <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                             Closest
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{pharmacy.address}</p>
+                      <p className="text-xs text-gray-600 mb-2 truncate">{pharmacy.address}</p>
                       
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-3 text-xs">
                         <div className="flex items-center gap-1 text-blue-600">
-                          <Clock className="h-3 w-3" />
-                          <span className="font-medium">{pharmacy.eta?.formatted || 'Calculating...'}</span>
+                          <Clock className="h-3 w-3 flex-shrink-0" />
+                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || 'Calculating...'}</span>
                         </div>
                         <div className="flex items-center gap-1 text-green-600">
-                          <MapPin className="h-3 w-3" />
-                          <span className="font-medium">{pharmacy.distance?.toFixed(1) || '0'} km</span>
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="font-medium whitespace-nowrap">{pharmacy.distance?.toFixed(1) || '0'} km</span>
                         </div>
                       </div>
                     </div>
@@ -511,10 +515,10 @@ export default function PharmacyMap() {
                       e.stopPropagation();
                       handleGetDirections(pharmacy);
                     }}
-                    className="text-blue-600 hover:text-blue-700 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+                    className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 hover:bg-blue-50 rounded-full flex-shrink-0 ml-2"
                     title="Get directions"
                   >
-                    <Navigation className="h-5 w-5" />
+                    <Navigation className="h-4 w-4" />
                   </button>
                 </div>
               </div>
