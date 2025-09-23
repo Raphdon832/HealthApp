@@ -19,6 +19,9 @@ export default function PharmacyMap() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [distanceFilter, setDistanceFilter] = useState('all'); // 'all', '5km', '10km', '20km'
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   // Redirect non-customers to home
   useEffect(() => {
@@ -95,6 +98,33 @@ export default function PharmacyMap() {
     }
   }, [userCoords, pharmacies, selectedPharmacy, searchQuery, distanceFilter]);
 
+  // Generate search suggestions based on pharmacies
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const suggestions = pharmacies
+      .filter(pharmacy => 
+        pharmacy.name?.toLowerCase().includes(query) ||
+        pharmacy.address?.toLowerCase().includes(query)
+      )
+      .slice(0, 5) // Limit to 5 suggestions
+      .map(pharmacy => ({
+        id: pharmacy.id,
+        name: pharmacy.name,
+        address: pharmacy.address,
+        type: pharmacy.name?.toLowerCase().includes(query) ? 'name' : 'address'
+      }));
+
+    setSearchSuggestions(suggestions);
+    setShowSuggestions(suggestions.length > 0);
+    setSelectedSuggestionIndex(-1);
+  }, [searchQuery, pharmacies]);
+
   // Helper function to extract coordinates (duplicate from eta.js for simplicity)
   function getPharmacyCoordinates(pharmacy) {
     if (!pharmacy) return null;
@@ -141,6 +171,74 @@ export default function PharmacyMap() {
   const handleViewPharmacy = (pharmacy) => {
     if (pharmacy.vendorId || pharmacy.id) {
       navigate(`/vendor/${pharmacy.vendorId || pharmacy.id}`);
+    }
+  };
+
+  const handleSearchInputChange = (value) => {
+    setSearchQuery(value);
+    setSelectedSuggestionIndex(-1);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion.name);
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    
+    // Find and select the pharmacy
+    const pharmacy = pharmacies.find(p => p.id === suggestion.id);
+    if (pharmacy) {
+      setSelectedPharmacy(pharmacy);
+      
+      // Scroll to the pharmacy in the list after a short delay
+      setTimeout(() => {
+        const element = document.getElementById(`pharmacy-${pharmacy.id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  };
+
+  const handleSearchFocus = () => {
+    if (searchSuggestions.length > 0 && searchQuery.length >= 2) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleSearchBlur = () => {
+    // Delay hiding suggestions to allow clicking on them
+    setTimeout(() => {
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
+    }, 200);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || searchSuggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < searchSuggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : searchSuggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < searchSuggestions.length) {
+          handleSuggestionClick(searchSuggestions[selectedSuggestionIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
     }
   };
 
@@ -225,9 +323,91 @@ export default function PharmacyMap() {
                 type="text"
                 placeholder="Search pharmacies..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border-b border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => handleSearchInputChange(e.target.value)}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onKeyDown={handleKeyDown}
+                className="w-full pl-10 pr-4 py-2 border-b border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                autoComplete="off"
               />
+              
+              {/* Search Suggestions Dropdown */}
+              {showSuggestions && searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-fade-in">
+                  {searchSuggestions.length > 0 ? (
+                    searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={suggestion.id}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className={`w-full text-left px-4 py-3 focus:outline-none transition-colors duration-200 border-b border-gray-100 last:border-b-0 animate-fadeInUp ${
+                          index === selectedSuggestionIndex 
+                            ? 'bg-blue-100 border-blue-200' 
+                            : 'hover:bg-blue-50 focus:bg-blue-50'
+                        }`}
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
+                            index === selectedSuggestionIndex ? 'bg-blue-200' : 'bg-blue-100'
+                          }`}>
+                            <MapPin className={`h-4 w-4 ${
+                              index === selectedSuggestionIndex ? 'text-blue-700' : 'text-blue-600'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-gray-900 truncate">
+                              {suggestion.type === 'name' ? (
+                                <span>
+                                  {suggestion.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
+                                    part.toLowerCase() === searchQuery.toLowerCase() ? (
+                                      <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                                    ) : (
+                                      part
+                                    )
+                                  )}
+                                </span>
+                              ) : (
+                                suggestion.name
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate mt-1">
+                              {suggestion.type === 'address' ? (
+                                <span>
+                                  {suggestion.address.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
+                                    part.toLowerCase() === searchQuery.toLowerCase() ? (
+                                      <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                                    ) : (
+                                      part
+                                    )
+                                  )}
+                                </span>
+                              ) : (
+                                suggestion.address
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-blue-600 font-medium flex-shrink-0">
+                            {suggestion.type === 'name' ? 'Name' : 'Address'}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-gray-500 animate-fade-in">
+                      <MapPin className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm">No pharmacies found</p>
+                      <p className="text-xs mt-1">Try a different search term</p>
+                    </div>
+                  )}
+                  
+                  {/* Keyboard navigation hint */}
+                  {searchSuggestions.length > 0 && (
+                    <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 text-center">
+                      Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -443,8 +623,17 @@ export default function PharmacyMap() {
         {/* Pharmacy List */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {searchQuery ? 'Search Results' : 'All Pharmacies'}
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              {searchQuery ? (
+                <>
+                  <span>Search Results</span>
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full animate-pulse-slow">
+                    "{searchQuery}"
+                  </span>
+                </>
+              ) : (
+                'All Pharmacies'
+              )}
             </h2>
             <span className="text-sm text-gray-500">
               {sortedPharmacies.length} found
@@ -463,7 +652,7 @@ export default function PharmacyMap() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 px-3 py-1 rounded-full hover:bg-blue-50"
                 >
                   Clear search
                 </button>
@@ -473,6 +662,7 @@ export default function PharmacyMap() {
             sortedPharmacies.map((pharmacy, index) => (
               <div
                 key={pharmacy.id || index}
+                id={`pharmacy-${pharmacy.id}`}
                 className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
                     ? 'border-blue-300 bg-blue-50 shadow-blue-100 scale-102'
@@ -527,6 +717,32 @@ export default function PharmacyMap() {
             ))
           )}
         </div>
+
+        {/* Search Suggestions */}
+        {showSuggestions && searchSuggestions.length > 0 && (
+          <div className="absolute z-50 w-full max-w-md mx-auto mt-2 bg-white rounded-lg shadow-lg">
+            <div className="flex flex-col divide-y divide-gray-200">
+              {searchSuggestions.map(suggestion => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-900 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                    <div className="flex flex-col text-sm">
+                      <span className="font-medium">{suggestion.name}</span>
+                      <span className="text-gray-500 truncate">{suggestion.address}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {sortedPharmacies.findIndex(p => p.id === suggestion.id) + 1}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
