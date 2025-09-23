@@ -62,6 +62,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     // common patterns
     if (d.latitude && d.longitude) return { lat: Number(d.latitude), lng: Number(d.longitude) };
     if (d.lat && d.lng) return { lat: Number(d.lat), lng: Number(d.lng) };
+    if (d.lat && d.lon) return { lat: Number(d.lat), lng: Number(d.lon) };
     if (d.location && typeof d.location === 'object') {
       if (d.location.lat && d.location.lng) return { lat: Number(d.location.lat), lng: Number(d.location.lng) };
       if (d.location.latitude && d.location.longitude) return { lat: Number(d.location.latitude), lng: Number(d.location.longitude) };
@@ -543,7 +544,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       <div className="mt-8 w-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* LEFT: Profile detail card */}
         <aside className="min-w-0 lg:pr-2">
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative lg:sticky lg:top-24">
+          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
             <div className="mb-2">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] shadow" />
@@ -553,21 +554,21 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 </div>
               )}
             </div>
-            <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight truncate">{pharmacyProfile.displayName || 'Pharmacy'}</div>
+            <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight truncate w-full">{pharmacyProfile.displayName || 'Pharmacy'}</div>
             <div className="w-full border-b mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
-            <div className="text-[13px] text-zinc-500 font-light mb-1 truncate">{pharmacyProfile.email || user?.email}</div>
+            <div className="text-[13px] text-zinc-500 font-light mb-1 truncate w-full">{pharmacyProfile.email || user?.email}</div>
             {pharmacyProfile.address && (
-              <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate"><MapPin className="h-4 w-4 mr-1" />{pharmacyProfile.address}</div>
+              <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate w-full"><MapPin className="h-4 w-4 mr-1 flex-shrink-0" /><span className="truncate">{pharmacyProfile.address}</span></div>
             )}
             {pharmacyProfile.phone && (
-              <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate">
+              <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate w-full">
                  {/* Phone icon SVG from /src/icons/PhoneIcon.svg */}
-                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1"><path d="M2.41333 5.19333C3.37333 7.08 4.92 8.62667 6.80667 9.58667L8.27333 8.12C8.46 7.93333 8.72 7.88 8.95333 7.95333C9.7 8.2 10.5 8.33333 11.3333 8.33333C11.5101 8.33333 11.6797 8.40357 11.8047 8.5286C11.9298 8.65362 12 8.82319 12 9V11.3333C12 11.5101 11.9298 11.6797 11.8047 11.8047C11.6797 11.9298 11.5101 12 11.3333 12C8.32755 12 5.44487 10.806 3.31946 8.68054C1.19404 6.55513 0 3.67245 0 0.666667C0 0.489856 0.0702379 0.320286 0.195262 0.195262C0.320286 0.0702379 0.489856 0 0.666667 0H3C3.17681 0 3.34638 0.0702379 3.4714 0.195262C3.59643 0.320286 3.66667 0.489856 3.66667 0.666667C3.66667 1.5 3.8 2.3 4.04667 3.04667C4.12 3.28 4.06667 3.54 3.88 3.72667L2.41333 5.19333Z" fill="#7D7D7D"/></svg>
-                 {pharmacyProfile.phone}
+                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1 flex-shrink-0"><path d="M2.41333 5.19333C3.37333 7.08 4.92 8.62667 6.80667 9.58667L8.27333 8.12C8.46 7.93333 8.72 7.88 8.95333 7.95333C9.7 8.2 10.5 8.33333 11.3333 8.33333C11.5101 8.33333 11.6797 8.40357 11.8047 8.5286C11.9298 8.65362 12 8.82319 12 9V11.3333C12 11.5101 11.9298 11.6797 11.8047 11.8047C11.6797 11.9298 11.5101 12 11.3333 12C8.32755 12 5.44487 10.806 3.31946 8.68054C1.19404 6.55513 0 3.67245 0 0.666667C0 0.489856 0.0702379 0.320286 0.195262 0.195262C0.320286 0.0702379 0.489856 0 0.666667 0H3C3.17681 0 3.34638 0.0702379 3.4714 0.195262C3.59643 0.320286 3.66667 0.489856 3.66667 0.666667C3.66667 1.5 3.8 2.3 4.04667 3.04667C4.12 3.28 4.06667 3.54 3.88 3.72667L2.41333 5.19333Z" fill="#7D7D7D"/></svg>
+                 <span className="truncate">{pharmacyProfile.phone}</span>
                 </div>
               )}
             {etaInfo && (
-              <div className="text-[13px] text-zinc-500 font-light mb-1">ETA: <span className="text-sky-600 font-medium">{etaInfo.eta}</span> • {etaInfo.distanceKm.toFixed(2)} km</div>
+              <div className="text-[13px] text-zinc-500 font-light mb-1 w-full truncate">ETA: <span className="text-sky-600 font-medium">{etaInfo.eta}</span> • {etaInfo.distanceKm.toFixed(2)} km</div>
             )}
             {/* Desktop-only logout under profile card */}
             <div className="w-full mt-4 hidden lg:flex justify-start">
@@ -584,7 +585,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         {/* RIGHT: Storefront preview, controls and product list (scrollable on desktop) */}
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
           {/* Storefront Preview Section */}
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative">
+          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative overflow-hidden">
             <div className="text-[18px] font-light font-poppins text-black mb-2 tracking-tight">Storefront Preview</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 font-light">Inventory</span>
@@ -628,7 +629,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             </button>
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 relative">
+          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="text-[17px] font-light font-poppins text-black tracking-tight">Products</div>
               {inventory.length > 3 && (
@@ -645,7 +646,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               {(showAllProducts ? inventory : inventory.slice(0,3)).map(p => (
                 <button
                   key={p.id}
-                  className="w-full text-left rounded-2xl border border-[#9ED3FF] p-3 flex items-center gap-3 bg-white hover:bg-[#E3F3FF] transition shadow-sm min-w-0"
+                  className="w-full text-left rounded-2xl border border-[#9ED3FF] p-3 flex items-center gap-3 bg-white hover:bg-[#E3F3FF] transition shadow-sm min-w-0 overflow-hidden"
                   onClick={() => setEditingProduct(p)}
                   type="button"
                 >
@@ -675,13 +676,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] relative">
+          <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 relative">
               <div className="text-lg font-medium font-poppins text-black">Edit Product</div>
               <div className="relative">
                 <button className="rounded-full border border-zinc-300 text-zinc-500 py-2 flex items-center justify-center ml-2" style={{width:'36px',height:'36px'}} onClick={e => {e.stopPropagation(); setShowAdvanced(v=>!v);}}><MoreVertical className="h-4 w-4"/></button>
                 {showAdvanced && (
-                  <div className="absolute right-0 top-full mt-2 bg-white border border-[#9ED3FF] rounded-xl shadow p-2 z-10" onClick={e => e.stopPropagation()}>
+                  <div className="absolute right-0 top-full mt-2 bg-white border border-[#9ED3FF] rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
                     <button className="flex items-center gap-2 text-red-600 text-[13px] font-light px-2 py-1 hover:bg-red-50 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> Delete</button>
                   </div>
                 )}
@@ -746,7 +747,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
             {showDeleteConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-3xl" onClick={()=>setShowDeleteConfirm(false)}>
-                <div className="bg-white rounded-2xl p-5 shadow-xl border border-[#9ED3FF] text-center" onClick={e=>e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-5 shadow-xl border border-[#9ED3FF] text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
                   <div className="text-[15px] font-light mb-4">Are you sure you want to delete this item?</div>
                   <div className="flex gap-2 justify-center">
                     <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>Yes, Delete</button>
