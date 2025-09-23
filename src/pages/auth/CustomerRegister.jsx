@@ -76,14 +76,28 @@ return (
           autoComplete="off"
         />
         {addressSuggestions.length > 0 && (
-          <div className="absolute left-0 right-0 bg-white border border-zinc-200 rounded shadow z-10 max-h-40 overflow-y-auto">
-            {addressSuggestions.map(s => (
+          <div className="absolute left-0 right-0 bg-white border border-zinc-200 rounded shadow-lg z-10 max-h-40 overflow-y-auto animate-fade-in">
+            {addressSuggestions.map((s, index) => (
               <div
                 key={s.place_id}
-                className="px-4 py-2 hover:bg-sky-50 cursor-pointer text-[13px]"
+                className="px-4 py-2 hover:bg-sky-50 cursor-pointer text-[13px] transition-colors duration-200 animate-fadeInUp border-b border-gray-100 last:border-b-0 flex items-center gap-3"
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => handleSelectSuggestion(s)}
               >
-                {s.display_name}
+                <div className="w-6 h-6 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
+                  <svg className="h-3 w-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-900 truncate">
+                    {s.display_name}
+                  </div>
+                </div>
+                <div className="text-xs text-blue-600 font-medium flex-shrink-0">
+                  Address
+                </div>
               </div>
             ))}
           </div>

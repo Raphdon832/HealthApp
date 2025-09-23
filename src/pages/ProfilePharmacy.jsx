@@ -509,13 +509,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-shadow flex items-center gap-3 justify-between">
+                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex-shrink-0">
                           {r.type === 'product' ? (
                             <ProductAvatar name={r.item?.name} image={r.item?.image} category={r.item?.category} size={48} className="rounded-lg" />
                           ) : (
-                            <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8]">
+                            <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8] animate-pulse-gentle">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500">
                                 <path d="M3 7h18M3 12h18M3 17h18" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
                               </svg>
@@ -529,9 +529,9 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {r.type === 'product' ? (
-                          <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Edit</button>
+                          <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Edit</button>
                         ) : (
-                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
+                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
                         )}
                       </div>
                     </li>

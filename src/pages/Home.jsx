@@ -17,6 +17,7 @@ export default function Home() {
   const [vendors, setVendors] = useState({});
   const [pharmacies, setPharmacies] = useState([]);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [serverResults, setServerResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
@@ -429,7 +430,50 @@ export default function Home() {
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
           <input
             value={q}
-            onChange={(e) => { setQ(e.target.value); setShowSearchSuggestions(true); }}
+            onChange={(e) => { 
+              setQ(e.target.value); 
+              setShowSearchSuggestions(true); 
+              setSelectedSuggestionIndex(-1);
+            }}
+            onKeyDown={(e) => {
+              if (!showSearchSuggestions || pharmacyMatches.length === 0) return;
+              
+              switch (e.key) {
+                case 'ArrowDown':
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev => 
+                    prev < pharmacyMatches.length - 1 ? prev + 1 : 0
+                  );
+                  break;
+                case 'ArrowUp':
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev => 
+                    prev > 0 ? prev - 1 : pharmacyMatches.length - 1
+                  );
+                  break;
+                case 'Enter':
+                  e.preventDefault();
+                  if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < pharmacyMatches.length) {
+                    const ph = pharmacyMatches[selectedSuggestionIndex];
+                    setQ(ph.name || ph.displayName || '');
+                    setShowSearchSuggestions(false);
+                    const vendorId = ph.id || ph.vendorId;
+                    if (vendorId) navigate(`/vendor/${vendorId}`);
+                  }
+                  break;
+                case 'Escape':
+                  setShowSearchSuggestions(false);
+                  setSelectedSuggestionIndex(-1);
+                  break;
+              }
+            }}
+            onBlur={() => {
+              // Delay hiding suggestions to allow clicking on them
+              setTimeout(() => {
+                setShowSearchSuggestions(false);
+                setSelectedSuggestionIndex(-1);
+              }, 200);
+            }}
             placeholder="Search drugs, pharmacies"
             className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
           />
@@ -437,8 +481,8 @@ export default function Home() {
 
         {/* Search suggestions: show matching pharmacies/places */}
         {showSearchSuggestions && q.trim().length > 0 && pharmacyMatches.length > 0 && (
-          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto">
-            {pharmacyMatches.map((ph) => (
+          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto animate-fade-in">
+            {pharmacyMatches.map((ph, index) => (
               <button
                 key={ph.id || ph.vendorId || ph.name}
                 onClick={() => {
@@ -463,14 +507,67 @@ export default function Home() {
                     if (vendorId) navigate(`/vendor/${vendorId}`);
                   }
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-zinc-50"
+                className={`w-full text-left px-4 py-3 focus:outline-none transition-all duration-200 animate-fadeInUp border-b border-gray-100 last:border-b-0 ${
+                  index === selectedSuggestionIndex 
+                    ? 'bg-blue-100 border-blue-200' 
+                    : 'hover:bg-zinc-50 focus:bg-zinc-100'
+                }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
                 role="option"
                 tabIndex={0}
               >
-                <div className="font-medium text-sm">{ph.name || ph.displayName}</div>
-                <div className="text-[12px] text-zinc-500">{ph.address || ph.city || ph.location || ''}</div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
+                    <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm text-gray-900 truncate">
+                      {q.trim() && (ph.name || ph.displayName || '').toLowerCase().includes(q.toLowerCase()) ? (
+                        <span>
+                          {(ph.name || ph.displayName || '').split(new RegExp(`(${q})`, 'gi')).map((part, i) =>
+                            part.toLowerCase() === q.toLowerCase() ? (
+                              <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </span>
+                      ) : (
+                        ph.name || ph.displayName
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate mt-1">
+                      {q.trim() && (ph.address || ph.city || ph.location || '').toLowerCase().includes(q.toLowerCase()) ? (
+                        <span>
+                          {(ph.address || ph.city || ph.location || '').split(new RegExp(`(${q})`, 'gi')).map((part, i) =>
+                            part.toLowerCase() === q.toLowerCase() ? (
+                              <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </span>
+                      ) : (
+                        ph.address || ph.city || ph.location || ''
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium flex-shrink-0">
+                    Pharmacy
+                  </div>
+                </div>
               </button>
             ))}
+            
+            {/* Keyboard navigation hint */}
+            {pharmacyMatches.length > 0 && (
+              <div className="px-4 py-2 text-xs text-gray-500 text-center bg-gray-50 border-t animate-fade-in">
+                Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
+              </div>
+            )}
           </div>
         )}
 
