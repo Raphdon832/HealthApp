@@ -431,17 +431,17 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
       {/* Superuser Dashboard */}
       <SuperuserDashboard user={user} />
 
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
         <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Pharmacy<br/>Profile</div>
-          <div className="flex items-center gap-3">
+          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">Pharmacy<br/>Profile</div>
+          <div className="flex items-center gap-3 animate-slideInRight">
             {/* Inline search bar for small+ screens */}
-            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
+            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px] input-interactive">
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}

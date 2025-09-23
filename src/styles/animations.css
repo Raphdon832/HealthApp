@@ -108,6 +108,15 @@
   }
 }
 
+@keyframes progress-bar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 /* Animation utility classes */
 .animate-fadeInUp {
   animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -139,6 +148,10 @@
 
 .animate-shake {
   animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.animate-progress-bar {
+  animation: progress-bar 10s linear forwards;
 }
 
 /* Staggered animations for lists */

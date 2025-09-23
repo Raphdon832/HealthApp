@@ -243,9 +243,9 @@ export default function Dashboard() {
   }, [profile, user]);
 
   return (
-    <div className="pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
-        <h1 className="text-[25px] font-light text-black leading-none">My<br/>Dashboard</h1>
+    <div className="pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
+        <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft">My<br/>Dashboard</h1>
       </header>
 
       <main className="flex-1 px-3 sm:px-4 py-6 relative w-full mb-4">
@@ -253,20 +253,20 @@ export default function Dashboard() {
         <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start pb-16">
           {/* LEFT COLUMN: Best Selling, Add Buttons, Sales Trends */}
           <div className="flex flex-col gap-6">
-            <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 p-6 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 p-6 relative overflow-hidden card-interactive animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
               {/* Background decoration */}
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-sky-100/40 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
               
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-black font-light text-xl tracking-tight">Top Products</h2>
-                  <div className="px-3 py-1 bg-sky-100 rounded-full text-xs text-sky-700 font-medium">
+                  <h2 className="text-black font-light text-xl tracking-tight animate-slideInLeft" style={{ animationDelay: '0.2s' }}>Top Products</h2>
+                  <div className="px-3 py-1 bg-sky-100 rounded-full text-xs text-sky-700 font-medium animate-bounceIn" style={{ animationDelay: '0.3s' }}>
                     🏆 Best Sellers
                   </div>
                 </div>
                 
                 {bestSelling.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-8 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
                     <div className="text-4xl mb-3">📊</div>
                     <div className="text-zinc-400 text-sm">No sales data yet</div>
                     <div className="text-xs text-zinc-400 mt-1">Start selling products to see your top performers</div>

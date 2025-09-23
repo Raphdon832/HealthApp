@@ -203,13 +203,13 @@ export default function ProfileCustomer() {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen">
+    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen animate-fadeInUp">
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
         <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50">
+          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">My<br/>Profile</div>
+          <div className="flex items-center gap-2 animate-slideInRight">
+            <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
               <Search className="h-5 w-5 text-sky-600" />
             </button>
           </div>
@@ -218,11 +218,11 @@ export default function ProfileCustomer() {
 
       {/* Search modal (click outside to close) */}
       {showSearch && (
-        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fadeInScale" role="dialog" aria-modal="true" aria-label="Search modal">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden modal-backdrop animate-bounceIn">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
+                <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden input-interactive">
                   <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
                   <input
                     autoFocus
@@ -236,7 +236,7 @@ export default function ProfileCustomer() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36 input-interactive">
                   <option value="prescriptions">Prescriptions</option>
                   <option value="orders">Orders</option>
                   <option value="drugs">Drugs</option>
@@ -303,9 +303,9 @@ export default function ProfileCustomer() {
 
             {/* Edit form modal */}
             {editing && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
-                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight">Edit Profile</div>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fadeInScale">
+                <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
+                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">Edit Profile</div>
                   <form
                     className="flex flex-col gap-4"
                     onSubmit={async e => {
@@ -341,13 +341,13 @@ export default function ProfileCustomer() {
                       }
                     }}
                   >
-                    <label className="text-[12px] text-zinc-500 font-light"></label>
+                    <label className="text-[12px] text-zinc-500 font-light animate-fadeInUp" style={{ animationDelay: '0.1s' }}></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all input-interactive animate-fadeInUp"
+                      style={{ animationDelay: '0.2s', boxShadow: 'none' }}
                       value={editName}
                       placeholder="Name"
                       onChange={e => setEditName(e.target.value)}
-                      style={{boxShadow: 'none'}}
                     />
                     <label className="text-[12px] text-zinc-500 font-light"></label>
                     <input

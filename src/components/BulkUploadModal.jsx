@@ -38,17 +38,33 @@ export default function BulkUploadModal({ pharmacyId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF]">
-        <div className="text-lg font-light font-poppins mb-4 text-black">Bulk Upload Products</div>
-        <div className="space-y-3">
-          <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" placeholder="CSV File" type="file" onChange={(e)=>onFiles(e.target.files)} accept=".csv,.xlsx" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] animate-bounce-in card-interactive hover:shadow-2xl transition-all duration-300">
+        <div className="text-lg font-light font-poppins mb-4 text-black animate-text-reveal">Bulk Upload Products</div>
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <input 
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400" 
+            placeholder="CSV File" 
+            type="file" 
+            onChange={(e)=>onFiles(e.target.files)} 
+            accept=".csv,.xlsx" 
+          />
         </div>
-        <div className="flex gap-2 mt-6">
-          <button onClick={downloadTemplate} className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700">Download CSV template</button>
-          <button className="flex-1 rounded-full border border-zinc-300 text-zinc-500 text-[13px] font-light py-2" onClick={onClose}>Cancel</button>
+        <div className="flex gap-2 mt-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <button 
+            onClick={downloadTemplate} 
+            className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700 btn-interactive hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            Download CSV template
+          </button>
+          <button 
+            className="flex-1 rounded-full border border-zinc-300 text-zinc-500 text-[13px] font-light py-2 btn-interactive hover:border-zinc-400 hover:scale-105 active:scale-95 transition-all duration-200" 
+            onClick={onClose}
+          >
+            Cancel
+          </button>
         </div>
-        {error && <div className="mt-3 text-red-600 text-sm">{error}</div>}
+        {error && <div className="mt-3 text-red-600 text-sm animate-shake animate-fade-in">{error}</div>}
       </div>
     </div>
   );
