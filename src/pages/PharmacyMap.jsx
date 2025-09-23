@@ -413,7 +413,7 @@ export default function PharmacyMap() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => handleGetDirections(selectedPharmacy)}
-                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 shadow-sm btn-interactive"
               >
                 <Navigation className="h-3 w-3" />
                 <span className="hidden sm:inline">Get Directions</span>
@@ -422,7 +422,7 @@ export default function PharmacyMap() {
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
-                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 shadow-sm btn-interactive"
                   title="Call pharmacy"
                 >
                   <Phone className="h-3 w-3" />
@@ -431,7 +431,7 @@ export default function PharmacyMap() {
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-colors border border-blue-200 shadow-sm"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 shadow-sm btn-interactive"
               >
                 <span className="hidden sm:inline">View Products</span>
                 <span className="sm:hidden">View Products</span>
@@ -473,11 +473,12 @@ export default function PharmacyMap() {
             sortedPharmacies.map((pharmacy, index) => (
               <div
                 key={pharmacy.id || index}
-                className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
-                    ? 'border-blue-300 bg-blue-50 shadow-blue-100'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-300 bg-blue-50 shadow-blue-100 scale-102'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                 }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handlePharmacySelect(pharmacy)}
               >
                 <div className="flex items-start justify-between">

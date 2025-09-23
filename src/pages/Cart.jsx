@@ -82,15 +82,15 @@ export default function Cart() {
         <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Cart</div>
       </div>
       <div className="mt-6 grid grid-cols-2 gap-3">
-        {harmonizedItems.map((i) => (
-          <div key={i.product?.id} className="relative rounded-xl border border-zinc-200 p-2 flex flex-col items-center gap-2 min-w-0">
+        {harmonizedItems.map((i, index) => (
+          <div key={i.product?.id} className="relative rounded-xl border border-zinc-200 p-2 flex flex-col items-center gap-2 min-w-0 card-interactive animate-fadeInUp" style={{ animationDelay: `${index * 0.1}s` }}>
             {/* Remove icon button at top right */}
             <button
               onClick={() => i.ids.forEach(id => removeFromCart(user.uid, id))}
-              className="absolute top-2 right-2 z-10 p-0.5 rounded-full hover:scale-110 transition"
+              className="absolute top-2 right-2 z-10 p-0.5 rounded-full hover:scale-110 transition-all duration-200 hover:bg-red-50 icon-interactive"
               aria-label="Remove"
             >
-              <DeleteIcon className="w-5 h-5" />
+              <DeleteIcon className="w-5 h-5 text-red-500" />
             </button>
             <ProductAvatar name={i.product?.name} image={i.product?.image} category={i.product?.category} size={35} roundedClass="rounded-xl" />
             <div className="flex-1 w-full text-center">
@@ -100,7 +100,7 @@ export default function Cart() {
             {/* Quantity selector */}
             <div className="flex items-center gap-2 mt-1">
               <button
-                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light disabled:opacity-40"
+                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light disabled:opacity-40 btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
                 onClick={async () => {
                   if (i.qty > 1) {
                     // Remove one instance (by id)
@@ -112,9 +112,9 @@ export default function Cart() {
               >
                 -
               </button>
-              <span className="text-[13px] font-poppins w-6 text-center">{i.qty}</span>
+              <span className="text-[13px] font-poppins w-6 text-center font-medium">{i.qty}</span>
               <button
-                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light"
+                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
                 onClick={async () => {
                   // Add one more of this product
                   if (i.product?.id) {

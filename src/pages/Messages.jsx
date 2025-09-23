@@ -119,11 +119,12 @@ export default function Messages() {
       </div>
 
       <div className="mt-6 space-y-4 w-full">
-        {filtered.map(t => (
+        {filtered.map((t, index) => (
           <button
             key={t.id}
             onClick={() => openThread(t)}
-            className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition"
+            className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
               <span className="text-zinc-500 text-xs font-semibold">{(displayName(t) || 'U')[0]}</span>

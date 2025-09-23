@@ -142,9 +142,11 @@ export default function Orders() {
       </div>
       <div className="mt-6 space-y-4">
         {filteredOrders.length === 0 ? (
-          <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px]">No orders yet.</div>
+          <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] text-center py-12 animate-fadeInUp">
+            No orders yet.
+          </div>
         ) : (
-          filteredOrders.map(o => {
+          filteredOrders.map((o, index) => {
             const items = o.items || [];
             const isExpanded = expandedOrders[o.id];
             const showSeeMore = items.length > 4;
@@ -155,8 +157,13 @@ export default function Orders() {
               <div
                 key={o.id}
                 id={`order-${o.id}`}
-                className={`relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition ${highlightOrderId===o.id ? 'ring-4 ring-sky-200 bg-sky-50' : ''}`}
-                style={{ cursor: 'pointer' }}
+                className={`relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition-all duration-200 card-interactive animate-fadeInUp ${
+                  highlightOrderId===o.id ? 'ring-4 ring-sky-200 bg-sky-50 scale-102' : ''
+                }`}
+                style={{ 
+                  cursor: 'pointer',
+                  animationDelay: `${index * 0.1}s`
+                }}
                 onClick={e => {
                   // Only open modal if not clicking the see more/less button or status dropdown (pharmacy view)
                   if (e.target.closest('.order-see-more-btn')) return;
