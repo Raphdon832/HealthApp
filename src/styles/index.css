@@ -1,29 +1,3 @@
-/* Theme color variables that follow the device setting (prefers-color-scheme) */
-:root {
-  --bg: #ffffff;
-  --text: #0b1220;
-  --muted: #6b7280;
-  --card: #ffffff;
-  --border: #e6e9ef;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #071124;
-    --text: #e6eef8;
-    --muted: #9aa6b2;
-    --card: #081226;
-    --border: #0f2433;
-  }
-}
-
-/* Utilities to map Tailwind-like classes to CSS variables when needed */
-.bg-theme { background-color: var(--bg); }
-.text-theme { color: var(--text); }
-.card-theme { background-color: var(--card); }
-.border-theme { border-color: var(--border); }
-.muted-theme { color: var(--muted); }
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
