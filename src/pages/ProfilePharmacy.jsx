@@ -13,6 +13,7 @@ import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
@@ -761,6 +762,10 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           </div>
         </div>
       )}
+
+      <div className="mt-6">
+        <NotificationSettings />
+      </div>
 
       <div className="mt-6 lg:hidden">
          <button

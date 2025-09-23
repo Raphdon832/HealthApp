@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { listenUserThreads } from '@/lib/db';
-import notificationSound from '@/assets/message-tone.mp3';
+import notificationService from '@/lib/notifications';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
@@ -15,7 +15,6 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 export default function GlobalMessageNotifier() {
   const { user, profile } = useAuth();
   const location = useLocation();
-  const audioRef = useRef(null);
   const lastMsgIds = useRef({}); // { threadId: lastMsgId }
 
   useEffect(() => {
@@ -62,11 +61,23 @@ export default function GlobalMessageNotifier() {
                 }
               }
             }
+            
+            // Check if this is a new message we should notify about
             if (!isMine && lastMsgIds.current[thread.id] !== msg.id && !isViewingThread) {
-              if (audioRef.current) {
-                audioRef.current.currentTime = 0;
-                audioRef.current.play().catch(() => {});
-              }
+              // Get sender information for the notification
+              const senderName = profile.role === 'customer' 
+                ? thread.pharmacyName || 'Pharmacy'
+                : thread.customerName || 'Customer';
+              
+              // Create message data for notification
+              const messageData = {
+                ...msg,
+                senderName,
+                threadId: thread.id
+              };
+              
+              // Use notification service to show notification
+              notificationService.notifyMessageReceived(messageData);
             }
             lastMsgIds.current[thread.id] = msg.id;
           });
@@ -76,5 +87,5 @@ export default function GlobalMessageNotifier() {
     );
   }, [user?.uid, profile?.role, location.pathname, location.search]);
 
-  return <audio ref={audioRef} src={notificationSound} preload="auto" style={{ display: 'none' }} />;
+  return null; // No audio element needed - handled by notification service
 }

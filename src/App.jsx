@@ -26,7 +26,7 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
 import Dashboard from '@/pages/Dashboard';
-import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
+import NotificationManager from '@/components/NotificationManager';
 import OrderNotificationModal from '@/components/OrderNotificationModal';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
@@ -296,7 +296,7 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
-      <GlobalMessageNotifier />
+      <NotificationManager />
       <Shell />
     </AuthProvider>
   );

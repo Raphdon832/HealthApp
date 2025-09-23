@@ -6,6 +6,7 @@ import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAu
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -440,6 +441,10 @@ export default function ProfileCustomer() {
 
           <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
             <MyPrescriptionsSection />
+          </div>
+
+          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
+            <NotificationSettings />
           </div>
         </div>
       </div>
