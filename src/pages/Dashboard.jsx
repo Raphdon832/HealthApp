@@ -27,6 +27,13 @@ export default function Dashboard() {
   const [recentThreads, setRecentThreads] = useState([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [showAddButton, setShowAddButton] = useState(false);
+  // New statistics
+  const [activeCustomers, setActiveCustomers] = useState(0);
+  const [averageOrderValue, setAverageOrderValue] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
+  const [lowStockItems, setLowStockItems] = useState(0);
+  const [ordersThisMonth, setOrdersThisMonth] = useState(0);
+  const [lastMonthOrders, setLastMonthOrders] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,20 +96,87 @@ export default function Dashboard() {
       if (!profile || profile.role !== 'pharmacy') return;
       const pharmacyId = profile.uid || user?.uid;
       if (!pharmacyId) return;
+      
       // Total products
       const productsSnap = await getDocs(query(collection(db, 'products'), where('pharmacyId', '==', pharmacyId)));
       setTotalProducts(productsSnap.size);
-      // Orders
+      
+      // Low stock items (assuming products have a stock field and lowStockThreshold)
+      const lowStock = productsSnap.docs.filter(doc => {
+        const data = doc.data();
+        const stock = data.stock || 0;
+        const threshold = data.lowStockThreshold || 10;
+        return stock <= threshold;
+      });
+      setLowStockItems(lowStock.length);
+      
+      // Orders data
       const ordersSnap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId)));
       setTotalOrders(ordersSnap.size);
+      
       let revenue = 0;
       let recents = [];
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      
+      let thisMonthOrders = 0;
+      let lastMonthOrdersCount = 0;
+      let pendingOrdersCount = 0;
+      const uniqueCustomers = new Set();
+      const completedOrders = [];
+      
       ordersSnap.forEach(doc => {
         const d = doc.data();
         revenue += d.total || 0;
         recents.push({ id: doc.id, ...d });
+        
+        // Check order date
+        const orderDate = d.createdAt?.toDate?.() || new Date(d.createdAt);
+        const orderMonth = orderDate.getMonth();
+        const orderYear = orderDate.getFullYear();
+        
+        // Count this month's orders
+        if (orderMonth === currentMonth && orderYear === currentYear) {
+          thisMonthOrders++;
+        }
+        
+        // Count last month's orders
+        if (orderMonth === lastMonth && orderYear === lastMonthYear) {
+          lastMonthOrdersCount++;
+        }
+        
+        // Count pending orders (assuming orders have a status field)
+        if (d.status === 'pending' || d.status === 'processing') {
+          pendingOrdersCount++;
+        }
+        
+        // Track unique customers (for active customers this month)
+        if (orderMonth === currentMonth && orderYear === currentYear && d.customerId) {
+          uniqueCustomers.add(d.customerId);
+        }
+        
+        // Collect completed orders for AOV calculation
+        if (d.status === 'completed' || d.status === 'delivered') {
+          completedOrders.push(d);
+        }
       });
+      
       setTotalRevenue(revenue);
+      setOrdersThisMonth(thisMonthOrders);
+      setLastMonthOrders(lastMonthOrdersCount);
+      setPendingOrders(pendingOrdersCount);
+      setActiveCustomers(uniqueCustomers.size);
+      
+      // Calculate Average Order Value
+      if (completedOrders.length > 0) {
+        const totalCompletedRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+        setAverageOrderValue(totalCompletedRevenue / completedOrders.length);
+      } else {
+        setAverageOrderValue(0);
+      }
+      
       recents.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setRecentOrders(recents.slice(0, 3));
     }
@@ -326,10 +400,64 @@ export default function Dashboard() {
                   <div>
                     <div className="text-zinc-500 text-xs mb-1">Total Revenue</div>
                     <div className="text-[19px] font-semibold text-sky-700 tracking-tight">₦{totalRevenue.toLocaleString()}</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Active Customers</div>
+                    <div className="text-[19px] font-semibold text-emerald-600 tracking-tight">{activeCustomers}</div>
+                    <div className="text-[10px] text-zinc-400 mt-0.5">This Month</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Avg Order Value</div>
+                    <div className="text-[19px] font-semibold text-purple-600 tracking-tight">₦{averageOrderValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Pending Orders</div>
+                    <div className="text-[19px] font-semibold text-orange-600 tracking-tight">{pendingOrders}</div>
+                    <div className="text-[10px] text-zinc-400 mt-0.5">Awaiting</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Low Stock Items</div>
+                    <div className="text-[19px] font-semibold text-red-600 tracking-tight">{lowStockItems}</div>
+                    <div className="text-[10px] text-zinc-400 mt-0.5">Need Restock</div>
+                  </div>,
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Orders This Month</div>
+                    <div className="text-[19px] font-semibold text-blue-600 tracking-tight">{ordersThisMonth}</div>
+                    <div className="text-[10px] text-zinc-400 mt-0.5">
+                      {lastMonthOrders > 0 ? (
+                        ordersThisMonth >= lastMonthOrders ? (
+                          <span className="text-emerald-600">↗ +{((ordersThisMonth - lastMonthOrders) / lastMonthOrders * 100).toFixed(0)}%</span>
+                        ) : (
+                          <span className="text-red-500">↘ -{((lastMonthOrders - ordersThisMonth) / lastMonthOrders * 100).toFixed(0)}%</span>
+                        )
+                      ) : (
+                        <span className="text-gray-400">No comparison</span>
+                      )}
+                    </div>
                   </div>
                 ]}
               />
             </div>
+
+            {/* Low Stock Alert */}
+            {lowStockItems > 0 && (
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">!</span>
+                  </div>
+                  <div>
+                    <div className="text-red-700 font-medium text-sm">Low Stock Alert</div>
+                    <div className="text-red-600 text-xs">
+                      {lowStockItems} item{lowStockItems > 1 ? 's' : ''} need restocking
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs text-red-600 bg-red-100 rounded-lg px-3 py-2">
+                  💡 Check your inventory to avoid running out of popular products
+                </div>
+              </div>
+            )}
 
             <div>
               <MessagesPreview
