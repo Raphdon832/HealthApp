@@ -27,6 +27,8 @@ import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
 import Dashboard from '@/pages/Dashboard';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
+import OrderNotificationModal from '@/components/OrderNotificationModal';
+import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
 
 // Auth flow pages
@@ -53,6 +55,10 @@ function AppLayout() {
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [ordersCount, setOrdersCount] = useState(0);
+
+  // Order notifications for pharmacies
+  const { newOrder, showNotification, clearNotification, viewOrder } = useOrderNotifications();
 
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
@@ -95,6 +101,11 @@ function AppLayout() {
     if (showDebug) console.debug('[AppLayout] render', { chatModalOpen, unreadMessages, tab, cartCount });
   }, [showDebug, chatModalOpen, unreadMessages, tab, cartCount]);
 
+  const handleViewOrder = (order) => {
+    // Navigate to orders page when viewing the order
+    navigate('/orders');
+  };
+
   return (
     <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${chatModalOpen ? '' : 'pb-24'}`}>
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
@@ -117,6 +128,14 @@ function AppLayout() {
       {showDebug && (
         <div className="fixed bottom-24 right-4 z-60 bg-black/80 text-white text-xs px-3 py-1 rounded">AppDebug: chatModalOpen={String(chatModalOpen)} unread={String(unreadMessages)}</div>
       )}
+
+      {/* Order Notification Modal */}
+      <OrderNotificationModal
+        order={newOrder}
+        isOpen={showNotification}
+        onClose={clearNotification}
+        onViewOrder={handleViewOrder}
+      />
     </div>
   );
 }
