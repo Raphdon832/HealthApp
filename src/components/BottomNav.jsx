@@ -60,7 +60,11 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   aria-pressed={isActive}
                   className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none ${isActive ? 'text-sky-600' : 'text-zinc-500'}`}
                 >
-                  <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                  {/* Faint blue round background for active icons */}
+                  {isActive && (
+                    <div className="absolute top-1 w-12 h-9 bg-sky-400 rounded-[10px] opacity-10" />
+                  )}
+                  <IconComponent {...iconProps} className="h-6 w-6 mb-1 relative z-10" />
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
                       {cartCount}
