@@ -39,7 +39,12 @@ export default function Cart() {
     const orderStatus = await placeOrder({
       customerId: user.uid,
       pharmacyId,
-      items: items.map((i) => ({ productId: i.productId, qty: i.qty })),
+      items: items.map((i) => ({
+        productId: i.productId,
+        quantity: i.qty,
+        price: i.product.price,
+        pharmacyId: i.product.pharmacyId,
+      })),
       total,
       email: user.email,
     });

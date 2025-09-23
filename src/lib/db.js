@@ -19,6 +19,7 @@ import {
   limit,
 } from "firebase/firestore";
 import { sendPayment } from "./payment/send";
+import { onCheckout } from "./payment/checkOut";
 
 /* -----------------------------
    PHARMACIES (needed by Home.jsx)
@@ -219,21 +220,41 @@ export const removeFromCart = (uid, itemId) =>
 export const placeOrder = async ({
   customerId,
   pharmacyId,
-  items,
+  cart,
   total,
   email,
 }) => {
-  const paymentSuccess = await sendPayment(email, total);
-  if (paymentSuccess) {
-    addDoc(collection(db, "orders"), {
+  const paymentSuccess = await onCheckout(total);
+  const { data, status } = paymentSuccess;
+  if (status === true) {
+    // addDoc(collection(db, "orders"), {
+    //   customerId,
+    //   pharmacyId,
+    //   items,
+    //   total,
+    //   createdAt: serverTimestamp(),
+    // });
+    setDoc(doc(db, "orders", data.orderId), {
       customerId,
-      pharmacyId,
-      items,
+      customerEmail: email,
+      items: cart.map((item) => ({
+        productId: item.productId,
+        pharmacyId: item.pharmacyId,
+        price: item.price,
+        quantity: item.quantity || 1,
+        status: "pending",
+        paid: false,
+        transferReference: null,
+        transferStatus: null,
+      })),
       total,
+      paystackReference: data.paystackReference,
+      status: "pending",
+
       createdAt: serverTimestamp(),
     });
   }
-  return paymentSuccess;
+  return status;
 };
 
 export const listenOrders = (uid, cb) => {
