@@ -395,7 +395,7 @@ export default function Home() {
                   <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
                     {etaInfo && closestPharmacy
-                      ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}`
+                      ? `${etaInfo.formatted} to ${closestPharmacy.name || closestPharmacy.pharmacyName || 'nearest pharmacy'}`
                       : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
                   </span>
                 </div>
