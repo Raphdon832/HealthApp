@@ -10,6 +10,7 @@ import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { findClosestPharmacyWithETA } from '@/lib/eta';
+import { ChevronRight } from 'lucide-react';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -19,7 +20,7 @@ export default function Home() {
   const [serverResults, setServerResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   
   // Use shared location hook
@@ -391,14 +392,31 @@ export default function Home() {
                     {location}
                   </span>
                 </div>
-                <div className="flex flex-col justify-center items-end">
-                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
-                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
-                    {etaInfo && closestPharmacy
-                      ? `${etaInfo.formatted} to ${closestPharmacy.name || closestPharmacy.pharmacyName || 'nearest pharmacy'}`
-                      : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
-                  </span>
-                </div>
+                {profile?.role === 'customer' ? (
+                  <button
+                    onClick={() => navigate('/pharmacy-map')}
+                    className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
+                  >
+                    <div className="flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
+                      <ChevronRight className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
+                      {etaInfo && closestPharmacy
+                        ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
+                        : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="flex flex-col justify-center items-end">
+                    <div className="flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
+                    </div>
+                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-600">
+                      {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="w-full" />
             </div>

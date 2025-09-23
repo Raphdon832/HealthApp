@@ -30,6 +30,7 @@ import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 import OrderNotificationModal from '@/components/OrderNotificationModal';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
+import PharmacyMap from '@/pages/PharmacyMap';
 
 // Auth flow pages
 import Landing from '@/pages/auth/Landing';
@@ -272,6 +273,7 @@ function Shell() {
         ) : null}
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
+        <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
         <Route
           path="/messages"
           element={
