@@ -22,11 +22,12 @@ export default function Orders() {
 
   useEffect(() => {
     if (!user || !profile) return;
+    const userId = profile.uid || user.uid;
     let q;
     if (profile.role === 'pharmacy') {
-      q = query(collection(db, 'orders'), where('pharmacyId', '==', user.uid), orderBy('createdAt', 'desc'));
+      q = query(collection(db, 'orders'), where('pharmacyId', '==', userId), orderBy('createdAt', 'desc'));
     } else {
-      q = query(collection(db, 'orders'), where('customerId', '==', user.uid), orderBy('createdAt', 'desc'));
+      q = query(collection(db, 'orders'), where('customerId', '==', userId), orderBy('createdAt', 'desc'));
     }
     const unsub = onSnapshot(q, snap => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));

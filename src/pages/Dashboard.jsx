@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [revenueData, setRevenueData] = useState([]);
@@ -87,11 +87,13 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchStats() {
       if (!profile || profile.role !== 'pharmacy') return;
+      const pharmacyId = profile.uid || user?.uid;
+      if (!pharmacyId) return;
       // Total products
-      const productsSnap = await getDocs(query(collection(db, 'products'), where('pharmacyId', '==', profile.uid)));
+      const productsSnap = await getDocs(query(collection(db, 'products'), where('pharmacyId', '==', pharmacyId)));
       setTotalProducts(productsSnap.size);
       // Orders
-      const ordersSnap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', profile.uid)));
+      const ordersSnap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId)));
       setTotalOrders(ordersSnap.size);
       let revenue = 0;
       let recents = [];
@@ -105,7 +107,7 @@ export default function Dashboard() {
       setRecentOrders(recents.slice(0, 3));
     }
     fetchStats();
-  }, [profile]);
+  }, [profile, user]);
 
   useEffect(() => {
     async function fetchSalesTrends() {
@@ -113,8 +115,10 @@ export default function Dashboard() {
         setSalesTrends([]);
         return;
       }
+      const pharmacyId = profile.uid || user?.uid;
+      if (!pharmacyId) return;
       // Group orders by month for the last 6 months
-      const q = query(collection(db, 'orders'), where('pharmacyId', '==', profile.uid));
+      const q = query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId));
       const snap = await getDocs(q);
       const orders = snap.docs.map(d => d.data());
       const now = new Date();
@@ -133,7 +137,7 @@ export default function Dashboard() {
       setSalesTrends(trends);
     }
     fetchSalesTrends();
-  }, [profile]);
+  }, [profile, user]);
 
   useEffect(() => {
     async function fetchThreads() {
@@ -142,10 +146,12 @@ export default function Dashboard() {
         setUnreadMessages(0);
         return;
       }
+      const pharmacyId = profile.uid || user?.uid;
+      if (!pharmacyId) return;
       // Get the 3 most recent threads for this vendor
       const q = query(
         collection(db, 'threads'),
-        where('vendorId', '==', profile.uid),
+        where('vendorId', '==', pharmacyId),
         orderBy('lastAt', 'desc'),
         limit(3)
       );
@@ -153,14 +159,14 @@ export default function Dashboard() {
       const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setRecentThreads(threads.map(t => ({
         ...t,
-        unread: t.unread?.[profile.uid] || 0
+        unread: t.unread?.[pharmacyId] || 0
       })));
       // Count total unread
-      const unread = threads.reduce((sum, t) => sum + (t.unread?.[profile.uid] || 0), 0);
+      const unread = threads.reduce((sum, t) => sum + (t.unread?.[pharmacyId] || 0), 0);
       setUnreadMessages(unread);
     }
     fetchThreads();
-  }, [profile]);
+  }, [profile, user]);
 
   return (
     <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
@@ -211,8 +217,8 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {showAdd && <AddProductModal pharmacyId={profile?.uid} onClose={()=>setShowAdd(false)} />}
-            {showBulk && <BulkUploadModal pharmacyId={profile?.uid} onClose={()=>setShowBulk(false)} />}
+            {showAdd && <AddProductModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowAdd(false)} />}
+            {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowBulk(false)} />}
 
             {/* Sales Trends placed under Add buttons on left column */}
             <div>

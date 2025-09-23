@@ -15,7 +15,7 @@ import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
-  const { user, logout } = useAuth();
+  const { user, logout, profile } = useAuth();
   const [inventory, setInventory] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
@@ -143,13 +143,15 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) return listenProducts(setInventory, user.uid);
-  }, [user]);
+    const pharmacyId = profile?.uid || user?.uid;
+    if (pharmacyId) return listenProducts(setInventory, pharmacyId);
+  }, [profile, user]);
 
   useEffect(() => {
-    if (!user) return;
+    const pharmacyId = profile?.uid || user?.uid;
+    if (!pharmacyId) return;
     // Fetch products sold
-    getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', user.uid))).then(snapshot => {
+    getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId))).then(snapshot => {
       let sold = 0;
       snapshot.forEach(docSnap => {
         const order = docSnap.data();
@@ -159,19 +161,19 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     }).catch(() => {});
 
     // Fetch active chats
-    getDocs(query(collection(db, 'threads'), where('vendorId', '==', user.uid))).then(snapshot => {
+    getDocs(query(collection(db, 'threads'), where('vendorId', '==', pharmacyId))).then(snapshot => {
       setActiveChats(snapshot.size);
     }).catch(() => {});
 
     // Fetch reviews
-    getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', user.uid))).then(snapshot => {
+    getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', pharmacyId))).then(snapshot => {
       setReviews(snapshot.size);
     }).catch(() => {});
 
     // Subscribe to both 'pharmacies' and 'users' documents for real-time profile updates
     // This ensures we pick up live changes whichever doc the app stores profile data in.
-    const pharmRef = doc(db, 'pharmacies', user.uid);
-    const userRef = doc(db, 'users', user.uid);
+    const pharmRef = doc(db, 'pharmacies', pharmacyId);
+    const userRef = doc(db, 'users', pharmacyId);
 
     let pharmData = null;
     let userData = null;
@@ -230,10 +232,10 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       try { unsubPharm && unsubPharm(); } catch (e) {}
       try { unsubUser && unsubUser(); } catch (e) {}
     };
-  }, [user]);
+  }, [profile, user]);
 
   async function downloadReport() {
-    await generatePharmacyReport(user);
+    await generatePharmacyReport(profile || user);
   }
 
   async function handleSaveProduct() {
@@ -292,7 +294,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     if (searchScope === 'orders' || searchScope === 'all') {
       let orders = ordersCache;
       if (!orders) {
-        const snap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', user.uid)));
+        const snap = await getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', profile?.uid || user?.uid)));
         orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setOrdersCache(orders);
       }
@@ -671,8 +673,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </section>
       </div>
 
-      {showAdd && <AddProductModal pharmacyId={user.uid} onClose={()=>setShowAdd(false)} />}
-      {showBulk && <BulkUploadModal pharmacyId={user.uid} onClose={()=>setShowBulk(false)} />}
+      {showAdd && <AddProductModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowAdd(false)} />}
+      {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowBulk(false)} />}
 
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
