@@ -10,7 +10,7 @@ import {
   useMatch,
   Outlet,
 } from 'react-router-dom';
-import { collection, query, onSnapshot, doc as firestoreDoc, getDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
 import { listenUserThreads } from '@/lib/db';
 
 import BottomNav from '@/components/BottomNav';
@@ -69,6 +69,29 @@ function AppLayout() {
     return unsub;
   }, [user, profile]);
 
+  // Listen to orders count for pharmacy users (exclude processing, shipped, cancelled)
+  useEffect(() => {
+    if (!user || !profile || profile.role !== 'pharmacy') return setOrdersCount(0);
+    
+    const pharmacyId = profile.uid || user.uid;
+    const q = query(
+      collection(db, 'orders'), 
+      where('pharmacyId', '==', pharmacyId)
+    );
+    
+    const unsub = onSnapshot(q, (snap) => {
+      const filteredOrders = snap.docs.filter(doc => {
+        const order = doc.data();
+        const status = order.status?.toLowerCase() || 'pending';
+        // Exclude processing, shipped, fulfilled, cancelled - count pending, etc.
+        return !['processing', 'shipped', 'fulfilled', 'cancelled'].includes(status);
+      });
+      setOrdersCount(filteredOrders.length);
+    });
+    
+    return unsub;
+  }, [user, profile]);
+
   useEffect(() => {
     if (!user || !profile?.role) return setUnreadMessages(0);
 
@@ -120,6 +143,7 @@ function AppLayout() {
             setTab={(k) => navigate(k)}
             cartCount={cartCount}
             unreadMessages={unreadMessages}
+            ordersCount={ordersCount}
           />
         </>
       )}

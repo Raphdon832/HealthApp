@@ -7,7 +7,7 @@ import ProfileIcon from '../icons/react/ProfileIcon';
 import DashboardIcon from '../icons/react/DashboardIcon';
 import { useAuth } from '@/lib/auth';
 
-export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0 }) {
+export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
   const isPharmacy = profile && profile.role === 'pharmacy';
   const items = [
@@ -27,11 +27,11 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   // Dev debug: log props and profile to help trace why badge may not be showing.
   useEffect(() => {
     try {
-      console.debug('[BottomNav] props', { tab, cartCount, unreadMessages, displayUnread, profile });
+      console.debug('[BottomNav] props', { tab, cartCount, unreadMessages, ordersCount, displayUnread, profile });
     } catch (e) {
       console.error('[BottomNav] debug log failed', e);
     }
-  }, [tab, cartCount, unreadMessages, displayUnread, profile]);
+  }, [tab, cartCount, unreadMessages, ordersCount, displayUnread, profile]);
 
   // Show a tiny debug overlay when URL includes ?debugBottomNav=1
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
@@ -51,6 +51,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
             const iconProps = { color: isActive ? '#36A5FF' : 'black' };
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
+            const isOrders = it.key === '/orders';
             return (
               <div key={it.key} className="flex-none">
                 <button
@@ -63,6 +64,13 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
                       {cartCount}
+                    </span>
+                  )}
+
+                  {/* Orders badge for pharmacy users */}
+                  {isOrders && isPharmacy && ordersCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0 z-50 bg-orange-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
+                      {ordersCount > 99 ? '99+' : ordersCount}
                     </span>
                   )}
 
