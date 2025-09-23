@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Phone, Navigation, Filter, Search } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Navigation, Search } from 'lucide-react';
 import { getAllPharmacies } from '@/lib/db';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA, getDistance } from '@/lib/eta';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useAuth } from '@/lib/auth';
+import FilterIcon from '@/icons/react/FilterIcon';
 
 export default function PharmacyMap() {
   const navigate = useNavigate();
@@ -175,8 +176,8 @@ export default function PharmacyMap() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl font-semibold">Nearby Pharmacies</h1>
-              <p className="text-sm text-gray-600">
+              <h1 className="text-xl font-light">Nearby Pharmacies</h1>
+              <p className="text-sm text-gray-400">
                 {userCoords ? `${sortedPharmacies.length} pharmacies found near you` : 'Loading location...'}
               </p>
             </div>
@@ -230,11 +231,11 @@ export default function PharmacyMap() {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg border transition-colors flex items-center gap-2 ${
-                showFilters ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-50 text-gray-700 border-gray-300'
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                showFilters ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-700'
               }`}
             >
-              <Filter className="h-4 w-4" />
+              <FilterIcon className="h-4 w-4" />
               
             </button>
           </div>
