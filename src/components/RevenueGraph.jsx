@@ -41,7 +41,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
 
       {/* Header Section */}
-      <div className="flex items-center justify-between mb-4 min-w-0 relative z-10">
+      <div className="flex items-center justify-between mb-4 min-w-0 relative z-0">
         <div>
           <h2 className="text-black font-light text-xl tracking-tight mb-1">Revenue Analytics</h2>
           <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
       </div>
 
       {/* Sub-filters */}
-      <div className="flex gap-2 mb-6 min-w-0 relative z-10">
+      <div className="flex gap-2 mb-6 min-w-0 relative z-0">
         {filter.type === 'year' && (
           <select
             className="rounded-lg border border-sky-200 px-3 py-2 text-sm text-sky-700 bg-white focus:outline-none focus:border-sky-400 transition-colors shadow-sm hover:shadow-md min-w-0 max-w-[140px]"
@@ -106,7 +106,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
         </div>
 
         {/* Chart */}
-        <div className="w-full h-32 flex items-end gap-3 mt-2 min-w-0 overflow-hidden relative z-10">
+        <div className="w-full h-32 flex items-end gap-3 mt-2 min-w-0 overflow-hidden relative z-0">
           {data.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center">
               <div className="text-center">
@@ -199,7 +199,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
 
       {/* Enhanced Top Period Display */}
       {topPeriod && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl border border-sky-200 relative z-10">
+        <div className="mt-6 p-4 bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl border border-sky-200 relative z-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
               🏆
