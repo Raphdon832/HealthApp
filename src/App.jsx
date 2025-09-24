@@ -211,6 +211,11 @@ function ProfileRouter() {
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
 
+function ChatThreadRoute(props) {
+  const { vendorId } = useParams();
+  return <ChatThread vendorId={vendorId} {...props} />;
+}
+
 function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -254,7 +259,7 @@ function Shell() {
           path="/chat/:vendorId"
           element={
             <RequireAuth>
-              <ChatThread scrollTo={scrollTo} onBackRoute="/messages" />
+              <ChatThreadRoute scrollTo={scrollTo} onBackRoute="/messages" />
             </RequireAuth>
           }
         />

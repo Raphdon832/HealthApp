@@ -174,7 +174,15 @@ export default function ProductDetail({ product, pharmacy }) {
   }
 
   function handleMessageVendor() {
-    navigate(`/chat/${pharmacy?.id}?productId=${product?.id}`);
+    // Pass product info and prefill message to chat thread
+    const params = new URLSearchParams({
+      productId: product?.id || '',
+      productName: product?.name || '',
+      productImage: product?.image || '',
+      vendorName: pharmacy?.name || '',
+      prefillMsg: 'I want to know more about this drug'
+    });
+    navigate(`/chat/${pharmacy?.id}?${params.toString()}`);
     setShowShareOptions(false);
   }
 
@@ -201,7 +209,7 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
-        <div className="mt-8 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 animate-fade-in-up">
+        <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 animate-fade-in-up">
           <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
 
             {/* CENTRAL CONTENT: two-column on desktop, stacked on mobile */}

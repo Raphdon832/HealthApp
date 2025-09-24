@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import {
@@ -42,6 +42,11 @@ function getDateLabel(date) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+// Helper to detect if a message is a product preview
+function isProductPreviewMessage(m) {
+  return m.type === 'product-preview';
+}
+
 export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose, overlayOpacity = 0.3 }) {
   const { user, profile } = useAuth();
   const [threadId, setThreadId] = useState(threadIdProp || null);
@@ -55,6 +60,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const [pharmacyPhone, setPharmacyPhone] = useState('');
   const bottomRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [lastMessageId, setLastMessageId] = useState(null);
   const [isTabActive, setIsTabActive] = useState(true);
@@ -62,6 +68,14 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [pharmacyProducts, setPharmacyProducts] = useState([]);
   const [showPrescriptionHistory, setShowPrescriptionHistory] = useState(false);
+
+  const queryParams = new URLSearchParams(location.search);
+  const productId = queryParams.get('productId');
+  const productName = queryParams.get('productName');
+  const productImage = queryParams.get('productImage');
+  const vendorName = queryParams.get('vendorName');
+  const productPrice = queryParams.get('productPrice'); // <-- Add this line
+  const prefillMsg = queryParams.get('prefillMsg');
 
   // Resolve thread:
   // - customer + vendorId => create/get
@@ -210,6 +224,17 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
     await sendChatMessage(threadId, { senderId: user.uid, to: cId, text: 'A new prescription has been created.' });
   };
 
+  // Prefill message input if product info is present (runs when product params change)
+  useEffect(() => {
+    if (productName && productId) {
+      const priceText = productPrice ? productPrice : '';
+      setText(`I want to know more about this drug ${productName}${priceText ? ', ' + priceText : ''}.`);
+    } else if (prefillMsg) {
+      setText(prefillMsg);
+    }
+    // eslint-disable-next-line
+  }, [productName, productPrice, productId, prefillMsg]);
+
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
     <div className="h-screen w-full flex flex-col items-stretch overflow-visible" style={{ position: 'relative' }}>
@@ -269,7 +294,14 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
           <div className="w-full px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { onClose?.(); navigate(onBackRoute || '/messages'); }}
+                onClick={() => {
+                  onClose?.();
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                  } else {
+                    navigate(onBackRoute || '/messages');
+                  }
+                }}
                 className="rounded-full border px-3 sm:px-4 py-1"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -373,9 +405,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
                       >
                         {m.text}
                       </div>
-                      <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>
-                        {t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </div>
+                      <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
                     </div>
                   </React.Fragment>
                 );
