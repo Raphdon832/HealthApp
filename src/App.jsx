@@ -12,6 +12,8 @@ import {
 } from 'react-router-dom';
 import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
 import { listenUserThreads } from '@/lib/db';
+import { useSwipeable } from 'react-swipeable';
+import PageTransitionWrapper from '@/components/PageTransitionWrapper';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -131,10 +133,46 @@ function AppLayout() {
     navigate('/orders');
   };
 
+  // Device detection: only enable swipe nav on mobile/tablet
+  const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+
+  // Page order for swipe navigation
+  const customerPages = ['/', '/orders', '/messages', '/cart', '/profile'];
+  const pharmacyPages = ['/dashboard', '/orders', '/messages', '/profile'];
+  const pageOrder = profile?.role === 'pharmacy' ? pharmacyPages : customerPages;
+  const currentIndex = pageOrder.indexOf(tab);
+
+  // Swipe handler
+  const handleSwiped = (dir) => {
+    if (!isMobileOrTablet || currentIndex === -1) return;
+    if (dir === 'Left' && currentIndex < pageOrder.length - 1) {
+      navigate(pageOrder[currentIndex + 1], { state: { slide: 'left' } });
+    } else if (dir === 'Right' && currentIndex > 0) {
+      navigate(pageOrder[currentIndex - 1], { state: { slide: 'right' } });
+    }
+  };
+
+  // Animation direction
+  const slideDirection = location.state?.slide || 'none';
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwiped('Left'),
+    onSwipedRight: () => handleSwiped('Right'),
+    trackMouse: true,
+  });
+
   return (
     <div className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${chatModalOpen ? '' : 'pb-24'}`}>
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        <Outlet />
+        {isMobileOrTablet ? (
+          <div {...swipeHandlers}>
+            <PageTransitionWrapper direction={slideDirection}>
+              <Outlet />
+            </PageTransitionWrapper>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </div>
 
       {/* Hide BottomNav when chat modal flag is on */}
