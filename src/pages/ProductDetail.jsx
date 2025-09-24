@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, ArrowLeft, Star } from 'lucide-react';
+import { MapPin, Clock, Phone, ArrowLeft, Star, Share2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -21,6 +21,7 @@ export default function ProductDetail({ product, pharmacy }) {
   const [imageError, setImageError] = useState(false);
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
   const [etaInfo, setEtaInfo] = useState(null);
+  const [showShareOptions, setShowShareOptions] = useState(false);
 
   // Calculate ETA when user location or pharmacy changes
   useEffect(() => {
@@ -146,17 +147,56 @@ export default function ProductDetail({ product, pharmacy }) {
     );
   }
 
+  const shareUrl = `${window.location.origin}/product-preview/${product?.id}`;
+
+  async function handleShareProduct() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: `Check out this product: ${product.name}`,
+          url: shareUrl,
+        });
+      } catch {}
+      setShowShareOptions(false);
+    } else if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Shareable link copied to clipboard!');
+      } catch {
+        window.prompt('Copy this link:', shareUrl);
+      }
+      setShowShareOptions(false);
+    } else {
+      window.prompt('Copy this link:', shareUrl);
+      setShowShareOptions(false);
+    }
+  }
+
+  function handleMessageVendor() {
+    navigate(`/chat/${pharmacy?.id}?productId=${product?.id}`);
+    setShowShareOptions(false);
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Page container */}
       <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
-        {/* Sticky back button */}
-        <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade">
+        {/* Sticky back button + share icon */}
+        <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
             className="w-[90px] h-[34px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          </button>
+          <button
+            type="button"
+            className="ml-2 p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            aria-label="Share product"
+            onClick={() => setShowShareOptions(true)}
+          >
+            <Share2 className="w-5 h-5 text-sky-600" />
           </button>
         </div>
 
@@ -415,6 +455,32 @@ export default function ProductDetail({ product, pharmacy }) {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Share Options Modal/Dropdown */}
+        {showShareOptions && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
+            <div className="bg-white rounded-2xl p-6 w-[90vw] max-w-xs shadow-xl animate-bounce-in flex flex-col gap-4">
+              <div className="font-poppins font-medium text-[16px] mb-2 text-center">Share Product</div>
+              <button
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                onClick={handleShareProduct}
+              >
+                <Share2 className="w-4 h-4" /> Share Product
+              </button>
+              <button
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                onClick={handleMessageVendor}
+              >
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                Message Vendor
+              </button>
+              <button
+                className="mt-2 text-zinc-400 hover:text-zinc-700 text-[13px] font-poppins underline"
+                onClick={() => setShowShareOptions(false)}
+              >Cancel</button>
             </div>
           </div>
         )}
