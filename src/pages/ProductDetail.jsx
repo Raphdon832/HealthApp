@@ -377,15 +377,25 @@ export default function ProductDetail({ product, pharmacy }) {
                       ) : reviews.length === 0 ? (
                         <div className="p-4 text-center text-zinc-400 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
                       ) : (
-                        reviews.map((review, idx) => (
-                          <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up  transition-all duration-200">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
-                              <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                        reviews.map((review, idx) => {
+                          let dateStr = '';
+                          if (review.createdAt) {
+                            const d = review.createdAt.seconds ? new Date(review.createdAt.seconds * 1000) : new Date(review.createdAt);
+                            dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          }
+                          return (
+                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up  transition-all duration-200">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
+                                <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                              </div>
+                              <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
+                              {dateStr && (
+                                <div className="text-[11px] text-zinc-400 mt-1">{dateStr}</div>
+                              )}
                             </div>
-                            <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                      <div className="mt-4 border-b"></div>
