@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart } from 'lucide-react';
+import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart, ThumbsUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -260,7 +260,7 @@ export default function ProductDetail({ product, pharmacy }) {
                         try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
                       }}
                       className="w-full h-10 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
-                      aria-label="Add to cart"
+                      aria-label="Add to Cart"
                     >
                       Add to Cart
                     </button>
@@ -416,23 +416,26 @@ export default function ProductDetail({ product, pharmacy }) {
                             <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  {/* Show likes count if > 0 */}
-                                  {review.likes > 0 && (
-                                    <span className="text-sky-500 font-semibold text-[13px] flex items-center gap-1">
-                                      <Heart className="w-4 h-4 text-sky-400" fill="#38bdf8" /> {review.likes}
-                                    </span>
-                                  )}
                                   <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
                                   <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
                                 </div>
-                                <button
-                                  className={`flex items-center gap-1 text-sky-400 text-[12px] font-poppins px-2 py-1 rounded hover:bg-sky-50 transition-all duration-200 ${likeLoading[review.id] ? 'opacity-50 pointer-events-none' : ''}`}
-                                  onClick={() => handleLikeReview(review.id)}
-                                  disabled={likeLoading[review.id]}
-                                  aria-label="Like review"
-                                >
-                                  <Heart className="w-4 h-4" fill={likeLoading[review.id] ? '#bae6fd' : 'none'} />
-                                </button>
+                                <div className="flex flex-col items-center justify-center h-full">
+                                  <div className="flex items-center justify-center">
+                                    {/* Show likes count to the left of the button if > 0 */}
+                                    {review.likes > 0 && (
+                                      <span className="text-sky-500 font-semibold text-[13px] mr-2">{review.likes}</span>
+                                    )}
+                                    <button
+                                      className={`flex items-center justify-center text-sky-400 text-[12px] font-poppins px-2 py-1 rounded hover:bg-sky-50 transition-all duration-200 ${likeLoading[review.id] ? 'opacity-50 pointer-events-none' : ''}`}
+                                      onClick={() => handleLikeReview(review.id)}
+                                      disabled={likeLoading[review.id]}
+                                      aria-label="Like review"
+                                      style={{ minHeight: '20px' }}
+                                    >
+                                      <ThumbsUp className="w-4 h-4" fill={likeLoading[review.id] ? '#bae6fd' : 'none'} />
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                               <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
                               {dateStr && (
