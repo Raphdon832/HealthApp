@@ -271,11 +271,11 @@ export default function ProductDetail({ product, pharmacy }) {
                       src={product.image}
                       alt={product.name}
                       onError={() => setImageError(true)}
-                      className="max-h-[220px] w-full object-contain hover:scale-105 transition-transform duration-300"
+                      className="max-h-[160px] lg:max-h-[360px] w-full object-contain hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="h-[140px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800 animate-bounce-gentle">
-                      <ProductAvatar name={product.name} image={product.image} category={product.category} size={64} roundedClass="rounded-md" />
+                    <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800 animate-bounce-gentle">
+                      <ProductAvatar name={product.name} image={product.image} category={product.category} size={48} lg:size={80} roundedClass="rounded-md" />
                     </div>
                   )}
 
