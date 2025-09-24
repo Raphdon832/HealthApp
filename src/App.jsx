@@ -43,6 +43,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword';
 
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
+import ProductPreview from '@/pages/ProductPreview';
 
 /* ---------------------------
    LAYOUTS
@@ -285,6 +286,11 @@ function Shell() {
         <Route path="/cart" element={<RequireAuth>{profile && profile.role === 'pharmacy' ? <Navigate to="/" /> : <Cart />}</RequireAuth>} />
         <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfileRouter /></RequireAuth>} />
+      </Route>
+
+      {/* Public product preview route (no auth required) */}
+      <Route element={<BareLayout />}>
+        <Route path="/product-preview/:id" element={<ProductPreview />} />
       </Route>
 
       {/* Fallback */}
