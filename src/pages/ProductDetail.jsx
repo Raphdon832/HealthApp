@@ -1,6 +1,6 @@
 import { MapPin, Clock, Phone, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { addToCart } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
@@ -49,6 +49,62 @@ export default function ProductDetail({ product, pharmacy }) {
       setShowCategoryProducts(true);
     } finally {
       setLoadingCategoryProducts(false);
+    }
+  }
+
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [reviewForm, setReviewForm] = useState({ name: user?.displayName || '', rating: '', comment: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch reviews from Firestore
+  useEffect(() => {
+    async function fetchReviews() {
+      if (!product?.id) return setReviews([]);
+      setLoadingReviews(true);
+      try {
+        const reviewsRef = collection(db, 'products', product.id, 'reviews');
+        const q = query(reviewsRef, orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (err) {
+        setReviews([]);
+      } finally {
+        setLoadingReviews(false);
+      }
+    }
+    fetchReviews();
+  }, [product?.id]);
+
+  // Handle review form input
+  function handleReviewChange(e) {
+    const { name, value } = e.target;
+    setReviewForm(f => ({ ...f, [name]: value }));
+  }
+
+  // Submit review to Firestore
+  async function handleReviewSubmit(e) {
+    e.preventDefault();
+    if (!reviewForm.name || !reviewForm.rating || !reviewForm.comment) return;
+    setSubmitting(true);
+    try {
+      const reviewsRef = collection(db, 'products', product.id, 'reviews');
+      await addDoc(reviewsRef, {
+        name: reviewForm.name,
+        rating: Number(reviewForm.rating),
+        comment: reviewForm.comment,
+        createdAt: serverTimestamp(),
+        userId: user?.uid || null,
+      });
+      setReviewForm({ name: user?.displayName || '', rating: '', comment: '' });
+      // Refresh reviews
+      const q = query(reviewsRef, orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -238,6 +294,42 @@ export default function ProductDetail({ product, pharmacy }) {
                   <div className="mt-2 animate-fade-in" style={{ animationDelay: '0.8s' }}>
                     <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Product Description</div>
                     <p className="mt-2 text-zinc-600 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
+                  </div>
+
+                  {/* Reviews/Comments Section */}
+                  <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
+                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 mb-2">Customer Reviews</div>
+                    {/* Reviews List */}
+                    <div className="space-y-4 mb-6">
+                      {loadingReviews ? (
+                        <div className="p-4 text-center text-zinc-400 animate-pulse">Loading reviews…</div>
+                      ) : reviews.length === 0 ? (
+                        <div className="p-4 text-center text-zinc-400 animate-fade-in">No reviews yet. Be the first to review!</div>
+                      ) : (
+                        reviews.map((review, idx) => (
+                          <div key={review.id || idx} className="p-4 rounded-xl border border-zinc-100 bg-zinc-50 shadow-sm animate-slide-up hover:shadow-md transition-all duration-200">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
+                              <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                            </div>
+                            <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {/* Review Form */}
+                    <form className="p-4 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
+                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
+                      <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" />
+                      <select name="rating" value={reviewForm.rating} onChange={handleReviewChange} className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-amber-200 transition-all duration-200">
+                        <option value="">Rating</option>
+                        {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star{r>1?'s':''}</option>)}
+                      </select>
+                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review..." className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
+                      <button type="submit" disabled={submitting} className="w-full h-10 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
+                        {submitting ? 'Submitting…' : 'Submit Review'}
+                      </button>
+                    </form>
                   </div>
 
                 </div>
