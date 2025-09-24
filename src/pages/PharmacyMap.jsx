@@ -255,7 +255,7 @@ export default function PharmacyMap() {
             </button>
             <h1 className="text-[25px] font-light">Nearby Pharmacies</h1>
           </div>
-          <LoadingSkeleton lines={8} className="space-y-4" />
+          <LoadingSkeleton lines={8} className="space-y-4 justify-center" />
         </div>
       </div>
     );
@@ -264,7 +264,7 @@ export default function PharmacyMap() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm px-4 py-4 sticky top-0 z-50">
+      <div className="bg-white border-b border-gray-50 mx-auto px-4 py-4 sticky top-0 z-50">
         <div className="max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <button
@@ -274,8 +274,8 @@ export default function PharmacyMap() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl font-light">Nearby Pharmacies</h1>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-[20px] font-light tracking-tight">Nearby Pharmacies</h1>
+              <p className="text-[12px] text-gray-400">
                 {userCoords ? `${sortedPharmacies.length} pharmacies found near you` : 'Loading location...'}
               </p>
             </div>
@@ -285,7 +285,7 @@ export default function PharmacyMap() {
 
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Current Location with improved status */}
-        <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+        <div className="bg-gray rounded-lg p-4 mb-4 border border-sky-300">
           <div className="flex items-center gap-3">
             {userCoords ? (
               <>
@@ -315,7 +315,7 @@ export default function PharmacyMap() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+        <div className="bg-gray rounded-lg p-4 mb-4 border border-sky-300">
           <div className="flex gap-2 mb-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -327,7 +327,7 @@ export default function PharmacyMap() {
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-2 border-b border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 autoComplete="off"
               />
               
@@ -395,14 +395,14 @@ export default function PharmacyMap() {
                   ) : (
                     <div className="px-4 py-6 text-center text-gray-500 animate-fade-in">
                       <MapPin className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm">No pharmacies found</p>
-                      <p className="text-xs mt-1">Try a different search term</p>
+                      <p className="text-[12px]">No pharmacies found</p>
+                      <p className="text-[10px] mt-1">Try a different search term</p>
                     </div>
                   )}
                   
                   {/* Keyboard navigation hint */}
                   {searchSuggestions.length > 0 && (
-                    <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 text-center">
+                    <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-[12px] text-gray-400 text-center">
                       Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
                     </div>
                   )}
@@ -421,8 +421,8 @@ export default function PharmacyMap() {
           </div>
 
           {showFilters && (
-            <div className="border-t pt-3">
-              <p className="text-sm font-medium text-gray-700 mb-2">Distance</p>
+            <div className=" pt-3">
+              <p className="text-[14px] font-medium text-gray-700 mb-2">Distance</p>
               <div className="flex gap-2 flex-wrap">
                 {[
                   { value: 'all', label: 'All' },
@@ -433,7 +433,7 @@ export default function PharmacyMap() {
                   <button
                     key={filter.value}
                     onClick={() => setDistanceFilter(filter.value)}
-                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                    className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
                       distanceFilter === filter.value
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -474,7 +474,7 @@ export default function PharmacyMap() {
             {userCoords && (
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
                 <div className="relative">
-                  <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+                  <div className="w-4 h-4 bg-black rounded-full border-2 border-white shadow-lg animate-pulse"></div>
                   <div className="absolute -inset-2 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
                 </div>
                 <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-white px-2 py-1 rounded shadow-md whitespace-nowrap">
@@ -539,7 +539,7 @@ export default function PharmacyMap() {
             <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full border border-white"></div>
+                  <div className="w-3 h-3 bg-black rounded-full border border-white"></div>
                   <span className="text-gray-700">Your location</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -585,7 +585,7 @@ export default function PharmacyMap() {
                   </div>
                 </div>
               </div>
-              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm flex-shrink-0 ml-2">
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2">
                 Closest
               </span>
             </div>
@@ -593,7 +593,7 @@ export default function PharmacyMap() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => handleGetDirections(selectedPharmacy)}
-                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 shadow-sm btn-interactive"
+                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
               >
                 <Navigation className="h-3 w-3" />
                 <span className="hidden sm:inline">Get Directions</span>
@@ -602,7 +602,7 @@ export default function PharmacyMap() {
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
-                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 shadow-sm btn-interactive"
+                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
                   title="Call pharmacy"
                 >
                   <Phone className="h-3 w-3" />
@@ -611,7 +611,7 @@ export default function PharmacyMap() {
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 shadow-sm btn-interactive"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 btn-interactive"
               >
                 <span className="hidden sm:inline">View Products</span>
                 <span className="sm:hidden">View Products</span>
@@ -623,7 +623,7 @@ export default function PharmacyMap() {
         {/* Pharmacy List */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-[18px] font-semibold text-gray-900 flex items-center gap-2">
               {searchQuery ? (
                 <>
                   <span>Search Results</span>
@@ -641,7 +641,7 @@ export default function PharmacyMap() {
           </div>
           
           {sortedPharmacies.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center shadow-sm">
+            <div className="bg-white-10 rounded-lg p-8 text-center">
               <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-600">
                 {searchQuery ? 'No pharmacies found matching your search' : 'No pharmacies found'}
@@ -663,7 +663,7 @@ export default function PharmacyMap() {
               <div
                 key={pharmacy.id || index}
                 id={`pharmacy-${pharmacy.id}`}
-                className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
+                className={`bg-white rounded-lg p-3 border cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
                     ? 'border-blue-300 bg-blue-50 shadow-blue-100 scale-102'
                     : 'border-gray-200 hover:border-gray-300 hover:shadow-md'

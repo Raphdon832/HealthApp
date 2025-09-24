@@ -407,9 +407,9 @@ export default function ProfileCustomer() {
             <div className="flex items-center gap-2 text-zinc-500 mt-1 text-[12px] font-light w-full" ><Phone className="h-2.5 w-2.5"/> {customerProfile.phone || 'phone number missing'}</div>
           </div>
 
-          <div>
+          {/*<div>
             <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
-          </div>
+          </div>*/}
         </div>
 
         {/* Right column: Activity and Prescriptions stack */}
@@ -467,6 +467,9 @@ export default function ProfileCustomer() {
           </div>
         </div>
       </div>
+       <div>
+            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+          </div>
     </div>
   );
 }
