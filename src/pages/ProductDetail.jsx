@@ -1,6 +1,6 @@
 import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart, ThumbsUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, setDoc, deleteDoc, doc as firestoreDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { addToCart } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
@@ -9,7 +9,6 @@ import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA } from '@/lib/eta';
-import { doc, updateDoc, increment } from 'firebase/firestore';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
@@ -61,6 +60,7 @@ export default function ProductDetail({ product, pharmacy }) {
   const [visibleReviews, setVisibleReviews] = useState(3);
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [likeLoading, setLikeLoading] = useState({});
+  const [userLikedReviews, setUserLikedReviews] = useState({});
 
   // Fetch reviews from Firestore
   useEffect(() => {
@@ -80,6 +80,23 @@ export default function ProductDetail({ product, pharmacy }) {
     }
     fetchReviews();
   }, [product?.id]);
+
+  // Fetch user likes for reviews
+  useEffect(() => {
+    async function fetchUserLikes() {
+      if (!user || !product?.id || reviews.length === 0) return setUserLikedReviews({});
+      const likesState = {};
+      for (const review of reviews) {
+        const likeDocRef = firestoreDoc(db, 'products', product.id, 'reviews', review.id, 'likes', user.uid);
+        try {
+          const likeSnap = await getDocs(query(collection(db, 'products', product.id, 'reviews', review.id, 'likes')));
+          likesState[review.id] = likeSnap.docs.some(d => d.id === user.uid);
+        } catch {}
+      }
+      setUserLikedReviews(likesState);
+    }
+    fetchUserLikes();
+  }, [user, product?.id, reviews]);
 
   // Handle review form input
   function handleReviewChange(e) {
@@ -114,14 +131,25 @@ export default function ProductDetail({ product, pharmacy }) {
     }
   }
 
-  // Like a review (simple increment, not per-user)
+  // Like/unlike a review (per-user)
   async function handleLikeReview(reviewId) {
     setLikeLoading(l => ({ ...l, [reviewId]: true }));
     try {
-      const reviewDocRef = doc(db, 'products', product.id, 'reviews', reviewId);
-      await updateDoc(reviewDocRef, { likes: increment(1) });
-      // Update UI instantly
-      setReviews(reviews => reviews.map(r => r.id === reviewId ? { ...r, likes: (r.likes || 0) + 1 } : r));
+      const likeDocRef = firestoreDoc(db, 'products', product.id, 'reviews', reviewId, 'likes', user.uid);
+      const reviewDocRef = firestoreDoc(db, 'products', product.id, 'reviews', reviewId);
+      if (userLikedReviews[reviewId]) {
+        // Unlike: remove like doc and decrement likes
+        await deleteDoc(likeDocRef);
+        await updateDoc(reviewDocRef, { likes: increment(-1) });
+        setReviews(reviews => reviews.map(r => r.id === reviewId ? { ...r, likes: Math.max((r.likes || 1) - 1, 0) } : r));
+        setUserLikedReviews(likes => ({ ...likes, [reviewId]: false }));
+      } else {
+        // Like: add like doc and increment likes
+        await setDoc(likeDocRef, { likedAt: serverTimestamp(), userId: user.uid });
+        await updateDoc(reviewDocRef, { likes: increment(1) });
+        setReviews(reviews => reviews.map(r => r.id === reviewId ? { ...r, likes: (r.likes || 0) + 1 } : r));
+        setUserLikedReviews(likes => ({ ...likes, [reviewId]: true }));
+      }
     } catch (err) {
       // Optionally show error
     } finally {
@@ -423,16 +451,16 @@ export default function ProductDetail({ product, pharmacy }) {
                                   <div className="flex items-center justify-center">
                                     {/* Show likes count to the left of the button if > 0 */}
                                     {review.likes > 0 && (
-                                      <span className="text-sky-500 font-semibold text-[13px] mr-2">{review.likes}</span>
+                                      <span className="text-sky-500 font-semibold text-[13px] mr-1">{review.likes}</span>
                                     )}
                                     <button
-                                      className={`flex items-center justify-center text-sky-400 text-[12px] font-poppins px-2 py-1 rounded hover:bg-sky-50 transition-all duration-200 ${likeLoading[review.id] ? 'opacity-50 pointer-events-none' : ''}`}
+                                      className={`flex items-center justify-center px-2 py-1 rounded transition-all duration-200 ${likeLoading[review.id] ? 'opacity-50 pointer-events-none' : ''} ${userLikedReviews[review.id] ? 'bg-sky-50 text-sky-400' : 'text-zinc-400'}`}
                                       onClick={() => handleLikeReview(review.id)}
                                       disabled={likeLoading[review.id]}
-                                      aria-label="Like review"
+                                      aria-label={userLikedReviews[review.id] ? 'Unlike review' : 'Like review'}
                                       style={{ minHeight: '20px' }}
                                     >
-                                      <ThumbsUp className="w-4 h-4" fill={likeLoading[review.id] ? '#bae6fd' : 'none'} />
+                                      <ThumbsUp className="w-4 h-4" fill={userLikedReviews[review.id] ? '#38bdf8' : 'none'} />
                                     </button>
                                   </div>
                                 </div>
