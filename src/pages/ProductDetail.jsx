@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Phone, ArrowLeft, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -85,14 +85,15 @@ export default function ProductDetail({ product, pharmacy }) {
   // Submit review to Firestore
   async function handleReviewSubmit(e) {
     e.preventDefault();
-    if (!reviewForm.name || !reviewForm.rating || !reviewForm.comment) return;
+    // Allow submit if either rating or comment is provided
+    if (!reviewForm.rating && !reviewForm.comment) return;
     setSubmitting(true);
     try {
       const reviewsRef = collection(db, 'products', product.id, 'reviews');
       await addDoc(reviewsRef, {
         name: reviewForm.name,
-        rating: Number(reviewForm.rating),
-        comment: reviewForm.comment,
+        rating: reviewForm.rating ? Number(reviewForm.rating) : null,
+        comment: reviewForm.comment || '',
         createdAt: serverTimestamp(),
         userId: user?.uid || null,
       });
@@ -119,6 +120,28 @@ export default function ProductDetail({ product, pharmacy }) {
         >
           Sign In / Sign Up
         </button>
+      </div>
+    );
+  }
+
+  // For animated star rating
+  function StarRating({ value, onChange, disabled }) {
+    return (
+      <div className="flex gap-1 mb-2" role="radiogroup" aria-label="Rating">
+        {[1,2,3,4,5].map(r => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => !disabled && onChange(r)}
+            onKeyDown={e => { if (!disabled && (e.key === 'Enter' || e.key === ' ')) onChange(r); }}
+            tabIndex={0}
+            aria-label={`${r} Star${r>1?'s':''}`}
+            aria-checked={value === r}
+            className={`transition-all duration-150 focus:outline-none ${value >= r ? 'text-amber-400 scale-110' : 'text-zinc-300'} hover:scale-125 active:scale-95`}
+          >
+            <Star className="w-6 h-6" fill={value >= r ? '#fbbf24' : 'none'} />
+          </button>
+        ))}
       </div>
     );
   }
@@ -307,7 +330,7 @@ export default function ProductDetail({ product, pharmacy }) {
                         <div className="p-4 text-center text-zinc-400 animate-fade-in">No reviews yet. Be the first to review!</div>
                       ) : (
                         reviews.map((review, idx) => (
-                          <div key={review.id || idx} className="p-4 rounded-xl border border-zinc-100 bg-zinc-50 shadow-sm animate-slide-up hover:shadow-md transition-all duration-200">
+                          <div key={review.id || idx} className="p-4 rounded-xl border border-zinc-100 animate-slide-up hover:shadow-md transition-all duration-200">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
                               <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
@@ -320,13 +343,10 @@ export default function ProductDetail({ product, pharmacy }) {
                     {/* Review Form */}
                     <form className="p-4 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
                       <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
-                      <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" />
-                      <select name="rating" value={reviewForm.rating} onChange={handleReviewChange} className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-amber-200 transition-all duration-200">
-                        <option value="">Rating</option>
-                        {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star{r>1?'s':''}</option>)}
-                      </select>
-                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review..." className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
-                      <button type="submit" disabled={submitting} className="w-full h-10 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
+                      <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
+                        <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" />
+                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review... (optional)" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
+                      <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
                         {submitting ? 'Submitting…' : 'Submit Review'}
                       </button>
                     </form>
