@@ -307,10 +307,10 @@ export default function ProductDetail({ product, pharmacy }) {
                 <div className="flex flex-col animate-fade-in-right">
                   {/* Name + Price row (mobile): price shown on mobile here and hidden on lg */}
                   <div className="mb-3 flex items-start justify-between animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    <h1 className="text-[20px] lg:text-[22px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal">
+                    <h1 className="text-[18px] lg:text-[22px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal">
                       {product.name}
                     </h1>
-                    <div className="text-[20px] text-sky-600 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
+                    <div className="text-[18px] text-sky-600 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
                   </div>
 
                   {/* Price for lg screens (desktop): hidden on mobile */}
@@ -505,20 +505,20 @@ export default function ProductDetail({ product, pharmacy }) {
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
 <div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden animate-slide-up-fade">
   <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
-    <div className="flex flex-row gap-3">
+    <div className="flex flex-row gap-3 justify-center">
       <button
         onClick={async () => {
           if (!user) return alert('Please sign in');
           if (!product.id) return alert('Product unavailable. Please try again.');
           try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
         }}
-        className="flex-1 h-11 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="flex-1 max-w-[140px] h-10 rounded-full bg-sky-600 text-white text-[13px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
       >
         Add to Cart
       </button>
       <a
         href={`tel:${pharmacy?.phone || ''}`}
-        className="flex-1 h-11 rounded-full border border-zinc-400 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
       >
         <Phone className="h-4 w-4" /> Call to Order
       </a>
