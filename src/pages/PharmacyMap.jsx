@@ -327,7 +327,7 @@ export default function PharmacyMap() {
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-2 border bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 autoComplete="off"
               />
               
