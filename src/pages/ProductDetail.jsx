@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, ArrowLeft, Star, Share2 } from 'lucide-react';
+import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -9,6 +9,7 @@ import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA } from '@/lib/eta';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
@@ -59,6 +60,7 @@ export default function ProductDetail({ product, pharmacy }) {
   const [submitting, setSubmitting] = useState(false);
   const [visibleReviews, setVisibleReviews] = useState(3);
   const [expandedReviews, setExpandedReviews] = useState(false);
+  const [likeLoading, setLikeLoading] = useState({});
 
   // Fetch reviews from Firestore
   useEffect(() => {
@@ -109,6 +111,21 @@ export default function ProductDetail({ product, pharmacy }) {
       // Optionally show error
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  // Like a review (simple increment, not per-user)
+  async function handleLikeReview(reviewId) {
+    setLikeLoading(l => ({ ...l, [reviewId]: true }));
+    try {
+      const reviewDocRef = doc(db, 'products', product.id, 'reviews', reviewId);
+      await updateDoc(reviewDocRef, { likes: increment(1) });
+      // Update UI instantly
+      setReviews(reviews => reviews.map(r => r.id === reviewId ? { ...r, likes: (r.likes || 0) + 1 } : r));
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setLikeLoading(l => ({ ...l, [reviewId]: false }));
     }
   }
 
@@ -397,9 +414,25 @@ export default function ProductDetail({ product, pharmacy }) {
                           }
                           return (
                             <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
-                                <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                  {/* Show likes count if > 0 */}
+                                  {review.likes > 0 && (
+                                    <span className="text-sky-500 font-semibold text-[13px] flex items-center gap-1">
+                                      <Heart className="w-4 h-4 text-sky-400" fill="#38bdf8" /> {review.likes}
+                                    </span>
+                                  )}
+                                  <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
+                                  <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                                </div>
+                                <button
+                                  className={`flex items-center gap-1 text-sky-400 text-[12px] font-poppins px-2 py-1 rounded hover:bg-sky-50 transition-all duration-200 ${likeLoading[review.id] ? 'opacity-50 pointer-events-none' : ''}`}
+                                  onClick={() => handleLikeReview(review.id)}
+                                  disabled={likeLoading[review.id]}
+                                  aria-label="Like review"
+                                >
+                                  <Heart className="w-4 h-4" fill={likeLoading[review.id] ? '#bae6fd' : 'none'} />
+                                </button>
                               </div>
                               <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
                               {dateStr && (
