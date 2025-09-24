@@ -57,6 +57,8 @@ export default function ProductDetail({ product, pharmacy }) {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [reviewForm, setReviewForm] = useState({ name: user?.displayName || '', rating: '', comment: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [visibleReviews, setVisibleReviews] = useState(3);
+  const [expandedReviews, setExpandedReviews] = useState(false);
 
   // Fetch reviews from Firestore
   useEffect(() => {
@@ -369,7 +371,17 @@ export default function ProductDetail({ product, pharmacy }) {
               <div className="mt-8 border-b"></div>
                   {/* Reviews/Comments Section */}
                   <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
-                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 mb-2">Customer Reviews</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Customer Reviews</span>
+                        <span className="text-sky-400 font-semibold text-[13px]">{reviews.length}</span>
+                      </div>
+                      {expandedReviews && (
+                        <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setExpandedReviews(false); setVisibleReviews(3); }}>
+                          See less
+                        </button>
+                      )}
+                    </div>
                     {/* Reviews List */}
                     <div className="space-y-4 mb-6">
                       {loadingReviews ? (
@@ -377,14 +389,14 @@ export default function ProductDetail({ product, pharmacy }) {
                       ) : reviews.length === 0 ? (
                         <div className="p-4 text-center text-zinc-400 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
                       ) : (
-                        reviews.map((review, idx) => {
+                        reviews.slice(0, visibleReviews).map((review, idx) => {
                           let dateStr = '';
                           if (review.createdAt) {
                             const d = review.createdAt.seconds ? new Date(review.createdAt.seconds * 1000) : new Date(review.createdAt);
                             dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                           }
                           return (
-                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up  transition-all duration-200">
+                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
                                 <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
@@ -398,7 +410,15 @@ export default function ProductDetail({ product, pharmacy }) {
                         })
                       )}
                     </div>
-                     <div className="mt-4 border-b"></div>
+                    {/* See more button */}
+                    {reviews.length > visibleReviews && (
+                      <div className="flex justify-start">
+                        <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setVisibleReviews(v => v + 3); setExpandedReviews(true); }}>
+                          See more
+                        </button>
+                      </div>
+                    )}
+                    <div className="mt-4 border-b"></div>
                     {/* Review Form */}
                     <form className="p-4 mt-6 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
                       <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
