@@ -186,7 +186,7 @@ export default function ProductDetail({ product, pharmacy }) {
         <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="w-[90px] h-[34px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>
