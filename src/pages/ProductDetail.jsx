@@ -327,7 +327,7 @@ export default function ProductDetail({ product, pharmacy }) {
                       {loadingReviews ? (
                         <div className="p-4 text-center text-zinc-400 animate-pulse">Loading reviews…</div>
                       ) : reviews.length === 0 ? (
-                        <div className="p-4 text-center text-zinc-400 animate-fade-in">No reviews yet. Be the first to review!</div>
+                        <div className="p-4 text-center text-zinc-400 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
                       ) : (
                         reviews.map((review, idx) => (
                           <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up  transition-all duration-200">
