@@ -38,25 +38,25 @@ return (
 <AuthLayout>
 <BackButton to="/auth/landing" className="w-[78px] h-[27px] font-poppins font-extralight tracking-tight text-[14px] sm:text-[16px]" />
 <div className="font-poppins text-[32px] sm:text-[42px] md:text-[54px] lg:text-[64px] font-thin tracking-tight leading-[109%] text-left">I'm a<br/>Customer</div>
-<form onSubmit={submit} className="mt-8 w-full max-w-md md:max-w-xl lg:max-w-2xl mx-auto font-poppins">
-<input type="email" className="w-full mb-4 px-4 py-2 border-b border-zinc-300 bg-transparent font-thin text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-poppins placeholder:text-left focus:outline-none focus:border-[#36A5FF]" placeholder="Email Address" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} />
+<form onSubmit={submit} className="mt-8 w-full max-w-md md:max-w-xl lg:max-w-2xl mx-auto font-poppins animate-fade-in" style={{ animationDelay: '0.3s' }}>
+<input type="email" className="w-full mb-4 px-4 py-2 border-b border-zinc-300 bg-transparent font-thin text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-poppins placeholder:text-left focus:outline-none focus:border-[#36A5FF] transition-all duration-200 hover:border-sky-400 animate-fade-in" placeholder="Email Address" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} style={{ animationDelay: '0.4s' }} />
 
-<div className="relative mb-4">
+<div className="relative mb-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
   <input
     type={showPassword ? 'text' : 'password'}
-    className="w-full px-4 py-2 border-b border-zinc-300 bg-transparent font-thin text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-poppins placeholder:text-left focus:outline-none focus:border-[#36A5FF]"
+    className="w-full px-4 py-2 border-b border-zinc-300 bg-transparent font-thin text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-poppins placeholder:text-left focus:outline-none focus:border-[#36A5FF] transition-all duration-200 hover:border-sky-400"
     placeholder="Password"
     value={form.password}
     onChange={e=>setForm({...form,password:e.target.value})}
     aria-label="Password"
   />
-  <button type="button" onClick={()=>setShowPassword(s=>!s)} aria-pressed={showPassword} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-zinc-500">
+  <button type="button" onClick={()=>setShowPassword(s=>!s)} aria-pressed={showPassword} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-zinc-500 transition-colors duration-200 hover:text-sky-500">
     {showPassword ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
   </button>
 </div>
 
 <div className="flex justify-center w-full">
-<button disabled={busy} className="w-full sm:w-[359px] h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] lg:text-[18px] font-light border-[#36A5FF] text-[#36A5FF] bg-white mt-4 flex items-center justify-center">{busy?'Signing in…':'Sign In'}</button>
+<button disabled={busy} className="w-full sm:w-[359px] h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] lg:text-[18px] font-light border-[#36A5FF] text-[#36A5FF] bg-white mt-4 flex items-center justify-center btn-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.6s' }}>{busy?'Signing in…':'Sign In'}</button>
 </div>
 </form>
 <div className="mt-6 text-center text-zinc-500 text-[13px] sm:text-[14px] md:text-[16px] font-light">
