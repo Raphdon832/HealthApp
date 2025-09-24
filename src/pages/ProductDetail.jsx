@@ -409,29 +409,28 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
-        <div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden animate-slide-up-fade">
-          <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={async () => {
-                  if (!user) return alert('Please sign in');
-                  if (!product.id) return alert('Product unavailable. Please try again.');
-                  try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
-                }}
-                className="w-full h-11 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
-              >
-                Add to Cart
-              </button>
-              <a
-                href={`tel:${pharmacy?.phone || ''}`}
-                className="w-full h-11 rounded-full border border-zinc-400 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
-              >
-                <Phone className="h-4 w-4" /> Call to Order
-              </a>
-            </div>
-          </div>
-        </div>
-
+<div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden animate-slide-up-fade">
+  <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
+    <div className="flex flex-row gap-3">
+      <button
+        onClick={async () => {
+          if (!user) return alert('Please sign in');
+          if (!product.id) return alert('Product unavailable. Please try again.');
+          try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
+        }}
+        className="flex-1 h-11 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
+      >
+        Add to Cart
+      </button>
+      <a
+        href={`tel:${pharmacy?.phone || ''}`}
+        className="flex-1 h-11 rounded-full border border-zinc-400 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
+      >
+        <Phone className="h-4 w-4" /> Call to Order
+      </a>
+    </div>
+  </div>
+</div>
         {/* Category products modal */}
         {showCategoryProducts && (
           <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
