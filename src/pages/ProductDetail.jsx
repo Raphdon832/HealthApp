@@ -312,13 +312,13 @@ export default function ProductDetail({ product, pharmacy }) {
                       </div>
                     </div>
                   </div>
-
+               <div className="mt-4 border-b"></div>
                   {/* Product description */}
-                  <div className="mt-2 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                  <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
                     <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Product Description</div>
                     <p className="mt-2 text-zinc-600 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
                   </div>
-
+              <div className="mt-8 border-b"></div>
                   {/* Reviews/Comments Section */}
                   <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
                     <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 mb-2">Customer Reviews</div>
@@ -330,7 +330,7 @@ export default function ProductDetail({ product, pharmacy }) {
                         <div className="p-4 text-center text-zinc-400 animate-fade-in">No reviews yet. Be the first to review!</div>
                       ) : (
                         reviews.map((review, idx) => (
-                          <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up hover:shadow-md transition-all duration-200">
+                          <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up  transition-all duration-200">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
                               <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
@@ -340,8 +340,9 @@ export default function ProductDetail({ product, pharmacy }) {
                         ))
                       )}
                     </div>
+                     <div className="mt-4 border-b"></div>
                     {/* Review Form */}
-                    <form className="p-4 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
+                    <form className="p-4 mt-6 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
                       <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
                       <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
                         <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" />
