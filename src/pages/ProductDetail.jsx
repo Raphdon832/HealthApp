@@ -330,7 +330,7 @@ export default function ProductDetail({ product, pharmacy }) {
                         <div className="p-4 text-center text-zinc-400 animate-fade-in">No reviews yet. Be the first to review!</div>
                       ) : (
                         reviews.map((review, idx) => (
-                          <div key={review.id || idx} className="p-4 rounded-xl border border-zinc-100 animate-slide-up hover:shadow-md transition-all duration-200">
+                          <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up hover:shadow-md transition-all duration-200">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
                               <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
