@@ -315,8 +315,8 @@ export default function PharmacyMap() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-gray rounded-lg p-4 mb-4 border border-sky-300">
-          <div className="flex gap-2 mb-3">
+        <div className="bg-gray rounded-lg p-4 border mb-4 border-sky-300">
+          <div className="flex gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -327,7 +327,7 @@ export default function PharmacyMap() {
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 border bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 autoComplete="off"
               />
               
@@ -360,7 +360,7 @@ export default function PharmacyMap() {
                                 <span>
                                   {suggestion.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
                                     part.toLowerCase() === searchQuery.toLowerCase() ? (
-                                      <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                                      <span key={i} className="bg-sky-200 px-1 rounded">{part}</span>
                                     ) : (
                                       part
                                     )
