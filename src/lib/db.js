@@ -220,28 +220,21 @@ export const removeFromCart = (uid, itemId) =>
 export const placeOrder = async ({
   customerId,
   pharmacyId,
-  cart,
+  items,
   total,
   email,
 }) => {
   const paymentSuccess = await onCheckout(total);
   const { data, status } = paymentSuccess;
-  if (status === true) {
-    // addDoc(collection(db, "orders"), {
-    //   customerId,
-    //   pharmacyId,
-    //   items,
-    //   total,
-    //   createdAt: serverTimestamp(),
-    // });
+  if (status) {
     setDoc(doc(db, "orders", data.orderId), {
       customerId,
       customerEmail: email,
-      items: cart.map((item) => ({
-        productId: item.productId,
-        pharmacyId: item.pharmacyId,
-        price: item.price,
-        quantity: item.quantity || 1,
+      items: items.map((it) => ({
+        productId: it.productId,
+        pharmacyId: it.pharmacyId,
+        price: it.price,
+        quantity: it.quantity || 1,
         status: "pending",
         paid: false,
         transferReference: null,
@@ -249,8 +242,8 @@ export const placeOrder = async ({
       })),
       total,
       paystackReference: data.paystackReference,
-      status: "pending",
-
+      status: "paid",
+      paidAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     });
   }

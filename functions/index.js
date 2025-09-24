@@ -15,7 +15,6 @@ const db = admin.firestore();
 
 const PAYSTACK_SECRET = defineSecret("PAYSTACK_SECRET");
 const PAYSTACK_BASE = "https://api.paystack.co";
-const AUTO_RELEASE_DAYS = 21;
 
 function generateRandomString(length) {
   const chars =
@@ -40,25 +39,29 @@ function verifyPaystackSignature(rawBody, signature) {
 async function ensureRecipient(pharmId) {
   const pharmRef = db.collection("pharmacies").doc(pharmId);
   const pharmSnap = await pharmRef.get();
-  if (!pharmSnap.exists()) throw new Error("Pharmacy not found");
+  if (!pharmSnap.exists) throw new Error("Pharmacy not found");
 
   const pharm = pharmSnap.data();
   if (pharm.recipientCode) return pharm.recipientCode;
 
   const payload = {
-    type: "nuban", //TODO: Find out what nuban means
+    type: "nuban",
     name: pharm.accountName,
     account_number: pharm.accountNumber,
     bank_code: pharm.bankCode,
     currency: "NGN",
   };
 
-  const res = await axios.post(`${PAYSTACK_BASE}/transferrecipient`, payload, {
-    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
-  });
+  const { data } = await axios.post(
+    `${PAYSTACK_BASE}/transferrecipient`,
+    payload,
+    {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET.value()}` },
+    }
+  );
 
-  const recipientCode = res.data.data.recipientCode;
-  await pharm.update({ recipientCode });
+  const recipientCode = data.data.recipient_code;
+  await pharmRef.update({ recipientCode: recipientCode });
 
   return recipientCode;
 }
@@ -68,11 +71,12 @@ async function makeTransfer({ amountNGN, recipient, reason, idempotencyKey }) {
     source: "balance",
     amount: Math.round(amountNGN * 100),
     recipient,
+    reference: idempotencyKey,
     reason,
   };
 
   const headers = {
-    Authorization: `Bearer ${PAYSTACK_SECRET}`,
+    Authorization: `Bearer ${PAYSTACK_SECRET.value()}`,
     "Idempotency-Key": idempotencyKey || crypto.randomBytes(12).toString("hex"),
   };
 
@@ -82,7 +86,6 @@ async function makeTransfer({ amountNGN, recipient, reason, idempotencyKey }) {
   return res.data.data;
 }
 
-// TODO: Make sure this is in the sync with the order the pop up
 const initOrder = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Login Required");
   try {
@@ -135,20 +138,6 @@ const paystackWebhook = onRequest(async (req, res) => {
 
     const event = req.body;
 
-    if (event.event === "charge.success") {
-      const metadata = event.data.metadata || {};
-      const orderId = metadata.orderId;
-      if (!orderId) return res.status(200).send("No order meta");
-
-      const orderRef = db.collection("orders").doc(orderId);
-      await orderRef.update({
-        status: "paid",
-        paystackReference: event.data.reference,
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      console.log(`Order ${orderId} marked paid`);
-    }
-
     if (event.event === "transfer.success") {
       const transferRefence = event.data.reference;
 
@@ -157,7 +146,7 @@ const paystackWebhook = onRequest(async (req, res) => {
         .doc(transferRefence)
         .get();
       if (transferDoc.exists) {
-        const { orderId, pharmacistId, itemIndex } = transferDoc.data();
+        const { orderId, pharmacyId, itemIndex } = transferDoc.data();
         const orderRef = db.collection("orders").doc(orderId);
         const orderSnap = await orderRef.get();
         if (orderSnap.exists) {
@@ -185,17 +174,14 @@ const paystackWebhook = onRequest(async (req, res) => {
   }
 });
 
-const confirmDelivery = onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "Login required");
+const confirmDelivery = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Login required");
 
   try {
-    const customerId = context.auth.uid;
-    const { orderId, pharmacistId } = data;
-    if (!orderId || !pharmacistId)
-      throw new HttpsError(
-        "invalid-argument",
-        "orderId & pharmacistId required"
-      );
+    const customerId = request.auth.uid;
+    const { orderId, pharmacyId } = request.data;
+    if (!orderId || !pharmacyId)
+      throw new HttpsError("invalid-argument", "orderId & pharmacyId required");
 
     const orderRef = db.collection("orders").doc(orderId);
     const orderSnap = await orderRef.get();
@@ -204,7 +190,7 @@ const confirmDelivery = onCall(async (data, context) => {
     const order = orderSnap.data();
     if (order.customerId !== customerId)
       throw new HttpsError("permission-denied", "Not your order");
-    if (order.status !== "paid" && order.status != -"partly_released") {
+    if (order.status !== "paid" && order.status !== "partly_released") {
       throw new HttpsError(
         "failed-precondition",
         "Order not ready to be released"
@@ -213,13 +199,13 @@ const confirmDelivery = onCall(async (data, context) => {
 
     const itemsForPharm = order.items
       .map((it, idx) => ({ ...it, idx }))
-      .filter((it) => it.pharmacistId === pharmacistId && !it.paid);
+      .filter((it) => it.pharmacyId === pharmacyId && !it.paid);
 
     if (itemsForPharm.length === 0) {
       return { success: false, message: "No unpaid item for this pharmacist" };
     }
 
-    const recipientCode = await ensureRecipient(pharmacistId);
+    const recipientCode = await ensureRecipient(pharmacyId);
 
     const amount = itemsForPharm.reduce(
       (s, it) => s + it.price * it.quantity,
@@ -231,12 +217,12 @@ const confirmDelivery = onCall(async (data, context) => {
     const transferData = await makeTransfer({
       amountNGN: amount,
       recipient: recipientCode,
-      reason: `Payment for order ${orderId} to pharmacist ${pharmacistId}`,
+      reason: `Payment for order ${orderId} to pharmacist ${pharmacyId}`,
       idempotencyKey,
     });
 
     const updatedItems = order.items.map((it, idx) => {
-      if (it.pharmacistId === pharmacistId && !it.paid) {
+      if (it.pharmacyId === pharmacyId && !it.paid) {
         return {
           ...it,
           paid: true,
@@ -262,15 +248,16 @@ const confirmDelivery = onCall(async (data, context) => {
       .doc(transferData.reference)
       .set({
         orderId,
-        pharmacistId,
+        pharmacyId,
         itemIndexes: itemsForPharm.map((i) => i.idx),
         amount,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-    return { success: true, transferRefence: transferData.reference };
+    return { status: true, transferRefence: transferData.reference };
   } catch (error) {
-    HttpsError("internal", "Could not confirm delivery");
+    console.log("Error: ", error);
+    throw new HttpsError("internal", "Could not confirm delivery");
   }
 });
 

@@ -32,14 +32,34 @@ export default function Cart() {
     [items]
   );
 
+  const groupItems = () => {
+    const map = new Map();
+    for (const i of items) {
+      const pid = i.product?.id;
+      if (!pid) continue;
+      if (map.has(pid)) {
+        const existing = map.get(pid);
+        map.set(pid, {
+          ...existing,
+          qty: existing.qty + i.qty,
+          ids: [...(existing.ids || [existing.id]), i.id],
+        });
+      } else {
+        map.set(pid, { ...i, ids: [i.id] });
+      }
+    }
+    return Array.from(map.values());
+  };
+
   const checkout = async () => {
     if (!user || !items.length) return;
     const first = items[0];
     const pharmacyId = first.product?.pharmacyId;
+    const cartItems = groupItems();
     const orderStatus = await placeOrder({
       customerId: user.uid,
       pharmacyId,
-      items: items.map((i) => ({
+      items: cartItems.map((i) => ({
         productId: i.productId,
         quantity: i.qty,
         price: i.product.price,

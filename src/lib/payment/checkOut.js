@@ -6,7 +6,7 @@ const functions = getFunctions();
 async function onCheckout(total) {
   const initOrder = httpsCallable(functions, "initOrder");
   const res = await initOrder({ total });
-  const { checkoutUrl, accessCode, orderId, paystackReference } = res.result;
+  const { checkoutUrl, accessCode, orderId, paystackReference } = res.data;
 
   return new Promise((resolve, reject) => {
     const popup = new PaystackPop();
