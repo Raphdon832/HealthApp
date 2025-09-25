@@ -1,10 +1,25 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function MessagesPreview({ threads }) {
+export default function MessagesPreview({ threads, unreadCount, onThreadClick }) {
+  const navigate = useNavigate();
+
+  const handleHeaderClick = () => {
+    navigate('/messages');
+  };
+
   return (
     <div className="relative bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8">
-      <div className="flex items-center justify-between mb-2">
+      <div 
+        className="flex items-center justify-between mb-2 cursor-pointer hover:bg-sky-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+        onClick={handleHeaderClick}
+      >
         <h2 className="text-black font-light text-lg tracking-tight">Recent Messages</h2>
+        {unreadCount > 0 && (
+          <span className="bg-sky-400 text-white text-xs rounded-full px-2 py-0.5 font-bold">
+            {unreadCount}
+          </span>
+        )}
       </div>
       <div>
         {threads.length === 0 ? (
@@ -14,7 +29,8 @@ export default function MessagesPreview({ threads }) {
             {threads.map(t => (
               <li
                 key={t.id}
-                className="py-2 rounded-lg px-2 flex items-center select-text"
+                className="py-2 rounded-lg px-2 flex items-center cursor-pointer hover:bg-sky-50 transition-colors"
+                onClick={() => onThreadClick && onThreadClick(t)}
               >
                 <span className="font-light text-[13px] text-black flex-1 truncate">{t.customerName || t.customerId}</span>
                 {t.unread > 0 && (

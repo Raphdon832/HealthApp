@@ -9,6 +9,7 @@ import {
   useParams,
   useMatch,
   Outlet,
+<<<<<<< HEAD
 } from "react-router-dom";
 import {
   collection,
@@ -34,6 +35,32 @@ import { db } from "@/lib/firebase";
 import Dashboard from "@/pages/Dashboard";
 import GlobalMessageNotifier from "@/components/GlobalMessageNotifier";
 import SuperuserDashboard from "@/pages/SuperuserDashboard";
+=======
+} from 'react-router-dom';
+import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
+import { listenUserThreads } from '@/lib/db';
+import { useSwipeable } from 'react-swipeable';
+import PageTransitionWrapper from '@/components/PageTransitionWrapper';
+
+import BottomNav from '@/components/BottomNav';
+import Home from '@/pages/Home';
+import ProductDetail from '@/pages/ProductDetail';
+import Messages from '@/pages/Messages';
+import ChatThread from '@/pages/ChatThread';
+import Cart from '@/pages/Cart';
+import Orders from '@/pages/Orders';
+import ProfileCustomer from '@/pages/ProfileCustomer';
+import ProfilePharmacy from '@/pages/ProfilePharmacy';
+import { AuthProvider, useAuth } from '@/lib/auth';
+import { RequireAuth } from '@/components/Protected';
+import { db } from '@/lib/firebase';
+import Dashboard from '@/pages/Dashboard';
+import NotificationManager from '@/components/NotificationManager';
+import OrderNotificationModal from '@/components/OrderNotificationModal';
+import { useOrderNotifications } from '@/hooks/useOrderNotifications';
+import SuperuserDashboard from '@/pages/SuperuserDashboard';
+import PharmacyMap from '@/pages/PharmacyMap';
+>>>>>>> main
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -45,7 +72,12 @@ import VerifyEmail from "@/pages/VerifyEmail";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 
 // Extra
+<<<<<<< HEAD
 import VendorProfile from "@/pages/VendorProfile";
+=======
+import VendorProfile from '@/pages/VendorProfile';
+import ProductPreview from '@/pages/ProductPreview';
+>>>>>>> main
 
 /* ---------------------------
    LAYOUTS
@@ -59,6 +91,10 @@ function AppLayout() {
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [ordersCount, setOrdersCount] = useState(0);
+
+  // Order notifications for pharmacies
+  const { newOrder, showNotification, clearNotification, viewOrder } = useOrderNotifications();
 
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
@@ -67,6 +103,29 @@ function AppLayout() {
       return setCartCount(0);
     const q = query(collection(db, "users", user.uid, "cart"));
     const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
+    return unsub;
+  }, [user, profile]);
+
+  // Listen to orders count for pharmacy users (exclude processing, shipped, cancelled)
+  useEffect(() => {
+    if (!user || !profile || profile.role !== 'pharmacy') return setOrdersCount(0);
+    
+    const pharmacyId = profile.uid || user.uid;
+    const q = query(
+      collection(db, 'orders'), 
+      where('pharmacyId', '==', pharmacyId)
+    );
+    
+    const unsub = onSnapshot(q, (snap) => {
+      const filteredOrders = snap.docs.filter(doc => {
+        const order = doc.data();
+        const status = order.status?.toLowerCase() || 'pending';
+        // Exclude processing, shipped, fulfilled, cancelled - count pending, etc.
+        return !['processing', 'shipped', 'fulfilled', 'cancelled'].includes(status);
+      });
+      setOrdersCount(filteredOrders.length);
+    });
+    
     return unsub;
   }, [user, profile]);
 
@@ -117,6 +176,39 @@ function AppLayout() {
       });
   }, [showDebug, chatModalOpen, unreadMessages, tab, cartCount]);
 
+  const handleViewOrder = (order) => {
+    // Navigate to orders page when viewing the order
+    navigate('/orders');
+  };
+
+  // Device detection: only enable swipe nav on mobile/tablet
+  const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+
+  // Page order for swipe navigation
+  const customerPages = ['/', '/orders', '/messages', '/cart', '/profile'];
+  const pharmacyPages = ['/dashboard', '/orders', '/messages', '/profile'];
+  const pageOrder = profile?.role === 'pharmacy' ? pharmacyPages : customerPages;
+  const currentIndex = pageOrder.indexOf(tab);
+
+  // Swipe handler
+  const handleSwiped = (dir) => {
+    if (!isMobileOrTablet || currentIndex === -1) return;
+    if (dir === 'Left' && currentIndex < pageOrder.length - 1) {
+      navigate(pageOrder[currentIndex + 1], { state: { slide: 'left' } });
+    } else if (dir === 'Right' && currentIndex > 0) {
+      navigate(pageOrder[currentIndex - 1], { state: { slide: 'right' } });
+    }
+  };
+
+  // Animation direction
+  const slideDirection = location.state?.slide || 'none';
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwiped('Left'),
+    onSwipedRight: () => handleSwiped('Right'),
+    trackMouse: true,
+  });
+
   return (
     <div
       className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${
@@ -124,7 +216,15 @@ function AppLayout() {
       }`}
     >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        <Outlet />
+        {isMobileOrTablet ? (
+          <div {...swipeHandlers}>
+            <PageTransitionWrapper direction={slideDirection}>
+              <Outlet />
+            </PageTransitionWrapper>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </div>
 
       {/* Hide BottomNav when chat modal flag is on */}
@@ -135,6 +235,7 @@ function AppLayout() {
             setTab={(k) => navigate(k)}
             cartCount={cartCount}
             unreadMessages={unreadMessages}
+            ordersCount={ordersCount}
           />
         </>
       )}
@@ -146,6 +247,14 @@ function AppLayout() {
           {String(unreadMessages)}
         </div>
       )}
+
+      {/* Order Notification Modal */}
+      <OrderNotificationModal
+        order={newOrder}
+        isOpen={showNotification}
+        onClose={clearNotification}
+        onViewOrder={handleViewOrder}
+      />
     </div>
   );
 }
@@ -197,6 +306,11 @@ function ProfileRouter() {
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
 
+function ChatThreadRoute(props) {
+  const { vendorId } = useParams();
+  return <ChatThread vendorId={vendorId} {...props} />;
+}
+
 function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -242,7 +356,7 @@ function Shell() {
           path="/chat/:vendorId"
           element={
             <RequireAuth>
-              <ChatThread scrollTo={scrollTo} onBackRoute="/messages" />
+              <ChatThreadRoute scrollTo={scrollTo} onBackRoute="/messages" />
             </RequireAuth>
           }
         />
@@ -269,6 +383,7 @@ function Shell() {
         ) : null}
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
+        <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
         <Route
           path="/messages"
           element={
@@ -307,6 +422,11 @@ function Shell() {
         />
       </Route>
 
+      {/* Public product preview route (no auth required) */}
+      <Route element={<BareLayout />}>
+        <Route path="/product-preview/:id" element={<ProductPreview />} />
+      </Route>
+
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -316,6 +436,10 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
+<<<<<<< HEAD
+=======
+      <NotificationManager />
+>>>>>>> main
       <Shell />
       <GlobalMessageNotifier />
     </AuthProvider>

@@ -6,6 +6,7 @@ import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAu
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -202,13 +203,13 @@ export default function ProfileCustomer() {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen">
+    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen animate-fadeInUp">
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
         <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50">
+          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">My<br/>Profile</div>
+          <div className="flex items-center gap-2 animate-slideInRight">
+            <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
               <Search className="h-5 w-5 text-sky-600" />
             </button>
           </div>
@@ -217,11 +218,11 @@ export default function ProfileCustomer() {
 
       {/* Search modal (click outside to close) */}
       {showSearch && (
-        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fadeInScale" role="dialog" aria-modal="true" aria-label="Search modal">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden modal-backdrop animate-bounceIn">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
+                <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden input-interactive">
                   <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
                   <input
                     autoFocus
@@ -235,7 +236,7 @@ export default function ProfileCustomer() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36 input-interactive">
                   <option value="prescriptions">Prescriptions</option>
                   <option value="orders">Orders</option>
                   <option value="drugs">Drugs</option>
@@ -252,8 +253,27 @@ export default function ProfileCustomer() {
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-shadow flex items-center gap-3 justify-between">
+                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          r.type === 'order' ? 'bg-green-100' : 
+                          r.type === 'prescription' ? 'bg-blue-100' : 
+                          'bg-purple-100'
+                        }`}>
+                          {r.type === 'order' ? (
+                            <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                          ) : r.type === 'prescription' ? (
+                            <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          ) : (
+                            <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                          )}
+                        </div>
                         <div className="min-w-0">
                           <div className="font-semibold text-sm text-black truncate">{r.title}</div>
                           <div className="text-xs text-zinc-500 truncate">{r.subtitle}</div>
@@ -261,11 +281,11 @@ export default function ProfileCustomer() {
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {r.type === 'order' ? (
-                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
+                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
                         ) : r.type === 'prescription' ? (
-                          <button onClick={() => { navigate(`/prescriptions/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">Open</button>
+                          <button onClick={() => { navigate(`/prescriptions/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
                         ) : (
-                          <button onClick={() => { setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50">View</button>
+                          <button onClick={() => { setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">View</button>
                         )}
                       </div>
                     </li>
@@ -302,9 +322,9 @@ export default function ProfileCustomer() {
 
             {/* Edit form modal */}
             {editing && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
-                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight">Edit Profile</div>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fadeInScale">
+                <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
+                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">Edit Profile</div>
                   <form
                     className="flex flex-col gap-4"
                     onSubmit={async e => {
@@ -340,13 +360,13 @@ export default function ProfileCustomer() {
                       }
                     }}
                   >
-                    <label className="text-[12px] text-zinc-500 font-light"></label>
+                    <label className="text-[12px] text-zinc-500 font-light animate-fadeInUp" style={{ animationDelay: '0.1s' }}></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all input-interactive animate-fadeInUp"
+                      style={{ animationDelay: '0.2s', boxShadow: 'none' }}
                       value={editName}
                       placeholder="Name"
                       onChange={e => setEditName(e.target.value)}
-                      style={{boxShadow: 'none'}}
                     />
                     <label className="text-[12px] text-zinc-500 font-light"></label>
                     <input
@@ -387,9 +407,9 @@ export default function ProfileCustomer() {
             <div className="flex items-center gap-2 text-zinc-500 mt-1 text-[12px] font-light w-full" ><Phone className="h-2.5 w-2.5"/> {customerProfile.phone || 'phone number missing'}</div>
           </div>
 
-          <div>
+          {/*<div>
             <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
-          </div>
+          </div>*/}
         </div>
 
         {/* Right column: Activity and Prescriptions stack */}
@@ -441,8 +461,15 @@ export default function ProfileCustomer() {
           <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
             <MyPrescriptionsSection />
           </div>
+
+          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
+            <NotificationSettings />
+          </div>
         </div>
       </div>
+       <div>
+            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+          </div>
     </div>
   );
 }

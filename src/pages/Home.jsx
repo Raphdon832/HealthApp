@@ -8,21 +8,26 @@ import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { findClosestPharmacyWithETA } from '@/lib/eta';
+import { ChevronRight } from 'lucide-react';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [vendors, setVendors] = useState({});
   const [pharmacies, setPharmacies] = useState([]);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [serverResults, setServerResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [location, setLocation] = useState('Fetching location...');
-  const [userCoords, setUserCoords] = useState(null);
+  
+  // Use shared location hook
+  const { userCoords, location } = useUserLocation();
   const [closestPharmacy, setClosestPharmacy] = useState(null);
-  const [eta, setEta] = useState(null);
+  const [etaInfo, setEtaInfo] = useState(null);
 
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -92,60 +97,29 @@ export default function Home() {
 
   useEffect(() => listenProducts(setProducts), []);
 
+  // Calculate ETA to closest pharmacy when user location or pharmacies change
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocation('Location not supported');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserCoords({ latitude, longitude });
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-          const data = await res.json();
-          setLocation(data.display_name || 'Location unavailable');
-        } catch {
-          setLocation('Unable to fetch address');
-        }
-      },
-      () => setLocation('Location permission denied')
-    );
-  }, []);
-
-  useEffect(() => {
-    async function fetchAndCalcETA() {
+    async function calculateETA() {
       if (!userCoords) return;
-      const pharmacies = await getAllPharmacies();
-      if (!pharmacies || pharmacies.length === 0) return;
-      function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = ((lat2 - lat1) * Math.PI) / 180;
-        const dLon = ((lon2 - lon1) * Math.PI) / 180;
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+      
+      let pharmacyList = pharmacies;
+      if (pharmacyList.length === 0) {
+        pharmacyList = await getAllPharmacies();
+        if (!pharmacyList || pharmacyList.length === 0) return;
       }
-      let minDist = Infinity, minPharm = null;
-      pharmacies.forEach((pharm) => {
-        if (pharm.coordinates) {
-          const dist = getDistance(
-            userCoords.latitude, userCoords.longitude,
-            pharm.coordinates.latitude, pharm.coordinates.longitude
-          );
-          if (dist < minDist) { minDist = dist; minPharm = pharm; }
-        }
-      });
-      setClosestPharmacy(minPharm);
-      const etaMins = Number.isFinite(minDist) ? Math.round((minDist / 25) * 60) : null;
-      setEta(etaMins);
+
+      const result = findClosestPharmacyWithETA(pharmacyList, userCoords, 'driving');
+      if (result) {
+        setClosestPharmacy(result.pharmacy);
+        setEtaInfo(result.eta);
+      } else {
+        setClosestPharmacy(null);
+        setEtaInfo(null);
+      }
     }
-    fetchAndCalcETA();
-  }, [userCoords]);
+    
+    calculateETA();
+  }, [userCoords, pharmacies]);
 
   // New Arrivals auto-scroll (unchanged)
   useEffect(() => {
@@ -419,14 +393,31 @@ export default function Home() {
                     {location}
                   </span>
                 </div>
-                <div className="flex flex-col justify-center items-end">
-                  <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
-                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5">
-                    {eta && closestPharmacy
-                      ? `${eta} min${eta !== 1 ? 's' : ''} to ${vendors[closestPharmacy.vendorId] || 'your pharmacy'}`
-                      : 'Fetching ETA...'}
-                  </span>
-                </div>
+                {profile?.role === 'customer' ? (
+                  <button
+                    onClick={() => navigate('/pharmacy-map')}
+                    className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
+                  >
+                    <div className="flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
+                      <ChevronRight className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
+                      {etaInfo && closestPharmacy
+                        ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
+                        : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="flex flex-col justify-center items-end">
+                    <div className="flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
+                    </div>
+                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-600">
+                      {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="w-full" />
             </div>
@@ -439,7 +430,50 @@ export default function Home() {
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
           <input
             value={q}
-            onChange={(e) => { setQ(e.target.value); setShowSearchSuggestions(true); }}
+            onChange={(e) => { 
+              setQ(e.target.value); 
+              setShowSearchSuggestions(true); 
+              setSelectedSuggestionIndex(-1);
+            }}
+            onKeyDown={(e) => {
+              if (!showSearchSuggestions || pharmacyMatches.length === 0) return;
+              
+              switch (e.key) {
+                case 'ArrowDown':
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev => 
+                    prev < pharmacyMatches.length - 1 ? prev + 1 : 0
+                  );
+                  break;
+                case 'ArrowUp':
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev => 
+                    prev > 0 ? prev - 1 : pharmacyMatches.length - 1
+                  );
+                  break;
+                case 'Enter':
+                  e.preventDefault();
+                  if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < pharmacyMatches.length) {
+                    const ph = pharmacyMatches[selectedSuggestionIndex];
+                    setQ(ph.name || ph.displayName || '');
+                    setShowSearchSuggestions(false);
+                    const vendorId = ph.id || ph.vendorId;
+                    if (vendorId) navigate(`/vendor/${vendorId}`);
+                  }
+                  break;
+                case 'Escape':
+                  setShowSearchSuggestions(false);
+                  setSelectedSuggestionIndex(-1);
+                  break;
+              }
+            }}
+            onBlur={() => {
+              // Delay hiding suggestions to allow clicking on them
+              setTimeout(() => {
+                setShowSearchSuggestions(false);
+                setSelectedSuggestionIndex(-1);
+              }, 200);
+            }}
             placeholder="Search drugs, pharmacies"
             className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
           />
@@ -447,8 +481,8 @@ export default function Home() {
 
         {/* Search suggestions: show matching pharmacies/places */}
         {showSearchSuggestions && q.trim().length > 0 && pharmacyMatches.length > 0 && (
-          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto">
-            {pharmacyMatches.map((ph) => (
+          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto animate-fade-in">
+            {pharmacyMatches.map((ph, index) => (
               <button
                 key={ph.id || ph.vendorId || ph.name}
                 onClick={() => {
@@ -473,27 +507,84 @@ export default function Home() {
                     if (vendorId) navigate(`/vendor/${vendorId}`);
                   }
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-zinc-50"
+                className={`w-full text-left px-4 py-3 focus:outline-none transition-all duration-200 animate-fadeInUp border-b border-gray-100 last:border-b-0 ${
+                  index === selectedSuggestionIndex 
+                    ? 'bg-blue-100 border-blue-200' 
+                    : 'hover:bg-zinc-50 focus:bg-zinc-100'
+                }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
                 role="option"
                 tabIndex={0}
               >
-                <div className="font-medium text-sm">{ph.name || ph.displayName}</div>
-                <div className="text-[12px] text-zinc-500">{ph.address || ph.city || ph.location || ''}</div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
+                    <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm text-gray-900 truncate">
+                      {q.trim() && (ph.name || ph.displayName || '').toLowerCase().includes(q.toLowerCase()) ? (
+                        <span>
+                          {(ph.name || ph.displayName || '').split(new RegExp(`(${q})`, 'gi')).map((part, i) =>
+                            part.toLowerCase() === q.toLowerCase() ? (
+                              <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </span>
+                      ) : (
+                        ph.name || ph.displayName
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate mt-1">
+                      {q.trim() && (ph.address || ph.city || ph.location || '').toLowerCase().includes(q.toLowerCase()) ? (
+                        <span>
+                          {(ph.address || ph.city || ph.location || '').split(new RegExp(`(${q})`, 'gi')).map((part, i) =>
+                            part.toLowerCase() === q.toLowerCase() ? (
+                              <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </span>
+                      ) : (
+                        ph.address || ph.city || ph.location || ''
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium flex-shrink-0">
+                    Pharmacy
+                  </div>
+                </div>
               </button>
             ))}
+            
+            {/* Keyboard navigation hint */}
+            {pharmacyMatches.length > 0 && (
+              <div className="px-4 py-2 text-xs text-gray-500 text-center bg-gray-50 border-t animate-fade-in">
+                Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
+              </div>
+            )}
           </div>
         )}
 
         <div className="mt-3 mb-2 w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 min-w-max">
-            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map((cat) => {
+            {['All', 'Prescription', 'Over-the-counter', 'Syrup', 'Therapeutic', 'Controlled', 'Target System'].map((cat, index) => {
               const icon = categoryIcons[cat];
+              const isSelected = selectedCategory === cat;
               return (
                 <button
                   key={cat}
-                  className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full bg-zinc-100 text-zinc-700 text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border border-zinc-200 hover:bg-sky-50 transition ${
-                    selectedCategory === cat ? 'bg-sky-100 border-sky-400 text-sky-700' : ''
+                  className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border transition-all duration-200 btn-interactive animate-fadeInUp ${
+                    isSelected 
+                      ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-md scale-105' 
+                      : 'bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm'
                   }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => setSelectedCategory(cat)}
                 >
                   {icon ? (
@@ -501,7 +592,9 @@ export default function Home() {
                       <img
                         src={`/${encodeURIComponent(icon)}`}
                         alt={`${cat} icon`}
-                        className="h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0"
+                        className={`h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0 transition-transform duration-200 ${
+                          isSelected ? 'scale-110' : ''
+                        }`}
                       />
                       <span className="truncate">{cat}</span>
                     </>

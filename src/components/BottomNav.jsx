@@ -7,7 +7,7 @@ import ProfileIcon from '../icons/react/ProfileIcon';
 import DashboardIcon from '../icons/react/DashboardIcon';
 import { useAuth } from '@/lib/auth';
 
-export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0 }) {
+export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
   const isPharmacy = profile && profile.role === 'pharmacy';
   const items = [
@@ -27,17 +27,17 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   // Dev debug: log props and profile to help trace why badge may not be showing.
   useEffect(() => {
     try {
-      console.debug('[BottomNav] props', { tab, cartCount, unreadMessages, displayUnread, profile });
+      console.debug('[BottomNav] props', { tab, cartCount, unreadMessages, ordersCount, displayUnread, profile });
     } catch (e) {
       console.error('[BottomNav] debug log failed', e);
     }
-  }, [tab, cartCount, unreadMessages, displayUnread, profile]);
+  }, [tab, cartCount, unreadMessages, ordersCount, displayUnread, profile]);
 
   // Show a tiny debug overlay when URL includes ?debugBottomNav=1
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
 
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center" aria-hidden={false}>
+    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50" aria-hidden={false}>
       <nav
         role="navigation"
         aria-label="Bottom navigation"
@@ -51,18 +51,37 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
             const iconProps = { color: isActive ? '#36A5FF' : 'black' };
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
+            const isOrders = it.key === '/orders';
             return (
               <div key={it.key} className="flex-none">
                 <button
                   onClick={() => setTab(it.key)}
                   aria-label={it.label}
                   aria-pressed={isActive}
-                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none ${isActive ? 'text-sky-600' : 'text-zinc-500'}`}
+                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none transition-all duration-200 ${
+                    isActive ? 'text-sky-600 transform scale-105' : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
                 >
-                  <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                  {/* Faint blue round background for active icons with smooth transition */}
+                  <div 
+                    className={`absolute top-1 w-12 h-9 bg-sky-400 rounded-[10px] transition-all duration-300 ${
+                      isActive ? 'opacity-10 scale-100' : 'opacity-0 scale-90'
+                    }`} 
+                  />
+                  
+                  <div className="relative z-10 transition-transform duration-200 hover:scale-110">
+                    <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                  </div>
                   {isCart && cartCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
+                    <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                       {cartCount}
+                    </span>
+                  )}
+
+                  {/* Orders badge for pharmacy users */}
+                  {isOrders && isPharmacy && ordersCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0 z-50 bg-orange-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
+                      {ordersCount > 99 ? '99+' : ordersCount}
                     </span>
                   )}
 
@@ -71,7 +90,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                     (() => {
                       try {
                         return (
-                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow">
+                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                             {displayUnread}
                           </span>
                         );
