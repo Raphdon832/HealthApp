@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Phone, MessageCircle, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Phone, MessageCircle, ArrowLeft, Search } from 'lucide-react';
 import { getDoc, doc } from 'firebase/firestore';
 import { listenProducts, getOrCreateThread } from '@/lib/db'; // ⬅︎ use new helper
 import { db } from '@/lib/firebase';
@@ -19,6 +19,14 @@ export default function VendorProfile() {
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [etaInfo, setEtaInfo] = useState(null);
+  
+  // Search functionality
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   
   // treat vertical (portrait) screens as mobile layout to avoid spillover on tall devices (e.g. iPad portrait)
   const [isPortrait, setIsPortrait] = useState(false);
@@ -56,6 +64,29 @@ export default function VendorProfile() {
       setEtaInfo(null);
     }
   }, [vendor, userCoords]);
+
+  // Filter products based on search term and generate suggestions
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredProducts(products);
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
+    } else {
+      const filtered = products.filter(product =>
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+      
+      // Generate suggestions (limit to top 5 most relevant)
+      const suggestions = filtered.slice(0, 5);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0 && searchTerm.length > 0);
+      setSelectedSuggestionIndex(-1); // Reset selection when suggestions change
+    }
+  }, [products, searchTerm]);
 
   // Render immediately; use optional chaining / defaults for vendor fields until data arrives
 
@@ -155,6 +186,53 @@ export default function VendorProfile() {
     doc.save(`${vendor.name || 'pharmacy'}-report.pdf`);
   };
 
+  // Handle keyboard navigation for search suggestions
+  const handleSearchKeyDown = (e) => {
+    if (!showSuggestions || searchSuggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < searchSuggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : searchSuggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < searchSuggestions.length) {
+          const selectedProduct = searchSuggestions[selectedSuggestionIndex];
+          navigate(`/product/${selectedProduct.id}`);
+          setShowSearch(false);
+          setSearchTerm('');
+          setShowSuggestions(false);
+          setSelectedSuggestionIndex(-1);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
+  };
+
+  // Highlight matching text in suggestions
+  const highlightMatch = (text, searchTerm) => {
+    if (!searchTerm || !text) return text;
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, index) => 
+      regex.test(part) ? 
+        <span key={index} className="bg-yellow-200 font-semibold">{part}</span> : 
+        part
+    );
+  };
+
   // Fixed Header Component (Mobile Only)
   const FixedHeader = () => (
     <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -168,11 +246,11 @@ export default function VendorProfile() {
         <div className="text-[18px] font-light font-poppins leading-none">Vendor Profile</div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleMessageVendor}
+            onClick={() => setShowSearch(true)}
             className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
-            aria-label="Message vendor"
+            aria-label="Search products"
           >
-            <MessageCircle className="w-5 h-5 text-sky-600" />
+            <Search className="w-5 h-5 text-sky-600" />
           </button>
         </div>
       </div>
@@ -204,10 +282,10 @@ export default function VendorProfile() {
             <div className={`border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20' : ''} animate-slide-down-fade`}>
               <div>
                 <div className="text-[18px] font-poppins font-medium">Products by<br/>{vendor?.name || 'Vendor'}</div>
-                <div className="text-zinc-500 text-[13px] font-poppins font-light">{products.length} items</div>
+                <div className="text-zinc-500 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `of ${products.length}` : ''} items</div>
               </div>
               <div>
-                {products.length > 3 && !showAll && (
+                {filteredProducts.length > 3 && !showAll && (
                   <button
                     className="text-sky-600 text-[12px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(true)}
@@ -215,8 +293,7 @@ export default function VendorProfile() {
                     See more
                   </button>
                 )}
-
-                {products.length > 3 && showAll && (
+                {filteredProducts.length > 3 && showAll && (
                   <button
                     className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(false)}
@@ -229,7 +306,7 @@ export default function VendorProfile() {
 
             <div className={`${!useMobileLayout ? 'md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-4' : ''}`}>
               <div className="space-y-3 px-0">
-                {(showAll ? products : products.slice(0, 3)).map((p, index) => (
+                {(showAll ? filteredProducts : filteredProducts.slice(0, 3)).map((p, index) => (
                   <div
                     key={p.id}
                     className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition-all duration-200 overflow-hidden card-interactive animate-fadeInUp hover:scale-102 hover:shadow-lg"
@@ -248,8 +325,10 @@ export default function VendorProfile() {
                     <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0 animate-pulse-slow">₦{Number(p.price).toLocaleString()}</div>
                   </div>
                 ))}
-                {products.length === 0 && (
-                  <div className="text-zinc-500 text-[13px] font-poppins font-light animate-fade-in">No products yet.</div>
+                {filteredProducts.length === 0 && (
+                  <div className="text-zinc-500 text-[13px] font-poppins font-light animate-fade-in">
+                    {searchTerm ? 'No products found matching your search.' : 'No products yet.'}
+                  </div>
                 )}
 
                 
@@ -295,6 +374,107 @@ export default function VendorProfile() {
 
         </div>
       </div>
+
+      {/* Search Modal */}
+      {showSearch && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[200]">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-poppins font-medium">Search Products</h3>
+              <button
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchTerm('');
+                  setShowSuggestions(false);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name, category, or SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent font-poppins"
+                autoFocus
+              />
+              
+              {/* Live Suggestions Dropdown */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto z-10">
+                  {searchSuggestions.map((product, index) => (
+                    <button
+                      key={product.id}
+                      onClick={() => {
+                        navigate(`/product/${product.id}`);
+                        setShowSearch(false);
+                        setSearchTerm('');
+                        setShowSuggestions(false);
+                        setSelectedSuggestionIndex(-1);
+                      }}
+                      onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                      className={`w-full px-4 py-3 text-left transition-colors border-b border-gray-100 last:border-b-0 first:rounded-t-xl last:rounded-b-xl ${
+                        index === selectedSuggestionIndex 
+                          ? 'bg-sky-50 border-sky-100' 
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0">
+                          <ProductAvatar 
+                            name={product.name} 
+                            image={product.image} 
+                            category={product.category} 
+                            size={24} 
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={`font-poppins font-medium text-sm truncate ${
+                            index === selectedSuggestionIndex ? 'text-sky-700' : 'text-gray-900'
+                          }`}>
+                            {highlightMatch(product.name, searchTerm)}
+                          </div>
+                          <div className={`text-xs truncate ${
+                            index === selectedSuggestionIndex ? 'text-sky-600' : 'text-gray-500'
+                          }`}>
+                            {highlightMatch(product.category, searchTerm)} • ₦{Number(product.price || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setShowSearch(false);
+                  setShowSuggestions(false);
+                }}
+                className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-700 transition-colors font-poppins font-medium"
+              >
+                View Results ({filteredProducts.length})
+              </button>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setShowSearch(false);
+                  setShowSuggestions(false);
+                }}
+                className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-poppins"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
     </>

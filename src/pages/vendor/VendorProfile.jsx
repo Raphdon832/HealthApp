@@ -51,7 +51,7 @@ export default function VendorProfile() {
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>
-          <div className="text-lg font-medium text-gray-800">Vendor Profile</div>
+          <div className="text-lg font-medium text-center text-gray-800">Vendor Profile</div>
         </div>
       </div>
 

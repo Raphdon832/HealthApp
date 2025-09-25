@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Phone, Navigation, Search } from 'lucide-react';
 import { getAllPharmacies } from '@/lib/db';
@@ -261,10 +262,41 @@ export default function PharmacyMap() {
     );
   }
 
+  // Fixed Header Component (Mobile Only)
+  const FixedHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div className="flex-1 text-left">
+          <div className="text-[18px] font-light tracking-tight">Nearby Pharmacies</div>
+          <div className="text-[12px] text-gray-400">
+            {userCoords ? `${sortedPharmacies.length} found near you` : 'Loading location...'}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            aria-label="Filter pharmacies"
+          >
+            <FilterIcon className="w-5 h-5 text-sky-600" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-50 mx-auto px-4 py-4 sticky top-0 z-50">
+    <>
+      {createPortal(<FixedHeader />, document.body)}
+      <div className="min-h-screen bg-gray-50 pt-24 md:pt-0">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-50 mx-auto px-4 py-4 sticky top-0 z-50 hidden md:block">
         <div className="max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <button
@@ -745,5 +777,6 @@ export default function PharmacyMap() {
         )}
       </div>
     </div>
+    </>
   );
 }
