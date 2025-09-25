@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { listenProducts } from '@/lib/db';
 import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
-import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
+import { LogOut, Download, Trash, MoreVertical, Settings } from 'lucide-react';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,6 @@ import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
-import NotificationSettings from '@/components/NotificationSettings';
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
@@ -467,6 +466,15 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             >
               <Search className="h-5 w-5 text-sky-600" />
             </button>
+            
+            {/* Settings button */}
+            <button
+              onClick={() => navigate('/settings')}
+              aria-label="Open settings"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200"
+            >
+              <Settings className="h-5 w-5 text-sky-600" />
+            </button>
           </div>
         </div>
       </div>
@@ -762,10 +770,6 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           </div>
         </div>
       )}
-
-      <div className="mt-6">
-        <NotificationSettings />
-      </div>
 
       <div className="mt-6 lg:hidden">
          <button

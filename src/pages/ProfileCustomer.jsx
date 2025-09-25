@@ -1,12 +1,11 @@
 import { useAuth } from '@/lib/auth';
-import { MapPin, Phone, Search, LogOut, Pencil } from 'lucide-react';
+import { MapPin, Phone, Search, LogOut, Pencil, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
-import NotificationSettings from '@/components/NotificationSettings';
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -211,6 +210,9 @@ export default function ProfileCustomer() {
           <div className="flex items-center gap-2 animate-slideInRight">
             <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
               <Search className="h-5 w-5 text-sky-600" />
+            </button>
+            <button onClick={() => navigate('/settings')} aria-label="Open settings" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
+              <Settings className="h-5 w-5 text-sky-600" />
             </button>
           </div>
         </div>
@@ -460,10 +462,6 @@ export default function ProfileCustomer() {
 
           <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
             <MyPrescriptionsSection />
-          </div>
-
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start">
-            <NotificationSettings />
           </div>
         </div>
       </div>

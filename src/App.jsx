@@ -24,6 +24,7 @@ import Cart from '@/pages/Cart';
 import Orders from '@/pages/Orders';
 import ProfileCustomer from '@/pages/ProfileCustomer';
 import ProfilePharmacy from '@/pages/ProfilePharmacy';
+import Settings from '@/pages/Settings';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
@@ -386,6 +387,14 @@ function Shell() {
           element={
             <RequireAuth>
               <ProfileRouter />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <Settings />
             </RequireAuth>
           }
         />
