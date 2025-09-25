@@ -399,8 +399,8 @@ export default function Home() {
                     className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
                   >
                     <div className="flex items-center gap-1">
-                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
-                      <ChevronRight className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
+                      <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 transition-colors" />
                     </div>
                     <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
                       {etaInfo && closestPharmacy
@@ -411,7 +411,7 @@ export default function Home() {
                 ) : (
                   <div className="flex flex-col justify-center items-end">
                     <div className="flex items-center gap-1">
-                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
+                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
                     </div>
                     <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-600">
                       {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
