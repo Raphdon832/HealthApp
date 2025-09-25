@@ -15,9 +15,7 @@ const FixedHeader = ({ title, itemCount }) => {
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
         <div className="flex mt-8 items-center justify-between">
           <h1 className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">{title}</h1>
-          {itemCount > 0 && (
-            <span className="text-[12px] text-sky-400">{itemCount} items</span>
-          )}
+          
         </div>
       </div>
     </div>,
