@@ -174,9 +174,27 @@ function AppLayout() {
   const slideDirection = location.state?.slide || 'none';
 
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleSwiped('Left'),
-    onSwipedRight: () => handleSwiped('Right'),
-    trackMouse: true,
+    onSwipedLeft: (eventData) => {
+      // Only trigger if swipe starts from the right edge of screen
+      const startX = eventData.initial[0];
+      const screenWidth = window.innerWidth;
+      const edgeThreshold = 50; // pixels from edge
+      if (startX > screenWidth - edgeThreshold) {
+        handleSwiped('Left');
+      }
+    },
+    onSwipedRight: (eventData) => {
+      // Only trigger if swipe starts from the left edge of screen
+      const startX = eventData.initial[0];
+      const edgeThreshold = 50; // pixels from edge
+      if (startX < edgeThreshold) {
+        handleSwiped('Right');
+      }
+    },
+    trackMouse: false, // Disable mouse tracking for better mobile experience
+    delta: 80, // Minimum distance for swipe detection
+    preventScrollOnSwipe: false, // Allow normal scrolling
+    trackTouch: true,
   });
 
   return (
