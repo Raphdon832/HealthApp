@@ -16,6 +16,7 @@ import CallIcon from '@/icons/react/CallIcon';
 import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
 import CreatePrescriptionModal from '@/components/CreatePrescriptionModal';
 import PrescriptionList from '@/components/PrescriptionList';
+import MessageWithLinks from '@/components/MessageWithLinks';
 import { createPrescription } from '@/lib/db';
 import { Menu } from '@headlessui/react';
 import Modal from '@/components/Modal';
@@ -403,7 +404,7 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
                         className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
                         style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
                       >
-                        {m.text}
+                        <MessageWithLinks text={m.text} isMine={isMine} />
                       </div>
                       <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
                     </div>
