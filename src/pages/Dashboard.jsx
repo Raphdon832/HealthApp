@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getBestSellingProducts } from '../lib/db';
 import { useAuth } from '../lib/auth';
 import AddProductModal from '@/components/AddProductModal';
@@ -44,6 +45,56 @@ export default function Dashboard() {
 
   // Review notifications
   const { newReviews, unreadReviewsCount, markReviewsAsRead } = useReviewNotifications();
+
+  // Mobile Header Component
+  const MobileHeader = () => (
+    <header 
+      className="sm:hidden fixed top-0 left-0 right-0 z-[100] border-b border-gray-100/50 shadow-sm px-4 py-4 transition-all duration-200"
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}
+    >
+      <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
+        My<br />Dashboard
+      </h1>
+      
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'overview'
+              ? 'bg-white text-sky-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('reviews');
+            if (unreadReviewsCount > 0) {
+              markReviewsAsRead();
+            }
+          }}
+          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
+            activeTab === 'reviews'
+              ? 'bg-white text-sky-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Reviews
+          {unreadReviewsCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+              {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
+            </span>
+          )}
+        </button>
+      </div>
+    </header>
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -248,48 +299,10 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Mobile Sticky Header - Separate from main content */}
-      <header className="sm:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/50 shadow-sm px-4 py-4 transition-all duration-200">
-        <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
-          My<br />Dashboard
-        </h1>
-        
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'overview'
-                ? 'bg-white text-sky-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('reviews');
-              if (unreadReviewsCount > 0) {
-                markReviewsAsRead();
-              }
-            }}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
-              activeTab === 'reviews'
-                ? 'bg-white text-sky-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Reviews
-            {unreadReviewsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
+      {/* Mobile Fixed Header - Rendered via Portal outside transform context */}
+      {typeof window !== 'undefined' && createPortal(<MobileHeader />, document.body)}
 
-      <div className="pt-4 sm:pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
+      <div className="pt-32 sm:pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
         {/* Desktop Header - Non-sticky, inside container */}
         <header className="hidden sm:block pb-2 pt-4">
           <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
@@ -331,7 +344,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-      <main className="flex-1 px-3 sm:px-4 py-2 sm:py-6 relative w-full mb-4">
+      <main className="flex-1 px-3 sm:px-4 py-2 sm:py-6 relative w-full mt-4">
         {activeTab === 'overview' ? (
           // Existing Overview Content
           <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start pb-16">
