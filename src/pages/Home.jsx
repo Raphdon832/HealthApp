@@ -51,14 +51,36 @@ export default function Home() {
 
   // Filtered products by search and category
   const filtered = useMemo(() => {
-    // If server results are available and query active, prefer server-side results (more complete & scalable).
+    // Start with all products or server results
+    let baseProducts = products;
     const ql = q.trim().toLowerCase();
+    
+    // If server results are available and query active, prefer server-side results (more complete & scalable).
     if (ql && serverResults?.products && Array.isArray(serverResults.products)) {
-      return serverResults.products;
+      baseProducts = serverResults.products;
     }
 
-    if (!ql) return products;
-    return products.filter((p) => {
+    // Apply category filter first
+    let filteredByCategory = baseProducts;
+    if (selectedCategory && selectedCategory !== 'All') {
+      filteredByCategory = baseProducts.filter((p) => {
+        const productCategory = p.category || '';
+        // Handle different category name variations
+        if (selectedCategory === 'Over-the-counter') {
+          return productCategory.toLowerCase().includes('over');
+        }
+        if (selectedCategory === 'Controlled') {
+          return productCategory.toLowerCase().includes('control');
+        }
+        return productCategory === selectedCategory;
+      });
+    }
+
+    // If no search query, return category-filtered results
+    if (!ql) return filteredByCategory;
+
+    // Apply search filter on top of category filter
+    return filteredByCategory.filter((p) => {
       const name = (p.name || '').toLowerCase();
       const category = (p.category || '').toLowerCase();
       const tags = Array.isArray(p.tags) ? p.tags.join(' ').toLowerCase() : '';
