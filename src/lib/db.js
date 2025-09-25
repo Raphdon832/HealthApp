@@ -386,3 +386,59 @@ export async function fulfillPrescriptionIfOrdered({ customerId }) {
     }
   }
 }
+
+/* -----------------------------
+   WISHLIST FUNCTIONS
+----------------------------------*/
+export const addToWishlist = async (userId, productId, productData) => {
+  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  await setDoc(wishlistRef, {
+    userId,
+    productId,
+    productData,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const removeFromWishlist = async (userId, productId) => {
+  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  await deleteDoc(wishlistRef);
+};
+
+export const isInWishlist = async (userId, productId) => {
+  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  const snap = await getDoc(wishlistRef);
+  return snap.exists();
+};
+
+export const getUserWishlist = async (userId) => {
+  const q = query(
+    collection(db, 'wishlists'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+export const listenUserWishlist = (userId, callback, onError = console.error) => {
+  const q = query(
+    collection(db, 'wishlists'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  
+  return onSnapshot(q, 
+    (snapshot) => {
+      const wishlist = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(wishlist);
+    },
+    onError
+  );
+};

@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
+import { listenUserWishlist } from '@/lib/db';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 
 // Fixed Header Component
@@ -41,6 +42,8 @@ export default function ProfileCustomer() {
   const [showAllDrugs, setShowAllDrugs] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [activeChats, setActiveChats] = useState(0);
+  const [wishlist, setWishlist] = useState([]);
+  const [showWishlist, setShowWishlist] = useState(false);
   const [drugsBought, setDrugsBought] = useState([]);
   // Real-time customer profile from Firestore (name, address, email, phone)
   const [customerProfile, setCustomerProfile] = useState({
@@ -68,6 +71,17 @@ export default function ProfileCustomer() {
     getDocs(query(collection(db, 'threads'), where('customerId', '==', user.uid))).then(snapshot => {
       setActiveChats(snapshot.size);
     });
+
+    // Listen to user's wishlist
+    const unsubscribeWishlist = listenUserWishlist(user.uid, (wishlistItems) => {
+      setWishlist(wishlistItems);
+    });
+
+    // Cleanup wishlist listener on unmount
+    return () => {
+      if (unsubscribeWishlist) unsubscribeWishlist();
+    };
+    
     // Fetch drugs bought (harmonized by productId, using product name from products collection)
     getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))).then(async snapshot => {
       const drugs = {};
@@ -441,6 +455,15 @@ export default function ProfileCustomer() {
               <span className="text-[12px] text-zinc-500 font-light">Active Chats</span>
               <span className="text-[12px] text-sky-600 font-medium">{activeChats ?? 0}</span>
             </div>
+            <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+              <span className="text-[12px] text-zinc-500 font-light">Wishlist Items</span>
+              <button 
+                className="text-[12px] text-sky-600 font-medium hover:underline"
+                onClick={() => setShowWishlist(true)}
+              >
+                {wishlist?.length ?? 0}
+              </button>
+            </div>
             <div className="w-full flex items-center justify-between mt-3 mb-1">
               <span className="text-[14px] font-light text-zinc-800">Drugs Bought</span>
               <button className="text-[12px] text-sky-600 font-light px-2 py-1 rounded-full hover:bg-sky-50" onClick={() => setShowAllDrugs(true)}>See more</button>
@@ -470,6 +493,73 @@ export default function ProfileCustomer() {
                     ))}
                   </div>
                   <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" onClick={() => setShowAllDrugs(false)}>Close</button>
+                </div>
+              </div>
+            )}
+
+            {/* Modal for wishlist items */}
+            {showWishlist && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+                <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-md shadow-xl">
+                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">My Wishlist</div>
+                  <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
+                    {wishlist?.length > 0 ? (
+                      wishlist.map((item) => (
+                        <div key={item.id} className="w-full flex items-center pb-3 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+                          <div className="flex items-center gap-3 w-full">
+                            {/* Product Image */}
+                            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {item.productData?.image ? (
+                                <img 
+                                  src={item.productData.image} 
+                                  alt={item.productData?.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-gray-400 text-xs font-medium">
+                                  {item.productData?.name?.[0] || 'P'}
+                                </span>
+                              )}
+                            </div>
+                            {/* Product Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[13px] font-medium text-gray-800 truncate">
+                                {item.productData?.name || 'Unknown Product'}
+                              </div>
+                              <div className="text-[11px] text-gray-500">
+                                {item.productData?.pharmacyName || 'Unknown Pharmacy'}
+                              </div>
+                              <div className="text-[12px] text-sky-600 font-medium">
+                                ₦{item.productData?.price || '0'}
+                              </div>
+                            </div>
+                            {/* View Button */}
+                            <button
+                              className="px-3 py-1 bg-sky-100 text-sky-600 rounded-full text-[10px] font-medium hover:bg-sky-200 transition-colors"
+                              onClick={() => {
+                                navigate(`/product/${item.productId}`);
+                                setShowWishlist(false);
+                              }}
+                            >
+                              View
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <div className="text-4xl mb-2">💝</div>
+                        <div className="text-[14px] font-light">Your wishlist is empty</div>
+                        <div className="text-[12px] text-gray-400 mt-1">Start adding products you like!</div>
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" 
+                    onClick={() => setShowWishlist(false)}
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             )}

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, setDoc, deleteDoc, doc as firestoreDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { addToCart } from '@/lib/db';
+import { addToCart, addToWishlist, removeFromWishlist, isInWishlist } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
@@ -23,6 +23,8 @@ export default function ProductDetail({ product, pharmacy }) {
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
   const [etaInfo, setEtaInfo] = useState(null);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const [isWishlist, setIsWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   // Calculate ETA when user location or pharmacy changes
   useEffect(() => {
@@ -33,6 +35,23 @@ export default function ProductDetail({ product, pharmacy }) {
       setEtaInfo(null);
     }
   }, [pharmacy, userCoords]);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (user && product) {
+        try {
+          const inWishlist = await isInWishlist(user.uid, product.id);
+          setIsWishlist(inWishlist);
+        } catch (error) {
+          console.error('Error checking wishlist status:', error);
+        }
+      }
+    };
+    
+    checkWishlistStatus();
+  }, [user, product]);
+
   const [categoryProducts, setCategoryProducts] = useState([]);
   const [loadingCategoryProducts, setLoadingCategoryProducts] = useState(false);
 
@@ -221,6 +240,38 @@ export default function ProductDetail({ product, pharmacy }) {
     }
   }
 
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      alert('Please sign in to add items to your wishlist');
+      return;
+    }
+
+    if (wishlistLoading) return;
+    
+    setWishlistLoading(true);
+    try {
+      if (isWishlist) {
+        await removeFromWishlist(user.uid, product.id);
+        setIsWishlist(false);
+      } else {
+        await addToWishlist(user.uid, product.id, {
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          category: product.category,
+          pharmacyId: pharmacy?.id,
+          pharmacyName: pharmacy?.name
+        });
+        setIsWishlist(true);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      alert('Failed to update wishlist. Please try again.');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   function handleMessageVendor() {
     // Pass product info and prefill message to chat thread
     const params = new URLSearchParams({
@@ -245,6 +296,19 @@ export default function ProductDetail({ product, pharmacy }) {
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </button>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
+              isWishlist ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-red-50'
+            } ${wishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            onClick={handleWishlistToggle}
+            disabled={wishlistLoading}
+          >
+            <Heart className={`w-5 h-5 transition-colors ${
+              isWishlist ? 'text-red-500 fill-current' : 'text-red-400'
+            }`} />
+          </button>
           <button
             type="button"
             className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
@@ -272,14 +336,29 @@ export default function ProductDetail({ product, pharmacy }) {
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>
-          <button
-            type="button"
-            className="ml-2 p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
-            aria-label="Share product"
-            onClick={() => setShowShareOptions(true)}
-          >
-            <Share2 className="w-5 h-5 text-sky-600" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isWishlist ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-red-50'
+              } ${wishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              onClick={handleWishlistToggle}
+              disabled={wishlistLoading}
+            >
+              <Heart className={`w-5 h-5 transition-colors ${
+                isWishlist ? 'text-red-500 fill-current' : 'text-red-400'
+              }`} />
+            </button>
+            <button
+              type="button"
+              className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+              aria-label="Share product"
+              onClick={() => setShowShareOptions(true)}
+            >
+              <Share2 className="w-5 h-5 text-sky-600" />
+            </button>
+          </div>
         </div>
 
         {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
