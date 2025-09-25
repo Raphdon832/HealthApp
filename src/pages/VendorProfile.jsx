@@ -71,9 +71,8 @@ export default function VendorProfile() {
     }
     try {
       await getOrCreateThread({ vendorId: id, customerId: user.uid, role: 'customer' });
-      // Go to Messages. (Optional: pass state to auto-open this vendor.)
-      navigate('/messages');
-      // navigate('/messages', { state: { openVendorId: id } });
+      // Navigate directly to the chat thread
+      navigate(`/chat/${id}`);
     } catch (err) {
       console.error(err);
       alert('Could not start chat thread.');

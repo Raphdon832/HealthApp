@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Phone, MessageCircle } from 'lucide-react';
 import { getDoc, doc } from 'firebase/firestore';
-import { listenProducts } from '@/lib/db';
+import { listenProducts, getOrCreateThread } from '@/lib/db';
 import { db } from '@/lib/firebase';
+import { useAuth } from '@/lib/auth';
 
 export default function VendorProfile() {
   const { id } = useParams();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchVendor() {
@@ -19,6 +21,22 @@ export default function VendorProfile() {
     fetchVendor();
     return listenProducts(setProducts, id);
   }, [id]);
+
+  const handleMessageVendor = async () => {
+    if (!user) {
+      alert('Please log in to message vendors.');
+      return;
+    }
+    try {
+      // Create or get existing thread with the vendor
+      await getOrCreateThread({ vendorId: id, customerId: user.uid, role: 'customer' });
+      // Navigate directly to the chat thread
+      navigate(`/chat/${id}`);
+    } catch (err) {
+      console.error('Error starting chat thread:', err);
+      alert('Could not start chat thread.');
+    }
+  };
 
   if (!vendor) return <div className="p-8 text-center">Loading vendor...</div>;
 
@@ -30,7 +48,7 @@ export default function VendorProfile() {
       <div className="flex items-center gap-2 text-zinc-500 mb-2"><Clock className="h-4 w-4"/> {vendor.etaMins || 25} mins to {vendor.name}</div>
       <div className="flex items-center gap-2 text-zinc-500 mb-6"><Phone className="h-4 w-4"/> {vendor.phone}</div>
       <button
-        onClick={() => navigate(`/messages?vendor=${id}`)}
+        onClick={handleMessageVendor}
         className="w-full rounded-full bg-sky-600 text-white py-4 text-lg font-semibold flex items-center justify-center gap-2 mb-8"
       >
         <MessageCircle className="h-5 w-5"/> Message Vendor
