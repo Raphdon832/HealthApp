@@ -9,33 +9,6 @@ import {
   useParams,
   useMatch,
   Outlet,
-<<<<<<< HEAD
-} from "react-router-dom";
-import {
-  collection,
-  query,
-  onSnapshot,
-  doc as firestoreDoc,
-  getDoc,
-} from "firebase/firestore";
-import { listenUserThreads } from "@/lib/db";
-
-import BottomNav from "@/components/BottomNav";
-import Home from "@/pages/Home";
-import ProductDetail from "@/pages/ProductDetail";
-import Messages from "@/pages/Messages";
-import ChatThread from "@/pages/ChatThread";
-import Cart from "@/pages/Cart";
-import Orders from "@/pages/Orders";
-import ProfileCustomer from "@/pages/ProfileCustomer";
-import ProfilePharmacy from "@/pages/ProfilePharmacy";
-import { AuthProvider, useAuth } from "@/lib/auth";
-import { RequireAuth } from "@/components/Protected";
-import { db } from "@/lib/firebase";
-import Dashboard from "@/pages/Dashboard";
-import GlobalMessageNotifier from "@/components/GlobalMessageNotifier";
-import SuperuserDashboard from "@/pages/SuperuserDashboard";
-=======
 } from 'react-router-dom';
 import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
 import { listenUserThreads } from '@/lib/db';
@@ -60,7 +33,7 @@ import OrderNotificationModal from '@/components/OrderNotificationModal';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
 import PharmacyMap from '@/pages/PharmacyMap';
->>>>>>> main
+import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -72,12 +45,8 @@ import VerifyEmail from "@/pages/VerifyEmail";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 
 // Extra
-<<<<<<< HEAD
-import VendorProfile from "@/pages/VendorProfile";
-=======
 import VendorProfile from '@/pages/VendorProfile';
 import ProductPreview from '@/pages/ProductPreview';
->>>>>>> main
 
 /* ---------------------------
    LAYOUTS
@@ -436,10 +405,7 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
-<<<<<<< HEAD
-=======
       <NotificationManager />
->>>>>>> main
       <Shell />
       <GlobalMessageNotifier />
     </AuthProvider>
