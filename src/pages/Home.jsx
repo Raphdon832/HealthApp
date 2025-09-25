@@ -400,7 +400,7 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-1">
                       <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
-                      <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 transition-colors" />
+                      <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 animate-pulse" />
                     </div>
                     <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
                       {etaInfo && closestPharmacy
