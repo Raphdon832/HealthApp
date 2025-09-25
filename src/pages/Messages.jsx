@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
-import ChatThread from './ChatThread';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
@@ -23,7 +22,6 @@ export default function Messages() {
   const { user, profile } = useAuth();
   const [threads, setThreads] = useState([]);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,56 +37,27 @@ export default function Messages() {
     );
   }, [user?.uid, profile?.role]);
 
-  // If URL has ?chat=<vendorId>, auto-open that thread when threads load
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const wantVendor = params.get('chat');
-    if (!wantVendor || !threads.length || selected) return;
-
-    // Try to find the thread for that vendorId
-    const match =
-      threads.find(t => t.vendorId === wantVendor)
-      || threads.find(t => (t.id || '').split('__')[0] === wantVendor);
-
-    if (match) {
-      setSelected(match);
-      // optional: mark as read now
-      if (user?.uid) markThreadRead(match.id, user.uid).catch(console.error);
-    }
-  }, [location.search, threads, selected, user?.uid]);
-
   const openThread = async (t) => {
-    setSelected(t);
-    try { await markThreadRead(t.id, user.uid); } catch (e) { console.error(e); }
+    try { 
+      await markThreadRead(t.id, user.uid); 
+    } catch (e) { 
+      console.error(e); 
+    }
 
-    // Put ?chat=<vendorId> in the URL so App hides BottomNav
-    const vendorId =
-      t.vendorId
-      || (t.id && t.id.includes('__') ? t.id.split('__')[0] : '');
-    if (vendorId) {
-      navigate(`/messages?chat=${encodeURIComponent(vendorId)}`, { replace: false });
+    // Navigate to the thread page based on user role
+    if (profile?.role === 'customer') {
+      // For customers, we can either go to the existing thread or start a new chat
+      const vendorId = t.vendorId || (t.id && t.id.includes('__') ? t.id.split('__')[0] : '');
+      if (vendorId) {
+        navigate(`/chat/${vendorId}`);
+      } else {
+        navigate(`/thread/${t.id}`);
+      }
+    } else {
+      // For vendors, always go to the specific thread
+      navigate(`/thread/${t.id}`);
     }
   };
-
-  const closeThread = () => {
-    setSelected(null);
-    // Remove the ?chat= param so BottomNav shows again
-    navigate('/messages', { replace: true });
-  };
-
-  if (selected) {
-    // Customer: pass vendorId to allow create/get.
-    // Vendor: pass threadId so it never tries to create.
-    const props =
-      profile?.role === 'customer'
-        ? { vendorId: selected.vendorId }
-        : { threadId: selected.id, vendorId: selected.vendorId }; // vendorId helps populate header
-    return (
-      <div className="bg-white min-h-screen">
-        <ChatThread {...props} onClose={closeThread} onBackRoute="/messages" />
-      </div>
-    );
-  }
 
   if (!user) {
     return (

@@ -247,11 +247,6 @@ function ProfileRouter() {
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
 
-function ChatThreadRoute(props) {
-  const { vendorId } = useParams();
-  return <ChatThread vendorId={vendorId} {...props} />;
-}
-
 function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -292,12 +287,20 @@ function Shell() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
 
-        {/* Optional full-page chat route (also no BottomNav) */}
+        {/* Chat page routes - no BottomNav */}
         <Route
           path="/chat/:vendorId"
           element={
             <RequireAuth>
-              <ChatThreadRoute scrollTo={scrollTo} onBackRoute="/messages" />
+              <ChatThread />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/thread/:threadId"
+          element={
+            <RequireAuth>
+              <ChatThread />
             </RequireAuth>
           }
         />

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import {
@@ -25,11 +25,15 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 const ChatBgUrl = '/ChatBg.svg';
 
 /**
- * Props (either/or):
- * - vendorId: string  -> used only when role === 'customer' (start chat with this pharmacy)
- * - threadId: string  -> used for existing threads (vendor flow or customer opening from list)
- * - onBackRoute?: string
- * - onClose?: () => void
+ * ChatThread Page Component
+ * 
+ * Routes:
+ * - /chat/:vendorId - Customer initiating chat with a pharmacy
+ * - /thread/:threadId - Opening an existing chat thread
+ * 
+ * URL Parameters:
+ * - vendorId: pharmacy ID (for customers starting new chat)
+ * - threadId: existing thread ID (for opening existing conversations)
  */
 
 // Helper to format date separators like WhatsApp
@@ -48,9 +52,17 @@ function isProductPreviewMessage(m) {
   return m.type === 'product-preview';
 }
 
-export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRoute, onClose, overlayOpacity = 0.3 }) {
+export default function ChatThread() {
   const { user, profile } = useAuth();
-  const [threadId, setThreadId] = useState(threadIdProp || null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+  
+  // Get vendorId and threadId from URL parameters
+  const vendorIdFromUrl = params.vendorId;
+  const threadIdFromUrl = params.threadId;
+  
+  const [threadId, setThreadId] = useState(threadIdFromUrl || null);
 
   // 🔹 What to show in the sticky header
   const [otherName, setOtherName] = useState('');
@@ -60,8 +72,6 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const [text, setText] = useState('');
   const [pharmacyPhone, setPharmacyPhone] = useState('');
   const bottomRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const [lastMessageId, setLastMessageId] = useState(null);
   const [isTabActive, setIsTabActive] = useState(true);
@@ -79,26 +89,33 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
   const prefillMsg = queryParams.get('prefillMsg');
 
   // Resolve thread:
-  // - customer + vendorId => create/get
-  // - vendor => must have threadIdProp (do NOT create)
+  // - customer + vendorId from URL => create/get thread
+  // - if threadId from URL => use existing thread directly
   useEffect(() => {
     if (!user) return;
 
     (async () => {
-      if (profile?.role === 'customer') {
-        if (!vendorId) return; // wait for vendorId (coming from "Message vendor" button)
-        const id = await getOrCreateThread({ vendorId, customerId: user.uid, role: 'customer' });
+      // If we have a direct threadId from URL, use it
+      if (threadIdFromUrl) {
+        setThreadId(threadIdFromUrl);
+        return;
+      }
+
+      // Otherwise, if customer with vendorId, create/get thread
+      if (profile?.role === 'customer' && vendorIdFromUrl) {
+        const id = await getOrCreateThread({ 
+          vendorId: vendorIdFromUrl, 
+          customerId: user.uid, 
+          role: 'customer' 
+        });
         setThreadId(id);
-      } else {
-        // Vendor path — must be opening an existing thread
-        if (!threadIdProp) {
-          console.warn('Vendor tried to open chat without threadId. Navigate from Messages list.');
-          return;
-        }
-        setThreadId(threadIdProp);
+      } else if (profile?.role === 'vendor' && !threadIdFromUrl) {
+        console.warn('Vendor tried to open chat without threadId in URL.');
+        navigate('/messages');
+        return;
       }
     })().catch(console.error);
-  }, [user?.uid, profile?.role, vendorId, threadIdProp]);
+  }, [user?.uid, profile?.role, vendorIdFromUrl, threadIdFromUrl, navigate]);
 
   // 🔹 Load the thread doc and derive the "other party" name/subline
   useEffect(() => {
@@ -257,23 +274,6 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
         }}
       />
 
-      {/* Optional semi-transparent overlay for contrast (configurable via prop `overlayOpacity`) */}
-      {overlayOpacity > 0 && (
-        <div
-          aria-hidden
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: `rgba(255,255,255, ${overlayOpacity})`,
-            pointerEvents: 'none',
-            zIndex: 5
-          }}
-        />
-      )}
-
       {/* Main content wrapper sits above the fixed background */}
       <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col min-h-0">
         {/* Scoped CSS to visually hide scrollbar but keep scrolling functional */}
@@ -296,11 +296,10 @@ export default function ChatThread({ vendorId, threadId: threadIdProp, onBackRou
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  onClose?.();
                   if (window.history.length > 1) {
                     navigate(-1);
                   } else {
-                    navigate(onBackRoute || '/messages');
+                    navigate('/messages');
                   }
                 }}
                 className="rounded-full border px-3 sm:px-4 py-1"
