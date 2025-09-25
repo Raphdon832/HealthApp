@@ -505,14 +505,14 @@ export default function ProductDetail({ product, pharmacy }) {
                                     <span className="font-poppins font-semibold text-[13px] text-sky-700">
                                       {pharmacy?.name || 'Pharmacy'} Response
                                     </span>
-                                    {review.pharmacyResponse.respondedAt && (
+                                    {(review.pharmacyResponse.respondedAt || review.responseDate) && (
                                       <span className="text-[10px] text-sky-500 ml-auto">
-                                        {new Date(review.pharmacyResponse.respondedAt.seconds * 1000).toLocaleDateString()}
+                                        {new Date((review.pharmacyResponse.respondedAt?.seconds || review.responseDate?.seconds || review.responseDate) * 1000).toLocaleDateString()}
                                       </span>
                                     )}
                                   </div>
                                   <div className="text-zinc-700 text-[13px] font-poppins leading-relaxed pl-4">
-                                    "{review.pharmacyResponse.message}"
+                                    "{typeof review.pharmacyResponse === 'string' ? review.pharmacyResponse : review.pharmacyResponse.message || review.pharmacyResponse}"
                                   </div>
                                 </div>
                               )}
