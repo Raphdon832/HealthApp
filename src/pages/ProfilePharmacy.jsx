@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { listenProducts } from '@/lib/db';
@@ -13,6 +14,58 @@ import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
+
+// Fixed Header Component
+const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Pharmacy<br/>Profile</h1>
+          <div className="flex items-center gap-3">
+            {/* Inline search bar for small+ screens */}
+            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
+              <input
+                value={searchValue}
+                onChange={onSearchChange}
+                onKeyDown={e => { if (e.key === 'Enter') onSearchSubmit(); }}
+                placeholder="Search products, orders, customers..."
+                className="flex-1 text-sm font-light outline-none truncate"
+                aria-label="Search products or orders"
+              />
+              <button
+                onClick={onSearchSubmit}
+                aria-label="Search"
+                className="ml-2 rounded-full p-2 text-sky-600"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Compact icon for very small screens */}
+            <button
+              onClick={onSearchSubmit}
+              aria-label="Open search"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
+            >
+              <Search className="h-5 w-5 text-sky-600" />
+            </button>
+            
+            {/* Settings button */}
+            <button
+              onClick={onSettingsClick}
+              aria-label="Open settings"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50 transition-all duration-200"
+            >
+              <Settings className="h-5 w-5 text-sky-600" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
@@ -430,54 +483,17 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
-      {/* Superuser Dashboard */}
-      <SuperuserDashboard user={user} />
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
-        <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">Pharmacy<br/>Profile</div>
-          <div className="flex items-center gap-3 animate-slideInRight">
-            {/* Inline search bar for small+ screens */}
-            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px] input-interactive">
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { performSearch(); setShowSearch(true); } }}
-                placeholder="Search products, orders, customers..."
-                className="flex-1 text-sm font-light outline-none truncate"
-                aria-label="Search products or orders"
-              />
-              <button
-                onClick={() => { performSearch(); setShowSearch(true); }}
-                aria-label="Search"
-                className="ml-2 rounded-full p-2 text-sky-600"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Compact icon for very small screens */}
-            <button
-              onClick={() => setShowSearch(true)}
-              aria-label="Open search"
-              className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
-            >
-              <Search className="h-5 w-5 text-sky-600" />
-            </button>
-            
-            {/* Settings button */}
-            <button
-              onClick={() => navigate('/settings')}
-              aria-label="Open settings"
-              className="ml-2 rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200"
-            >
-              <Settings className="h-5 w-5 text-sky-600" />
-            </button>
-          </div>
-        </div>
-      </div>
+    <>
+      <FixedHeader 
+        title="Pharmacy Profile"
+        searchValue={searchQuery}
+        onSearchChange={e => setSearchQuery(e.target.value)}
+        onSearchSubmit={() => { performSearch(); setShowSearch(true); }}
+        onSettingsClick={() => navigate('/settings')}
+      />
+      <div className="pt-28 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
+        {/* Superuser Dashboard */}
+        <SuperuserDashboard user={user} />
 
       {/* Search modal */}
       {showSearch && (
@@ -782,6 +798,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
            <LogOut className="h-4 w-4"/> Log Out
          </button>
        </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
 import ChatThread from './ChatThread';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+
+// Fixed Header Component
+const FixedHeader = ({ title }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+      <div className="w-full mt-8 max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <h1 className="text-[25px] font-light leading-none">My<br/>Conversations</h1>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function Messages() {
   const { user, profile } = useAuth();
@@ -103,20 +116,18 @@ export default function Messages() {
   });
 
   return (
-    <div className="min-h-screen pt-10 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
-      <div className="sticky top-0 z-10 bg-[#ffffff1d] pt-2 pb-2 backdrop-blur-md">
-        <div className="text-[25px] font-light leading-none">My<br/>Conversations</div>
-      </div>
-
-      <div className="mt-4 flex items-center gap-3 border-b border-zinc-300 pb-2">
-        <Search className="h-4 w-4 text-zinc-400"/>
-        <input
-          placeholder="Search chats"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full outline-none placeholder:text-zinc-400 bg-transparent placeholder:text-sm"
-        />
-      </div>
+    <>
+      <FixedHeader title="My Conversations" />
+      <div className="min-h-screen pt-24 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
+        <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 pb-2">
+          <Search className="h-4 w-4 text-zinc-400"/>
+          <input
+            placeholder="Search chats"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full outline-none placeholder:text-zinc-400 bg-transparent placeholder:text-sm"
+          />
+        </div>
 
       <div className="mt-6 space-y-4 w-full">
         {filtered.map((t, index) => (
@@ -147,6 +158,7 @@ export default function Messages() {
         ))}
         {filtered.length === 0 && <div className="text-zinc-500">No conversations yet.</div>}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -56,7 +56,7 @@ export default function Dashboard() {
         WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
+      <h1 className="mt-8 text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
         My<br />Dashboard
       </h1>
       

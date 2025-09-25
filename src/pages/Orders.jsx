@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
@@ -7,6 +8,18 @@ import Modal from '@/components/Modal';
 import ProductAvatar from '@/components/ProductAvatar';
 
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
+
+// Fixed Header Component
+const FixedHeader = ({ title }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <h1 className="mt-8 text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</h1>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function Orders() {
   const { user, profile } = useAuth();
@@ -121,26 +134,24 @@ export default function Orders() {
   // No loading screen — render immediately
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
-        <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</div>
-      </div>
-      {/* Filters */}
-      <div className="mt-4 flex gap-2 flex-wrap">
-        <button
-          className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
-          onClick={()=>setStatusFilter('all')}
-        >All</button>
-        {ORDER_STATUSES.map(s => (
+    <>
+      <FixedHeader title="Orders" />
+      <div className="pt-24 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+        {/* Filters */}
+        <div className="mt-8 flex gap-2 flex-wrap">
           <button
-            key={s}
-            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
-            onClick={()=>setStatusFilter(s)}
-          >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
+            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+            onClick={()=>setStatusFilter('all')}
+          >All</button>
+          {ORDER_STATUSES.map(s => (
+            <button
+              key={s}
+              className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+              onClick={()=>setStatusFilter(s)}
+            >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
         ))}
       </div>
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-6">
         {filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] text-center py-12 animate-fadeInUp">
             No orders yet.
@@ -266,6 +277,7 @@ export default function Orders() {
           </div>
         )}
       </Modal>
-    </div>
+      </div>
+    </>
   );
 }
