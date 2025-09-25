@@ -413,7 +413,7 @@ export default function Home() {
                     <div className="flex items-center gap-1">
                       <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
                     </div>
-                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-600">
+                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-800">
                       {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
                     </span>
                   </div>
