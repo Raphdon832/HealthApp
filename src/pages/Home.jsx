@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import ClockIcon from '@/icons/react/ClockIcon';
 import SearchIcon from '@/icons/react/SearchIcon';
 import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
@@ -11,6 +12,57 @@ import { db } from '@/lib/firebase';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { findClosestPharmacyWithETA } from '@/lib/eta';
 import { ChevronRight } from 'lucide-react';
+
+// Fixed Header Component - matching exact styling from original
+const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharmacy, vendors, userCoords }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 z-[100] w-full bg-white border-b flex-shrink-0 px-2">
+      <div className="w-full mx-auto pt-8 pb-4">
+        <div className="pt-4 pb-2 w-full">
+          <div className="w-full mx-auto px-0">
+            <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
+              <div className="flex flex-col justify-center">
+                <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
+                  Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
+                </div>
+                <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
+                  {location}
+                </span>
+              </div>
+              {profile?.role === 'customer' ? (
+                <button
+                  onClick={() => navigate('/pharmacy-map')}
+                  className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
+                >
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
+                    <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 animate-pulse" />
+                  </div>
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
+                    {etaInfo && closestPharmacy
+                      ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
+                      : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
+                  </span>
+                </button>
+              ) : (
+                <div className="flex flex-col justify-center items-end">
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
+                  </div>
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-800">
+                    {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="w-full" />
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -401,54 +453,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full px-0 pb-28">
-      <div className="sticky top-0 z-30 w-full bg-white border-b flex-shrink-0 px-2">
-        <div className="w-full mx-auto pt-8 pb-4">
-          <div className="pt-4 pb-2 w-full">
-            <div className="w-full mx-auto px-0">
-              <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
-                <div className="flex flex-col justify-center">
-                  <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
-                    Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
-                  </div>
-                  <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
-                    {location}
-                  </span>
-                </div>
-                {profile?.role === 'customer' ? (
-                  <button
-                    onClick={() => navigate('/pharmacy-map')}
-                    className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
-                  >
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
-                      <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 animate-pulse" />
-                    </div>
-                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
-                      {etaInfo && closestPharmacy
-                        ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
-                        : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="flex flex-col justify-center items-end">
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
-                    </div>
-                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-800">
-                      {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="w-full" />
-            </div>
-          </div>
-        </div>
-      </div>
+    <>
+      <FixedHeader 
+        user={user}
+        profile={profile}
+        location={location}
+        navigate={navigate}
+        etaInfo={etaInfo}
+        closestPharmacy={closestPharmacy}
+        vendors={vendors}
+        userCoords={userCoords}
+      />
+      <div className="min-h-screen w-full px-0 pb-20 pt-32">
 
-      <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pt-1 pb-28 px-0">
-        <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
+      <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pb-28 px-0">
+        <div className="flex items-center gap-3 border-b border-zinc-300 pb-2">
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
           <input
             value={q}
@@ -874,6 +893,7 @@ export default function Home() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
