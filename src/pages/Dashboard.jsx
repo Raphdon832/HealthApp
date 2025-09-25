@@ -247,17 +247,18 @@ export default function Dashboard() {
   }, [profile, user]);
 
   return (
-    <div className="pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-auto sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
+    <>
+      {/* Mobile Sticky Header - Separate from main content */}
+      <header className="sm:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/50 shadow-sm px-4 py-4 transition-all duration-200">
         <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
           My<br />Dashboard
         </h1>
         
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-2">
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'overview'
                 ? 'bg-white text-sky-600 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
@@ -272,7 +273,7 @@ export default function Dashboard() {
                 markReviewsAsRead();
               }
             }}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
               activeTab === 'reviews'
                 ? 'bg-white text-sky-600 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
@@ -288,7 +289,49 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="flex-1 px-3 sm:px-4 py-6 relative w-full mb-4">
+      <div className="pt-4 sm:pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
+        {/* Desktop Header - Non-sticky, inside container */}
+        <header className="hidden sm:block pb-2 pt-4">
+          <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
+            My<br />Dashboard
+          </h1>
+          
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-2">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-white text-sky-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('reviews');
+                if (unreadReviewsCount > 0) {
+                  markReviewsAsRead();
+                }
+              }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
+                activeTab === 'reviews'
+                  ? 'bg-white text-sky-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Reviews
+              {unreadReviewsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+                  {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </header>
+
+      <main className="flex-1 px-3 sm:px-4 py-2 sm:py-6 relative w-full mb-4">
         {activeTab === 'overview' ? (
           // Existing Overview Content
           <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start pb-16">
@@ -584,6 +627,7 @@ export default function Dashboard() {
           markReviewsAsRead();
         }}
       />
-    </div>
+      </div>
+    </>
   );
 }
