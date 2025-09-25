@@ -469,6 +469,26 @@ export default function ProductDetail({ product, pharmacy }) {
                               {dateStr && (
                                 <div className="text-[11px] text-zinc-400 mt-1">{dateStr}</div>
                               )}
+                              
+                              {/* Pharmacy Response */}
+                              {review.pharmacyResponse && (
+                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100 rounded-lg shadow-sm">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
+                                    <span className="font-poppins font-semibold text-[13px] text-sky-700">
+                                      {pharmacy?.name || 'Pharmacy'} Response
+                                    </span>
+                                    {review.pharmacyResponse.respondedAt && (
+                                      <span className="text-[10px] text-sky-500 ml-auto">
+                                        {new Date(review.pharmacyResponse.respondedAt.seconds * 1000).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-zinc-700 text-[13px] font-poppins leading-relaxed pl-4">
+                                    "{review.pharmacyResponse.message}"
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           );
                         })

@@ -161,48 +161,52 @@ export default function ReviewsManagement() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading reviews...</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="text-center py-16">
+          <div className="relative mx-auto w-12 h-12 mb-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 border-t-transparent absolute top-0 left-0"></div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading your reviews...</p>
+          <p className="text-gray-400 text-sm mt-1">Please wait while we fetch your data</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header with stats */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Reviews Management</h2>
+      <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Reviews Management</h2>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
           >
             <Filter className="h-4 w-4" />
-            Filters
+            Filters & Sort
             {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-blue-600">Total Reviews</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.total}</div>
+            <div className="text-xs sm:text-sm text-blue-600 font-medium">Total Reviews</div>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{stats.responded}</div>
-            <div className="text-sm text-green-600">Responded</div>
+          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.responded}</div>
+            <div className="text-xs sm:text-sm text-green-600 font-medium">Responded</div>
           </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{stats.avgRating.toFixed(1)}</div>
-            <div className="text-sm text-yellow-600">Avg Rating</div>
+          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200 shadow-sm">
+            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.avgRating.toFixed(1)}</div>
+            <div className="text-xs sm:text-sm text-yellow-600 font-medium">Avg Rating</div>
           </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{stats.positiveReviews}</div>
-            <div className="text-sm text-purple-600">Positive (4+ ⭐)</div>
+          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-sm">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.positiveReviews}</div>
+            <div className="text-xs sm:text-sm text-purple-600 font-medium">Positive (4+ ⭐)</div>
           </div>
         </div>
 
@@ -254,97 +258,157 @@ export default function ReviewsManagement() {
       </div>
 
       {/* Reviews list */}
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y divide-gray-100">
         {filteredReviews.length === 0 ? (
-          <div className="p-12 text-center">
-            <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews found</h3>
-            <p className="text-gray-600">
+          <div className="p-8 sm:p-12 text-center">
+            <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="h-10 w-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews found</h3>
+            <p className="text-gray-600 text-sm max-w-md mx-auto">
               {reviews.length === 0 
-                ? "You don't have any reviews yet. Encourage customers to leave reviews!"
-                : "No reviews match your current filters."
+                ? "You don't have any reviews yet. Encourage customers to leave reviews by providing excellent service and follow-up communication!"
+                : "No reviews match your current filters. Try adjusting your search criteria."
               }
             </p>
           </div>
         ) : (
-          filteredReviews.map((review) => (
-            <div key={review.id} className="p-6 hover:bg-gray-50 transition-colors">
-              {/* Review header */}
-              <div className="flex items-start gap-4 mb-3">
-                <ProductAvatar 
-                  name={review.productName}
-                  image={products[review.productId]?.image}
-                  category={products[review.productId]?.category}
-                  size={48}
-                  className="flex-shrink-0"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">{review.productName}</h4>
-                    <div className="flex items-center gap-2">
-                      {renderStars(review.rating)}
-                      <span className="text-sm text-gray-500">
-                        {review.createdAt && new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
+          filteredReviews.map((review, index) => (
+            <div 
+              key={review.id} 
+              className="p-4 sm:p-6 hover:bg-gray-50 transition-all duration-200 animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {/* Review Card */}
+              <div className="space-y-3">
+                {/* Date at the top */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {review.createdAt && new Date(review.createdAt.seconds * 1000).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                  {!review.pharmacyResponse && (
+                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium">
+                      Needs Response
+                    </span>
+                  )}
+                </div>
+
+                {/* Product info with avatar and name */}
+                <div className="flex items-center gap-3">
+                  <ProductAvatar 
+                    name={review.productName}
+                    image={products[review.productId]?.image}
+                    category={products[review.productId]?.category}
+                    size={40}
+                    className="flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-1" title={review.productName}>
+                      {review.productName}
+                    </h4>
+                    <p className="text-xs text-gray-500 truncate">
+                      {products[review.productId]?.category || 'Medicine'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Star rating */}
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {renderStars(review.rating)}
+                  </div>
+                  <span className="text-sm text-gray-600">({review.rating}/5)</span>
+                </div>
+
+                {/* Reviewer name */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Reviewed by:</span>
+                  <span className="font-medium text-gray-800 text-sm">{review.customerName || review.name}</span>
+                  {review.verified && (
+                    <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
+                      Verified
+                    </span>
+                  )}
+                </div>
+
+                {/* Review comment */}
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <p className="text-gray-800 text-sm sm:text-base leading-relaxed">{review.comment}</p>
+                </div>
+
+                {/* Helpfulness indicator */}
+                {review.helpful > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>👍</span>
+                    <span>{review.helpful} people found this helpful</span>
+                  </div>
+                )}
+                
+                {/* Pharmacy response */}
+                {review.pharmacyResponse && (
+                  <div className="ml-0 sm:ml-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg p-3 sm:p-4 border-l-4 border-blue-400 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Reply className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <span className="text-sm font-semibold text-blue-900">Your Response</span>
+                      <span className="text-xs text-blue-600 ml-auto">
+                        {review.pharmacyResponse.respondedAt && new Date(review.pharmacyResponse.respondedAt.seconds * 1000).toLocaleDateString()}
                       </span>
                     </div>
+                    <p className="text-blue-900 text-sm leading-relaxed">{review.pharmacyResponse.message || review.pharmacyResponse}</p>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">By: {review.name}</p>
-                  <p className="text-gray-800">{review.comment}</p>
-                  
-                  {/* Pharmacy response */}
-                  {review.pharmacyResponse && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Reply className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Your Response</span>
-                        <span className="text-xs text-blue-600">
-                          {review.responseDate && new Date(review.responseDate.seconds * 1000).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-blue-900">{review.pharmacyResponse}</p>
-                    </div>
-                  )}
-                  
-                  {/* Response form */}
-                  {!review.pharmacyResponse && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: !prev[review.id] }))}
-                        className="flex items-center gap-2 text-sky-600 hover:text-sky-700 text-sm font-medium"
-                      >
-                        <Reply className="h-4 w-4" />
-                        {expandedReviews[review.id] ? 'Cancel Response' : 'Respond to Review'}
-                      </button>
-                      
-                      {expandedReviews[review.id] && (
-                        <div className="mt-3 space-y-3">
+                )}
+                
+                {/* Response form */}
+                {!review.pharmacyResponse && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <button
+                      onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: !prev[review.id] }))}
+                      className="flex items-center gap-2 text-sky-600 hover:text-sky-700 text-sm font-medium transition-colors"
+                    >
+                      <Reply className="h-4 w-4" />
+                      {expandedReviews[review.id] ? 'Cancel Response' : 'Respond to Review'}
+                    </button>
+                    
+                    {expandedReviews[review.id] && (
+                      <div className="mt-3 space-y-3">
+                        <div className="relative">
                           <textarea
                             value={responseText[review.id] || ''}
                             onChange={(e) => setResponseText(prev => ({ ...prev, [review.id]: e.target.value }))}
-                            placeholder="Write your response to this review..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
-                            rows={3}
+                            placeholder="Write a thoughtful response to this review..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none text-sm"
+                            rows={4}
+                            maxLength={500}
                           />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleResponse(review.id, review.productId, responseText[review.id] || '')}
-                              className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
-                              disabled={!responseText[review.id]?.trim()}
-                            >
-                              Submit Response
-                            </button>
-                            <button
-                              onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: false }))}
-                              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                            >
-                              Cancel
-                            </button>
+                          <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                            {(responseText[review.id] || '').length}/500
                           </div>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            onClick={() => handleResponse(review.id, review.productId, responseText[review.id] || '')}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            disabled={!responseText[review.id]?.trim()}
+                          >
+                            Submit Response
+                          </button>
+                          <button
+                            onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: false }))}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))
