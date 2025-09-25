@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { removeFromCart, placeOrder } from "@/lib/db";
@@ -6,6 +7,23 @@ import { useAuth } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
+
+// Fixed Header Component
+const FixedHeader = ({ title, itemCount }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <div className="flex mt-8 items-center justify-between">
+          <h1 className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">{title}</h1>
+          {itemCount > 0 && (
+            <span className="text-[12px] text-sky-400">{itemCount} items</span>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function Cart() {
   const { user } = useAuth();
@@ -125,14 +143,10 @@ export default function Cart() {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0">
-        <div className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">
-          Cart
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-3">
+    <>
+      <FixedHeader title="Cart" itemCount={items.length} />
+      <div className="pt-24 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
+        <div className="mt-10 grid grid-cols-2 gap-3">
         {harmonizedItems.map((i, index) => (
           <div key={i.product?.id} className="relative rounded-xl border border-zinc-200 p-2 flex flex-col items-center gap-2 min-w-0 card-interactive animate-fadeInUp" style={{ animationDelay: `${index * 0.1}s` }}>
             {/* Remove icon button at top right */}
@@ -212,6 +226,7 @@ export default function Cart() {
           </button>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

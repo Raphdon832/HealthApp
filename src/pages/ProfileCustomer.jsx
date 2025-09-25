@@ -2,10 +2,33 @@ import { useAuth } from '@/lib/auth';
 import { MapPin, Phone, Search, LogOut, Pencil, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
+
+// Fixed Header Component
+const FixedHeader = ({ title, onSearchClick, onSettingsClick }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <div className="mt-8 flex items-center justify-between">
+          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</h1>
+          <div className="flex items-center gap-2">
+            <button onClick={onSearchClick} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 transition-all duration-200">
+              <Search className="h-5 w-5 text-sky-600" />
+            </button>
+            <button onClick={onSettingsClick} aria-label="Open settings" className="rounded-full p-2 hover:bg-sky-50 transition-all duration-200">
+              <Settings className="h-5 w-5 text-sky-600" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
@@ -202,21 +225,13 @@ export default function ProfileCustomer() {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen animate-fadeInUp">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
-        <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">My<br/>Profile</div>
-          <div className="flex items-center gap-2 animate-slideInRight">
-            <button onClick={() => setShowSearch(true)} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
-              <Search className="h-5 w-5 text-sky-600" />
-            </button>
-            <button onClick={() => navigate('/settings')} aria-label="Open settings" className="rounded-full p-2 hover:bg-sky-50 btn-interactive icon-interactive transition-all duration-200">
-              <Settings className="h-5 w-5 text-sky-600" />
-            </button>
-          </div>
-        </div>
-      </div>
+    <>
+      <FixedHeader 
+        title="My Profile"
+        onSearchClick={() => setShowSearch(true)}
+        onSettingsClick={() => navigate('/settings')}
+      />
+      <div className="pt-24 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen animate-fadeInUp">
 
       {/* Search modal (click outside to close) */}
       {showSearch && (
@@ -468,6 +483,7 @@ export default function ProfileCustomer() {
        <div>
             <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
           </div>
-    </div>
+      </div>
+    </>
   );
 }
