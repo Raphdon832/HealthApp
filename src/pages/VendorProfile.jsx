@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Phone, MessageCircle, ArrowLeft } from 'lucide-react';
 import { getDoc, doc } from 'firebase/firestore';
@@ -154,18 +155,44 @@ export default function VendorProfile() {
     doc.save(`${vendor.name || 'pharmacy'}-report.pdf`);
   };
 
-  return (
-    <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-8 pb-28">
-      {/* Sticky header with back button and title */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 flex items-center gap-3 animate-slide-down-fade">
+  // Fixed Header Component (Mobile Only)
+  const FixedHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+          className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
         >
           <ArrowLeft className="h-3 w-3 mr-0" /> Back
         </button>
-        <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal">Vendor&nbsp;Profile</div>
+        <div className="text-[18px] font-light font-poppins leading-none">Vendor Profile</div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleMessageVendor}
+            className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            aria-label="Message vendor"
+          >
+            <MessageCircle className="w-5 h-5 text-sky-600" />
+          </button>
+        </div>
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {createPortal(<FixedHeader />, document.body)}
+      <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-24 md:pt-8 pb-28">
+        {/* Sticky header with back button and title */}
+        <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 items-center gap-3 animate-slide-down-fade hidden md:flex">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+          >
+            <ArrowLeft className="h-3 w-3 mr-0" /> Back
+          </button>
+          <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal">Vendor&nbsp;Profile</div>
+        </div>
 
       {/* Central responsive area: on mobile stacked (vendor then products), on md+ grid with products (left) and vendor details + message (right) */}
       <div className="w-full mx-auto mt-6">
@@ -270,5 +297,6 @@ export default function VendorProfile() {
       </div>
 
     </div>
+    </>
   );
 }

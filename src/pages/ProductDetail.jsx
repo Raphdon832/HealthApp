@@ -1,5 +1,6 @@
 import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart, ThumbsUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, setDoc, deleteDoc, doc as firestoreDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { addToCart } from '@/lib/db';
@@ -233,12 +234,38 @@ export default function ProductDetail({ product, pharmacy }) {
     setShowShareOptions(false);
   }
 
+  // Fixed Header Component (Mobile Only)
+  const FixedHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            aria-label="Share product"
+            onClick={() => setShowShareOptions(true)}
+          >
+            <Share2 className="w-5 h-5 text-sky-600" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Page container */}
-      <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
-        {/* Sticky back button + share icon */}
-        <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade flex items-center justify-between">
+    <>
+      {createPortal(<FixedHeader />, document.body)}
+      <div className="min-h-screen bg-white pt-24 md:pt-0">
+        {/* Page container */}
+        <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
+          {/* Sticky back button + share icon */}
+          <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
           <button
             onClick={() => navigate(-1)}
             className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
@@ -607,5 +634,6 @@ export default function ProductDetail({ product, pharmacy }) {
         )}
       </div>
     </div>
+    </>
   );
 }
