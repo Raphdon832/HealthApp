@@ -14,6 +14,7 @@ import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } fro
 import { listenUserThreads } from '@/lib/db';
 import PageTransitionWrapper from '@/components/PageTransitionWrapper';
 import InteractiveSwipeWrapper from '@/components/InteractiveSwipeWrapper';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -58,6 +59,7 @@ function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { getSetting } = useSettings();
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -151,8 +153,10 @@ function AppLayout() {
     navigate('/orders');
   };
 
-  // Device detection: only enable swipe nav on mobile/tablet
+  // Device detection and swipe setting check
   const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+  const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
+  const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
 
   return (
     <div
@@ -161,7 +165,7 @@ function AppLayout() {
       }`}
     >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        {isMobileOrTablet ? (
+        {shouldShowSwipeWrapper ? (
           <InteractiveSwipeWrapper />
         ) : (
           <Outlet />

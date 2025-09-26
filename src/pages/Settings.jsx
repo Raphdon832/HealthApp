@@ -1,8 +1,9 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Settings as SettingsIcon, Bell } from 'lucide-react';
+import { ArrowLeft, Settings as SettingsIcon, Bell, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
 import NotificationSettings from '@/components/NotificationSettings';
 
 // Fixed Header Component
@@ -29,6 +30,21 @@ const FixedHeader = ({ title, onBackClick }) => {
 export default function Settings() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { getSetting, updateSetting } = useSettings();
+
+  // Check if user is on mobile/tablet
+  const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+
+  const handleSwipeToggle = (enabled) => {
+    updateSetting(SETTINGS_KEYS.SWIPE_NAVIGATION, enabled);
+    
+    // Show a brief toast or feedback (optional)
+    if (enabled) {
+      console.log('Swipe navigation enabled - swipe left/right to navigate between pages on mobile');
+    } else {
+      console.log('Swipe navigation disabled');
+    }
+  };
 
   return (
     <>
@@ -56,6 +72,50 @@ export default function Settings() {
 
         {/* Future settings sections can be added here */}
         <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-full bg-gray-100 p-2">
+              <Smartphone className="h-5 w-5 text-gray-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Navigation</h2>
+              <p className="text-sm text-gray-600">Customize your navigation experience</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Swipe Navigation Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">Swipe Navigation</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Enable swipe gestures to navigate between pages on mobile devices
+                  {!isMobileOrTablet && <span className=" text-orange-500"> (Desktop - feature available on mobile only)</span>}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION)}
+                  onChange={(e) => handleSwipeToggle(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+              </label>
+            </div>
+            
+            {/* Help text when swipe is enabled */}
+            {getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION) && isMobileOrTablet && (
+              <div className="bg-sky-50 rounded-lg p-3 mt-2">
+                <p className="text-xs text-sky-700">
+                  <span className="font-medium">How to use:</span> Swipe left or right anywhere on the screen to navigate between Home, Cart, Messages, and Orders pages.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* General Settings Section */}
+        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-gray-100 p-2">
               <SettingsIcon className="h-5 w-5 text-gray-600" />
