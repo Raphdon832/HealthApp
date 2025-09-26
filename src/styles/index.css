@@ -84,6 +84,72 @@ html, body, #root {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Comprehensive dark mode transformations */
+/* Transform all white/light backgrounds to dark */
+.dark .bg-white { background-color: #111827 !important; } /* gray-900 */
+.dark .bg-gray-50 { background-color: #1f2937 !important; } /* gray-800 */
+.dark .bg-gray-100 { background-color: #374151 !important; } /* gray-700 */
+.dark .bg-gray-200 { background-color: #4b5563 !important; } /* gray-600 */
+.dark .bg-gray-300 { background-color: #6b7280 !important; } /* gray-500 */
+
+/* Transform all dark backgrounds to light */
+.dark .bg-black { background-color: #ffffff !important; }
+.dark .bg-gray-900 { background-color: #f3f4f6 !important; } /* gray-100 */
+.dark .bg-gray-800 { background-color: #e5e7eb !important; } /* gray-200 */
+.dark .bg-gray-700 { background-color: #d1d5db !important; } /* gray-300 */
+
+/* Transform text colors */
+.dark .text-black { color: #ffffff !important; }
+.dark .text-gray-900 { color: #f3f4f6 !important; } /* gray-100 */
+.dark .text-gray-800 { color: #e5e7eb !important; } /* gray-200 */
+.dark .text-gray-700 { color: #d1d5db !important; } /* gray-300 */
+.dark .text-gray-600 { color: #9ca3af !important; } /* gray-400 */
+.dark .text-gray-500 { color: #6b7280 !important; } /* Keep neutral gray */
+.dark .text-white { color: #111827 !important; } /* gray-900 */
+
+/* Transform border colors */
+.dark .border-white { border-color: #374151 !important; } /* gray-700 */
+.dark .border-gray-200 { border-color: #374151 !important; } /* gray-700 */
+.dark .border-gray-300 { border-color: #4b5563 !important; } /* gray-600 */
+.dark .border-gray-400 { border-color: #6b7280 !important; } /* gray-500 */
+.dark .border-black { border-color: #d1d5db !important; } /* gray-300 */
+
+/* Transform zinc colors (commonly used) */
+.dark .text-zinc-500 { color: #a1a1aa !important; } /* zinc-400 */
+.dark .text-zinc-600 { color: #d4d4d8 !important; } /* zinc-300 */
+.dark .text-zinc-700 { color: #e4e4e7 !important; } /* zinc-200 */
+.dark .border-zinc-300 { border-color: #52525b !important; } /* zinc-600 */
+
+/* Transform input and form elements */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="search"],
+.dark textarea,
+.dark select {
+  background-color: #374151 !important; /* gray-700 */
+  border-color: #4b5563 !important; /* gray-600 */
+  color: #f9fafb !important; /* gray-50 */
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="search"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #60a5fa !important; /* blue-400 */
+  box-shadow: 0 0 0 1px #60a5fa !important;
+}
+
+/* Transform hover states */
+.dark .hover\\:bg-gray-50:hover { background-color: #374151 !important; } /* gray-700 */
+.dark .hover\\:bg-gray-100:hover { background-color: #4b5563 !important; } /* gray-600 */
+.dark .hover\\:bg-white:hover { background-color: #111827 !important; } /* gray-900 */
+
+/* Preserve colored elements (blue, green, red, etc.) - they stay the same */
+/* These colors naturally work well in both themes */
+
 /* Global theme application */
 .dark body {
   background-color: var(--bg-primary);

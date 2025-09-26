@@ -18,10 +18,10 @@ import ProductAvatar from '@/components/ProductAvatar';
 // Fixed Header Component
 const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
   return createPortal(
-    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+    <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
         <div className="flex items-center justify-between">
-          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">Pharmacy<br/>Profile</h1>
+          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">Pharmacy<br/>Profile</h1>
           <div className="flex items-center gap-3">
             {/* Inline search bar for small+ screens */}
             <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">

@@ -525,7 +525,7 @@ export default function Home() {
 
         {/* Search suggestions: show matching pharmacies/places */}
         {showSearchSuggestions && q.trim().length > 0 && pharmacyMatches.length > 0 && (
-          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto animate-fade-in">
+          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg divide-y dark:divide-gray-700 max-h-56 overflow-auto animate-fade-in">
             {pharmacyMatches.map((ph, index) => (
               <button
                 key={ph.id || ph.vendorId || ph.name}

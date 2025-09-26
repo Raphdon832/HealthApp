@@ -254,7 +254,7 @@ export default function PharmacyMap() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-[25px] font-light">Nearby Pharmacies</h1>
+            <h1 className="text-[25px] font-light text-gray-900 dark:text-white">Nearby Pharmacies</h1>
           </div>
           <LoadingSkeleton lines={8} className="space-y-4 justify-center" />
         </div>
@@ -264,7 +264,7 @@ export default function PharmacyMap() {
 
   // Fixed Header Component (Mobile Only)
   const FixedHeader = () => (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700">
       <div className="px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
@@ -306,7 +306,7 @@ export default function PharmacyMap() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-[20px] font-light tracking-tight">Nearby Pharmacies</h1>
+              <h1 className="text-[20px] font-light tracking-tight text-gray-900 dark:text-white">Nearby Pharmacies</h1>
               <p className="text-[12px] text-gray-400">
                 {userCoords ? `${sortedPharmacies.length} pharmacies found near you` : 'Loading location...'}
               </p>

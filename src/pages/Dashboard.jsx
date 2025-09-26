@@ -49,14 +49,16 @@ export default function Dashboard() {
   // Mobile Header Component
   const MobileHeader = () => (
     <header 
-      className="sm:hidden fixed top-0 left-0 right-0 z-[100] border-b border-gray-100/50 shadow-sm px-4 py-4 transition-all duration-200"
+      className="sm:hidden fixed top-0 left-0 right-0 z-[100] border-b border-gray-100/50 dark:border-gray-700/50 shadow-sm px-4 py-4 transition-all duration-200"
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: document.documentElement.classList.contains('dark') 
+          ? 'rgba(17, 24, 39, 0.95)' 
+          : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      <h1 className="mt-8 text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
+      <h1 className="mt-8 text-[25px] font-light text-black dark:text-white leading-none animate-slideInLeft mb-4">
         My<br />Dashboard
       </h1>
       
@@ -305,7 +307,7 @@ export default function Dashboard() {
       <div className="pt-32 sm:pt-10 pb-32 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
         {/* Desktop Header - Non-sticky, inside container */}
         <header className="hidden sm:block pb-2 pt-4">
-          <h1 className="text-[25px] font-light text-black leading-none animate-slideInLeft mb-4">
+          <h1 className="text-[25px] font-light text-black dark:text-white leading-none animate-slideInLeft mb-4">
             My<br />Dashboard
           </h1>
           
@@ -360,7 +362,7 @@ export default function Dashboard() {
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <h2
-                    className="text-black font-light text-xl tracking-tight animate-slideInLeft"
+                    className="text-black dark:text-white font-light text-xl tracking-tight animate-slideInLeft"
                     style={{ animationDelay: '0.2s' }}
                   >
                     Top Products

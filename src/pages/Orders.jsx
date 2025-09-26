@@ -12,9 +12,9 @@ const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 // Fixed Header Component
 const FixedHeader = ({ title }) => {
   return createPortal(
-    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+    <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
-        <h1 className="mt-8 text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins">Orders</h1>
+        <h1 className="mt-8 text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins text-gray-900 dark:text-white">Orders</h1>
       </div>
     </div>,
     document.body

@@ -51,8 +51,14 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
           {items.map((it) => {
             const isActive = tab === it.key;
             const IconComponent = it.icon;
-            // Make icon color theme-aware
-            const iconProps = { color: isActive ? '#36A5FF' : undefined };
+            // Make icon color theme-aware - active stays blue, inactive follows theme
+            const iconProps = { 
+              color: isActive 
+                ? '#36A5FF' 
+                : document.documentElement.classList.contains('dark') 
+                  ? '#ffffff' 
+                  : '#6b7280'
+            };
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
             const isOrders = it.key === '/orders';
@@ -76,7 +82,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   />
                   
                   <div className="relative z-10 transition-transform duration-200 hover:scale-110">
-                    <IconComponent {...iconProps} className={`h-6 w-6 mb-1 ${!isActive ? 'text-current' : ''}`} />
+                    <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
                   </div>
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">

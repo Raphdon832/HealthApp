@@ -38,7 +38,7 @@ export default function ProductCard({
       style={{ width: cardWidth, height: cardHeight, borderRadius: borderRadius || '10px' }}
     >
       <div
-        className="overflow-hidden flex items-center justify-center bg-white transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-sky-50"
+        className="overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-sky-50 dark:group-hover:from-blue-900/20 dark:group-hover:to-sky-900/20"
         style={{ height: `calc(${cardHeight} * 0.6)`, borderRadius: borderRadius || '3px' }}
       >
         {showImage ? (

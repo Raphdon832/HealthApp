@@ -12,10 +12,10 @@ import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 // Fixed Header Component
 const FixedHeader = ({ title, onSearchClick, onSettingsClick }) => {
   return createPortal(
-    <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100">
+    <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
         <div className="mt-8 flex items-center justify-between">
-          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none">My<br/>Profile</h1>
+          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">My<br/>Profile</h1>
           <div className="flex items-center gap-2">
             <button onClick={onSearchClick} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 transition-all duration-200">
               <Search className="h-5 w-5 text-sky-600" />

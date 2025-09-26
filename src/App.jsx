@@ -37,7 +37,6 @@ import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
 import PharmacyMap from '@/pages/PharmacyMap';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
-import DarkModeToggle from '@/components/DarkModeToggle';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -400,7 +399,6 @@ export default function App() {
       <NotificationManager />
       <Shell />
       <GlobalMessageNotifier />
-      <DarkModeToggle />
     </AuthProvider>
   );
 }

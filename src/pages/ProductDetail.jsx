@@ -287,7 +287,7 @@ export default function ProductDetail({ product, pharmacy }) {
 
   // Fixed Header Component (Mobile Only)
   const FixedHeader = () => (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700">
       <div className="px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}

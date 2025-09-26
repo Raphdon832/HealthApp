@@ -3,7 +3,7 @@ export default function LoadingSkeleton({ className = '', style = {}, lines = 3,
 
   return (
     <div
-      className={`w-screen h-screen flex items-center justify-center ${desktopClass} bg-white ${className}`}
+      className={`w-screen h-screen flex items-center justify-center ${desktopClass} bg-white dark:bg-gray-900 ${className}`}
       style={style}
       role="status"
       aria-live="polite"
