@@ -618,7 +618,7 @@ export default function PharmacyMap() {
                   </div>
                 </div>
               </div>
-              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2">
+              <span className="bg-blue-600 text-white text-xs px-1 py-1 rounded-full font-medium flex-shrink-0 ml-2">
                 Closest
               </span>
             </div>
