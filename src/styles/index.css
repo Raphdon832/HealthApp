@@ -272,6 +272,39 @@ input, select, textarea {
   position: relative;
   overflow: hidden;
   transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
+  
+  /* Mobile browser optimizations */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Force hardware acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  
+  /* Ensure consistent rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-specific width constraints */
+@media (max-width: 480px) {
+  .liquid-bottom-nav {
+    /* Ensure it never gets too cramped on very small screens */
+    min-width: 280px;
+    /* But also never exceeds 95% of viewport width */
+    max-width: 95vw;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .liquid-bottom-nav {
+    /* Tablet-sized phones get a bit more space */
+    max-width: 90vw;
+  }
 }
 
 /* Dark mode liquid navigation */
@@ -334,5 +367,61 @@ input, select, textarea {
   .liquid-bottom-nav::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Mobile browser-specific optimizations */
+
+/* iOS Safari specific */
+@supports (-webkit-touch-callout: none) {
+  .liquid-bottom-nav {
+    /* Ensure proper rendering in iOS Safari */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    /* Fix for iOS Safari viewport issues */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Android Chrome/WebView specific */
+@media screen and (-webkit-device-pixel-ratio: 1.5),
+       screen and (-webkit-device-pixel-ratio: 2),
+       screen and (-webkit-device-pixel-ratio: 3) {
+  .liquid-bottom-nav {
+    /* Ensure crisp rendering on high DPI Android devices */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Firefox Mobile specific */
+@-moz-document url-prefix() {
+  .liquid-bottom-nav {
+    /* Firefox mobile backdrop filter fallback */
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .dark .liquid-bottom-nav {
+    background: rgba(15, 23, 42, 0.95);
+  }
+}
+
+/* Samsung Internet specific */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  _::-webkit-full-page-media, _:future, :root .liquid-bottom-nav {
+    /* Samsung Internet optimizations */
+    will-change: transform;
+  }
+}
+
+/* Edge Mobile specific */
+@supports (-ms-accelerator: true) {
+  .liquid-bottom-nav {
+    /* Edge mobile backdrop filter fallback */
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  .dark .liquid-bottom-nav {
+    background: rgba(15, 23, 42, 0.95) !important;
   }
 }

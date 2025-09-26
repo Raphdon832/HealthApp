@@ -90,12 +90,24 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
 
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50" aria-hidden={false}>
+    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50 px-3 sm:px-4" aria-hidden={false}>
       <nav
         ref={navRef}
         role="navigation"
         aria-label="Bottom navigation"
-        className="liquid-bottom-nav max-w-md px-5 py-3 bg-white/95 dark:bg-gray-900/40 backdrop-blur-md border border-sky-300 dark:border-sky-300 relative"
+        className="liquid-bottom-nav max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 bg-white/95 dark:bg-gray-900/40 backdrop-blur-md border border-sky-300 dark:border-sky-300 relative"
+        style={{
+          // Ensure consistent rendering across mobile browsers
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          KhtmlUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          userSelect: 'none',
+          // Force hardware acceleration for smooth performance
+          WebkitTransform: 'translateZ(0)',
+          transform: 'translateZ(0)',
+        }}
       >
         {/* Animated active indicator */}
         <div
@@ -132,14 +144,14 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   onClick={() => setTab(it.key)}
                   aria-label={it.label}
                   aria-pressed={isActive}
-                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-2 py-3 focus:outline-none transition-all duration-150 ease-out will-change-transform ${
+                  className={`relative flex flex-col items-center text-xs min-w-[56px] sm:min-w-[64px] md:min-w-[72px] px-1 sm:px-2 py-3 focus:outline-none transition-all duration-150 ease-out will-change-transform ${
                     isActive 
                       ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
                 >
                   <div className="relative z-10 transition-transform duration-150 ease-out will-change-transform hover:scale-110">
-                    <IconComponent {...iconProps} className={`h-7 w-7 mb-2 transition-all duration-150 ease-out ${
+                    <IconComponent {...iconProps} className={`h-7 w-7 sm:h-7 sm:w-7 mb-2 sm:mb-2 transition-all duration-150 ease-out ${
                       isActive ? 'drop-shadow-lg' : ''
                     }`} />
                   </div>
@@ -173,7 +185,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                     })()
                   )}
                   
-                  <span className={`truncate max-w-[72px] block text-center text-[12px] transition-all duration-150 ease-out ${
+                  <span className={`truncate max-w-[56px] sm:max-w-[72px] block text-center text-[10px] sm:text-[12px] transition-all duration-150 ease-out ${
                     isActive ? 'font-bold' : 'font-normal'
                   }`}>{it.label}</span>
                 </button>
