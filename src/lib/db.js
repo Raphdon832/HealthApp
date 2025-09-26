@@ -95,24 +95,38 @@ export const getOrCreateThread = async ({ vendorId, customerId, role }) => {
 
 export const sendChatMessage = async (threadId, { senderId, to, text }) => {
   const messagesCol = collection(db, "threads", threadId, "messages");
-  await addDoc(messagesCol, {
+  const messageRef = await addDoc(messagesCol, {
     senderId,
     to,
     text: text || "",
     createdAt: serverTimestamp(),
     read: false,
+    status: "sent", // sent, delivered, read
+    deliveredAt: null,
+    readAt: null,
   });
+  
   await updateDoc(doc(db, "threads", threadId), {
     lastMessage: text || "…",
     lastBy: senderId,
     lastAt: serverTimestamp(),
     [`unread.${to}`]: increment(1),
   });
+  
+  // Immediately mark as delivered (in a real app, this would be done when the recipient's client receives it)
+  setTimeout(async () => {
+    await updateDoc(messageRef, {
+      status: "delivered",
+      deliveredAt: serverTimestamp(),
+    });
+  }, 1000);
+  
+  return messageRef.id;
 };
 
 export const markThreadRead = async (threadId, viewerUid) => {
   await updateDoc(doc(db, "threads", threadId), { [`unread.${viewerUid}`]: 0 });
-  // optional: mark recent incoming read
+  // Mark recent incoming messages as read with timestamp
   const incoming = query(
     collection(db, "threads", threadId, "messages"),
     where("to", "==", viewerUid),
@@ -123,9 +137,35 @@ export const markThreadRead = async (threadId, viewerUid) => {
   const snap = await getDocs(incoming);
   if (!snap.empty) {
     const batch = writeBatch(db);
-    snap.docs.forEach((d) => batch.update(d.ref, { read: true }));
+    const readTime = serverTimestamp();
+    snap.docs.forEach((d) => {
+      batch.update(d.ref, { 
+        read: true,
+        status: "read",
+        readAt: readTime,
+      });
+    });
     await batch.commit();
   }
+};
+
+// Update message delivery status (called when recipient's client receives the message)
+export const markMessageDelivered = async (threadId, messageId) => {
+  const messageRef = doc(db, "threads", threadId, "messages", messageId);
+  await updateDoc(messageRef, {
+    status: "delivered",
+    deliveredAt: serverTimestamp(),
+  });
+};
+
+// Mark a specific message as read
+export const markMessageRead = async (threadId, messageId) => {
+  const messageRef = doc(db, "threads", threadId, "messages", messageId);
+  await updateDoc(messageRef, {
+    read: true,
+    status: "read",
+    readAt: serverTimestamp(),
+  });
 };
 
 /** Real-time messages in a thread */

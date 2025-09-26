@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
@@ -7,7 +7,8 @@ import {
   getOrCreateThread,
   listenThreadMessages,
   sendChatMessage,
-  markThreadRead
+  markThreadRead,
+  markMessageDelivered
 } from '@/lib/db';
 import { doc, getDoc } from 'firebase/firestore';
 import { Paperclip } from 'lucide-react';
@@ -50,6 +51,46 @@ function getDateLabel(date) {
 // Helper to detect if a message is a product preview
 function isProductPreviewMessage(m) {
   return m.type === 'product-preview';
+}
+
+// Message status indicator component
+function MessageStatus({ message, isMine }) {
+  if (!isMine) return null; // Only show status for sent messages
+  
+  const status = message.status || 'sent';
+  const isRead = message.read || status === 'read';
+  
+  if (status === 'sent') {
+    return (
+      <Check 
+        className="w-3 h-3 text-gray-400 ml-1" 
+        strokeWidth={2}
+        title="Sent"
+      />
+    );
+  }
+  
+  if (status === 'delivered') {
+    return (
+      <CheckCheck 
+        className="w-3 h-3 text-gray-400 ml-1" 
+        strokeWidth={2}
+        title="Delivered"
+      />
+    );
+  }
+  
+  if (status === 'read' || isRead) {
+    return (
+      <CheckCheck 
+        className="w-3 h-3 text-blue-500 ml-1" 
+        strokeWidth={2}
+        title="Read"
+      />
+    );
+  }
+  
+  return null;
 }
 
 export default function ChatThread() {
@@ -165,7 +206,21 @@ export default function ChatThread() {
   // Live messages + mark read
   useEffect(() => {
     if (!threadId || !user?.uid) return;
-    const stop = listenThreadMessages(threadId, setMessages, console.error);
+    const stop = listenThreadMessages(threadId, (newMessages) => {
+      setMessages(newMessages);
+      
+      // Mark incoming messages as delivered (simulate recipient receiving them)
+      newMessages.forEach(async (msg) => {
+        if (msg.senderId !== user.uid && msg.status === 'sent') {
+          try {
+            await markMessageDelivered(threadId, msg.id);
+          } catch (error) {
+            console.error('Error marking message as delivered:', error);
+          }
+        }
+      });
+    }, console.error);
+    
     markThreadRead(threadId, user.uid).catch(console.error);
     return stop;
   }, [threadId, user?.uid]);
@@ -174,10 +229,16 @@ export default function ChatThread() {
 
   // Page visibility for message tone
   useEffect(() => {
-    const handleVisibility = () => setIsTabActive(!document.hidden);
+    const handleVisibility = () => {
+      setIsTabActive(!document.hidden);
+      // When tab becomes active, mark thread as read
+      if (!document.hidden && threadId && user?.uid) {
+        markThreadRead(threadId, user.uid).catch(console.error);
+      }
+    };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+  }, [threadId, user?.uid]);
 
   // Play tone on new incoming message (not sent by self)
   const prevMsgId = useRef(null);
@@ -405,7 +466,10 @@ export default function ChatThread() {
                       >
                         <MessageWithLinks text={m.text} isMine={isMine} />
                       </div>
-                      <div className={`text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2' : 'ml-2'}`}>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                      <div className={`flex items-center text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                        <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                        <MessageStatus message={m} isMine={isMine} />
+                      </div>
                     </div>
                   </React.Fragment>
                 );
