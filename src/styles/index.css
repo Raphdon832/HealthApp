@@ -261,17 +261,37 @@ input, select, textarea {
   touch-action: manipulation;
 }
 
-/* Liquid glass bottom navigation (Apple-style) */
+/* Apple-style liquid glass bottom navigation */
 .liquid-bottom-nav {
   border-radius: 40px;
-  border: 1px solid rgba(54, 165, 255, 0.12);
-  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-  box-shadow: 0 10px 30px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  
+  /* Enhanced glass morphism border - more subtle and refined */
+  border: 0.5px solid rgba(255,255,255,0.18);
+  
+  /* Multi-layer glass background for depth */
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%),
+    linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%);
+  
+  /* Enhanced shadows for floating glass effect */
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.12),
+    0 2px 8px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -1px 0 rgba(0,0,0,0.05);
+  
+  /* Enhanced backdrop blur with saturation boost */
+  backdrop-filter: blur(24px) saturate(180%) brightness(110%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(110%);
+  
   position: relative;
   overflow: hidden;
-  transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
+  
+  /* Smooth transitions for interactions */
+  transition: 
+    transform 280ms cubic-bezier(0.4, 0.0, 0.2, 1),
+    box-shadow 280ms cubic-bezier(0.4, 0.0, 0.2, 1),
+    backdrop-filter 280ms ease;
   
   /* Mobile browser optimizations */
   -webkit-touch-callout: none;
@@ -284,10 +304,21 @@ input, select, textarea {
   /* Force hardware acceleration */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  will-change: transform, box-shadow;
   
   /* Ensure consistent rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hover effect for enhanced glass depth */
+.liquid-bottom-nav:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 40px rgba(0,0,0,0.15),
+    0 4px 12px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.08);
 }
 
 /* Mobile-specific width constraints */
@@ -307,47 +338,141 @@ input, select, textarea {
   }
 }
 
-/* Dark mode liquid navigation */
+/* Dark mode liquid glass navigation */
 .dark .liquid-bottom-nav {
-  border: 1px solid rgba(54, 165, 255, 0.2);
-  background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.90));
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  /* Refined dark glass border */
+  border: 0.5px solid rgba(255,255,255,0.15);
+  
+  /* Multi-layer dark glass background */
+  background: 
+    linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.9) 100%),
+    linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  
+  /* Enhanced dark mode shadows */
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.4),
+    0 2px 8px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  
+  /* Enhanced backdrop blur for dark mode */
+  backdrop-filter: blur(24px) saturate(160%) brightness(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%) brightness(120%);
 }
 
-/* Subtle glossy sweep */
+/* Dark mode hover effect */
+.dark .liquid-bottom-nav:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 40px rgba(0,0,0,0.5),
+    0 4px 12px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+/* Enhanced glass reflection sweep - Apple-style light refraction */
 .liquid-bottom-nav::before {
   content: '';
   position: absolute;
-  left: -20%;
-  top: -40%;
-  width: 140%;
-  height: 220%;
-  background: linear-gradient(120deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.06) 70%, rgba(255,255,255,0)) ;
-  transform: rotate(-18deg);
-  opacity: 0.6;
+  left: -30%;
+  top: -50%;
+  width: 160%;
+  height: 250%;
+  
+  /* Complex light refraction gradient */
+  background: 
+    radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 30%, transparent 70%),
+    linear-gradient(135deg, 
+      rgba(255,255,255,0.2) 0%, 
+      rgba(255,255,255,0.08) 20%, 
+      rgba(255,255,255,0.03) 40%, 
+      rgba(255,255,255,0.12) 60%, 
+      rgba(255,255,255,0.02) 80%, 
+      transparent 100%
+    );
+  
+  transform: rotate(-25deg);
+  opacity: 0.8;
   mix-blend-mode: overlay;
   pointer-events: none;
-  filter: blur(18px);
+  filter: blur(20px);
+  
+  /* Subtle animation for living glass effect */
+  animation: glassShimmer 8s ease-in-out infinite alternate;
 }
 
-/* Dark mode glossy sweep */
+/* Glass shimmer animation */
+@keyframes glassShimmer {
+  0% {
+    opacity: 0.6;
+    transform: rotate(-25deg) translateX(-10px);
+  }
+  100% {
+    opacity: 0.8;
+    transform: rotate(-25deg) translateX(10px);
+  }
+}
+
+/* Dark mode glass reflection */
 .dark .liquid-bottom-nav::before {
-  background: linear-gradient(120deg, rgba(96,165,250,0.08) 0%, rgba(59,130,246,0.04) 40%, rgba(96,165,250,0.06) 70%, rgba(96,165,250,0)) ;
+  background: 
+    radial-gradient(ellipse at center, rgba(96,165,250,0.12) 0%, rgba(59,130,246,0.06) 30%, transparent 70%),
+    linear-gradient(135deg, 
+      rgba(255,255,255,0.15) 0%, 
+      rgba(96,165,250,0.08) 20%, 
+      rgba(59,130,246,0.04) 40%, 
+      rgba(255,255,255,0.1) 60%, 
+      rgba(96,165,250,0.02) 80%, 
+      transparent 100%
+    );
+  
+  opacity: 0.7;
 }
 
-/* Inner soft edge for depth */
+/* Multi-layered glass depth system */
 .liquid-bottom-nav::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 40px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -6px 24px rgba(2,6,23,0.08);
+  inset: 0.5px;
+  border-radius: 39px;
+  
+  /* Complex inner glass depth */
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(0,0,0,0.04) 100%),
+    radial-gradient(ellipse at center top, rgba(255,255,255,0.12) 0%, transparent 60%);
+  
+  /* Sophisticated inner shadows for glass thickness */
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    inset 0 -1px 0 rgba(0,0,0,0.1),
+    inset 0 0 20px rgba(255,255,255,0.05),
+    inset 0 2px 4px rgba(255,255,255,0.1);
+  
   pointer-events: none;
+  mix-blend-mode: overlay;
 }
 
-/* Dark mode inner soft edge */
+/* Dark mode glass depth */
 .dark .liquid-bottom-nav::after {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -6px 24px rgba(0,0,0,0.3);
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(0,0,0,0.15) 100%),
+    radial-gradient(ellipse at center top, rgba(96,165,250,0.08) 0%, transparent 60%);
+  
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.3),
+    inset 0 0 20px rgba(255,255,255,0.03),
+    inset 0 2px 4px rgba(96,165,250,0.08);
+}
+
+/* Additional glass layer for ultimate depth */
+.liquid-bottom-nav::after::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 38px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 /* Button interactions */

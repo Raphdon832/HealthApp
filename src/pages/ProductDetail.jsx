@@ -629,7 +629,7 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
-<div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden animate-slide-up-fade">
+<div className="fixed left-0 right-0 bottom-[8rem] z-30 lg:hidden animate-slide-up-fade">
   <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
     <div className="flex flex-row gap-3 justify-center">
       <button
