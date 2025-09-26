@@ -305,21 +305,21 @@ export default function VendorProfile() {
   return (
     <>
       {createPortal(<FixedHeader />, document.body)}
-      <div className="min-h-screen bg-white/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-24 md:pt-8 pb-28">
+      <div className="min-h-screen bg-white/80 dark:bg-gray-900/80 backdrop-blur-md w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pt-24 md:pt-8 pb-28">
         {/* Sticky header with back button and title */}
-        <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 items-center gap-3 animate-slide-down-fade hidden md:flex">
+        <div className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 items-center gap-3 animate-slide-down-fade hidden md:flex">
           <button
             onClick={() => navigate(-1)}
-            className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 text-gray-900 dark:text-white mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-3 w-3 mr-0" /> Back
           </button>
-          <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal">Vendor&nbsp;Profile</div>
+          <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal text-gray-900 dark:text-white">Vendor&nbsp;Profile</div>
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={handleBookmarkToggle}
-              className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
-                isBookmarked ? 'bg-sky-100 border-sky-300' : 'hover:bg-sky-50'
+              className={`p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isBookmarked ? 'bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-sky-600' : 'hover:bg-sky-50 dark:hover:bg-sky-900/20'
               }`}
               aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
             >
@@ -337,15 +337,15 @@ export default function VendorProfile() {
           {/* PRODUCTS: mobile order 2, md+ order 2 (right column spanning 2 cols) */}
           <div className={`order-2 ${!useMobileLayout ? 'md:order-2 md:col-span-2' : ''} animate-fade-in-up`}>
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
-            <div className={`border border-zinc-200 rounded-2xl bg-white shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:backdrop-blur-sm md:z-20' : ''} animate-slide-down-fade`}>
+            <div className={`border border-zinc-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:dark:bg-gray-800/90 md:backdrop-blur-sm md:z-20' : ''} animate-slide-down-fade`}>
               <div>
-                <div className="text-[18px] font-poppins font-medium">Products by<br/>{vendor?.name || 'Vendor'}</div>
-                <div className="text-zinc-500 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `of ${products.length}` : ''} items</div>
+                <div className="text-[18px] font-poppins font-medium text-gray-900 dark:text-white">Products by<br/>{vendor?.name || 'Vendor'}</div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `of ${products.length}` : ''} items</div>
               </div>
               <div>
                 {filteredProducts.length > 3 && !showAll && (
                   <button
-                    className="text-sky-600 text-[12px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="text-sky-600 dark:text-sky-400 text-[12px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(true)}
                   >
                     See more
@@ -353,7 +353,7 @@ export default function VendorProfile() {
                 )}
                 {filteredProducts.length > 3 && showAll && (
                   <button
-                    className="text-sky-600 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(false)}
                   >
                     See less
@@ -367,7 +367,7 @@ export default function VendorProfile() {
                 {(showAll ? filteredProducts : filteredProducts.slice(0, 3)).map((p, index) => (
                   <div
                     key={p.id}
-                    className="rounded-2xl border border-zinc-200 p-3 flex items-center gap-3 bg-white shadow-sm cursor-pointer hover:bg-sky-50 transition-all duration-200 overflow-hidden card-interactive animate-fadeInUp hover:scale-102 hover:shadow-lg"
+                    className="rounded-2xl border border-zinc-200 dark:border-gray-600 p-3 flex items-center gap-3 bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 overflow-hidden card-interactive animate-fadeInUp hover:scale-102 hover:shadow-lg"
                     style={{ animationDelay: `${index * 0.1}s` }}
                     onClick={() => navigate(`/product/${p.id}`)}
                   >
@@ -375,8 +375,8 @@ export default function VendorProfile() {
                       <ProductAvatar name={p.name} image={p.image} category={p.category} size={30} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate" title={p.name}>{p.name}</div>
-                      <div className="text-zinc-500 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
+                      <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate text-gray-900 dark:text-white" title={p.name}>{p.name}</div>
+                      <div className="text-zinc-500 dark:text-zinc-400 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
                         {p.category} • Stock: {p.stock} • SKU: {p.sku}
                       </div>
                     </div>
@@ -384,7 +384,7 @@ export default function VendorProfile() {
                   </div>
                 ))}
                 {filteredProducts.length === 0 && (
-                  <div className="text-zinc-500 text-[13px] font-poppins font-light animate-fade-in">
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light animate-fade-in">
                     {searchTerm ? 'No products found matching your search.' : 'No products yet.'}
                   </div>
                 )}
@@ -396,16 +396,16 @@ export default function VendorProfile() {
 
           {/* VENDOR DETAILS + MESSAGE: mobile order 1 (shown above products), md+ order 1 (left column) */}
           <aside className={`order-1 ${!useMobileLayout ? 'md:order-1 md:col-span-1 md:self-start md:sticky md:top-20' : ''} animate-fade-in-left`}>
-            <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm p-5 mb-4 w-full flex flex-col items-start card-interactive hover:shadow-lg transition-all duration-300">
-              <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mb-2 animate-bounce-gentle hover:scale-110 transition-transform duration-200">
-                <span className="text-[32px] font-poppins font-light text-sky-600">{vendor?.name?.charAt(0) || 'V'}</span>
+            <div className="border border-zinc-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-5 mb-4 w-full flex flex-col items-start card-interactive hover:shadow-lg transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-gray-700 flex items-center justify-center mb-2 animate-bounce-gentle hover:scale-110 transition-transform duration-200">
+                <span className="text-[32px] font-poppins font-light text-sky-600 dark:text-sky-400">{vendor?.name?.charAt(0) || 'V'}</span>
               </div>
-              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 mb-1 animate-text-reveal">{vendor?.name || 'Vendor'}</div>
-              <div className="text-zinc-500 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>{vendor?.email || ''}</div>
-               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 dark:text-sky-400 mb-1 animate-text-reveal">{vendor?.name || 'Vendor'}</div>
+              <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>{vendor?.email || ''}</div>
+               <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                  <MapPin className="h-3 w-3" /> {vendor?.address || ''}
                </div>
-               <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+               <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <Clock className="h-3 w-3" /> 
                 {etaInfo 
                   ? `${etaInfo.formatted} to ${vendor?.name || 'vendor'}` 
@@ -414,7 +414,7 @@ export default function VendorProfile() {
                     : 'Fetching location...'
                 }
               </div>
-              <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <Phone className="h-3 w-3" /> {vendor?.phone || ''}
               </div>
             </div>
@@ -436,16 +436,16 @@ export default function VendorProfile() {
       {/* Search Modal */}
       {showSearch && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[200]">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-poppins font-medium">Search Products</h3>
+              <h3 className="text-lg font-poppins font-medium text-gray-900 dark:text-white">Search Products</h3>
               <button
                 onClick={() => {
                   setShowSearch(false);
                   setSearchTerm('');
                   setShowSuggestions(false);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 ×
               </button>

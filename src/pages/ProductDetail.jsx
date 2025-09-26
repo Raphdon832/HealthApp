@@ -325,22 +325,22 @@ export default function ProductDetail({ product, pharmacy }) {
   return (
     <>
       {createPortal(<FixedHeader />, document.body)}
-      <div className="min-h-screen bg-white pt-24 md:pt-0">
+      <div className="min-h-screen bg-white dark:bg-gray-900 pt-24 md:pt-0">
         {/* Page container */}
         <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
           {/* Sticky back button + share icon */}
-          <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
+          <div className="pt-6 sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
           <button
             onClick={() => navigate(-1)}
-            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 text-gray-900 dark:text-white hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
-                isWishlist ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-red-50'
+              className={`p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isWishlist ? 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30' : 'hover:bg-red-50 dark:hover:bg-red-900/20'
               } ${wishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
               onClick={handleWishlistToggle}
@@ -352,7 +352,7 @@ export default function ProductDetail({ product, pharmacy }) {
             </button>
             <button
               type="button"
-              className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+              className="p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:scale-110 active:scale-95 transition-all duration-200"
               aria-label="Share product"
               onClick={() => setShowShareOptions(true)}
             >
@@ -362,7 +362,7 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
-        <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 animate-fade-in-up">
+        <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 dark:md:border-gray-700 animate-fade-in-up">
           <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
 
             {/* CENTRAL CONTENT: two-column on desktop, stacked on mobile */}
@@ -380,7 +380,7 @@ export default function ProductDetail({ product, pharmacy }) {
                       className="max-h-[160px] lg:max-h-[360px] w-full object-contain hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800 animate-bounce-gentle">
+                    <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 dark:bg-gray-700 rounded-md text-3xl font-semibold text-zinc-800 dark:text-zinc-200 animate-bounce-gentle">
                       <ProductAvatar name={product.name} image={product.image} category={product.category} size={48} lg:size={80} roundedClass="rounded-md" />
                     </div>
                   )}
@@ -401,10 +401,10 @@ export default function ProductDetail({ product, pharmacy }) {
 
                     <a
                       href={`tel:${pharmacy?.phone || ''}`}
-                      className="w-full h-10 rounded-full border border-zinc-400 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                      className="w-full h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
                       aria-label="Call to order"
                     >
-                      <Phone className="h-4 w-4" /> Call to Order
+                      <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> Call to Order
                     </a>
                   </div>
                 </div>
@@ -413,29 +413,29 @@ export default function ProductDetail({ product, pharmacy }) {
                 <div className="flex flex-col animate-fade-in-right">
                   {/* Name + Price row (mobile): price shown on mobile here and hidden on lg */}
                   <div className="mb-3 flex items-start justify-between animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    <h1 className="text-[18px] lg:text-[22px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal">
+                    <h1 className="text-[18px] lg:text-[20px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal text-gray-900 dark:text-white">
                       {product.name}
                     </h1>
-                    <div className="text-[18px] text-sky-600 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
+                    <div className="text-[18px] text-sky-600 dark:text-sky-400 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
                   </div>
 
                   {/* Price for lg screens (desktop): hidden on mobile */}
                   <div className="mb-4 hidden lg:block animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <div className="text-[20px] text-sky-600 font-poppins font-semibold animate-pulse-slow">₦{price.toLocaleString()}</div>
+                    <div className="text-[20px] text-sky-600 dark:text-sky-400 font-poppins font-semibold animate-pulse-slow">₦{price.toLocaleString()}</div>
                   </div>
 
                   {/* Pharmacy name (always under the product name on mobile) */}
                   <div className="mb-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <button
                       onClick={() => navigate(`/vendor/${pharmacy?.id || product.pharmacyId}`)}
-                      className="text-sky-600 underline font-poppins text-[15px] font-light hover:text-sky-700 transition-colors duration-200 hover:scale-105"
+                      className="text-sky-600 dark:text-sky-400 underline font-poppins text-[15px] font-light hover:text-sky-700 dark:hover:text-sky-300 transition-colors duration-200 hover:scale-105"
                     >
                       {pharmacy?.name}
                     </button>
                   </div>
 
                   {/* Address row: address on left, Get Directions on right (mobile). On lg the Get Directions is the separate block below. */}
-                  <div className="mb-1 flex items-center justify-between gap-2 text-zinc-600 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <div className="mb-1 flex items-center justify-between gap-2 text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <MapPin className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{pharmacy?.address}</span>
@@ -447,7 +447,7 @@ export default function ProductDetail({ product, pharmacy }) {
                           const query = encodeURIComponent(pharmacy.address);
                           window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                         }}
-                        className="text-sky-600 text-[13px] font-poppins font-light px-2 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 lg:hidden hover:scale-105 active:scale-95"
+                        className="text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-2 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 lg:hidden hover:scale-105 active:scale-95"
                         aria-label="Get directions"
                       >
                         <DirectionsIcon className="h-4 w-4 inline-block mr-1" /> Get Directions
@@ -456,7 +456,7 @@ export default function ProductDetail({ product, pharmacy }) {
                   </div>
 
                   {/* ETA below the address (mobile and desktop) */}
-                  <div className="mb-3 flex items-center gap-2 text-zinc-600 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                  <div className="mb-3 flex items-center gap-2 text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.5s' }}>
                     <Clock className="h-4 w-4" /> 
                     {etaInfo 
                       ? `${etaInfo.formatted} to ${pharmacy?.name}` 
@@ -470,13 +470,13 @@ export default function ProductDetail({ product, pharmacy }) {
                   {pharmacy?.address && (
                     <div className="mb-4 hidden lg:block animate-fade-in" style={{ animationDelay: '0.6s' }}>
                       <button
-                        className="flex items-center gap-2 text-sky-600 text-[13px] font-poppins font-light px-3 py-2 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
+                        className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-3 py-2 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                         onClick={() => {
                           const query = encodeURIComponent(pharmacy.address);
                           window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                         }}
                       >
-                        <DirectionsIcon className="h-4 w-4 text-sky-600" /> Get Directions
+                        <DirectionsIcon className="h-4 w-4 text-sky-600 dark:text-sky-400" /> Get Directions
                       </button>
                     </div>
                   )}
@@ -516,15 +516,15 @@ export default function ProductDetail({ product, pharmacy }) {
                <div className="mt-4 border-b"></div>
                   {/* Product description */}
                   <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Product Description</div>
-                    <p className="mt-2 text-zinc-600 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
+                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">Product Description</div>
+                    <p className="mt-2 text-zinc-600 dark:text-zinc-300 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
                   </div>
               <div className="mt-8 border-b"></div>
                   {/* Reviews/Comments Section */}
                   <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Customer Reviews</span>
+                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">Customer Reviews</span>
                         <span className="text-sky-400 font-semibold text-[13px]">{reviews.length}</span>
                       </div>
                       {expandedReviews && (
@@ -536,9 +536,9 @@ export default function ProductDetail({ product, pharmacy }) {
                     {/* Reviews List */}
                     <div className="space-y-4 mb-6">
                       {loadingReviews ? (
-                        <div className="p-4 text-center text-zinc-400 animate-pulse">Loading reviews…</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-pulse">Loading reviews…</div>
                       ) : reviews.length === 0 ? (
-                        <div className="p-4 text-center text-zinc-400 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
                       ) : (
                         reviews.slice(0, visibleReviews).map((review, idx) => {
                           let dateStr = '';
@@ -550,7 +550,7 @@ export default function ProductDetail({ product, pharmacy }) {
                             <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
+                                  <span className="font-poppins font-semibold text-[14px] text-zinc-700 dark:text-zinc-200">{review.name}</span>
                                   <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
                                 </div>
                                 <div className="flex flex-col items-center justify-center h-full">
@@ -571,26 +571,26 @@ export default function ProductDetail({ product, pharmacy }) {
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
+                              <div className="text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light">{review.comment}</div>
                               {dateStr && (
-                                <div className="text-[11px] text-zinc-400 mt-1">{dateStr}</div>
+                                <div className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">{dateStr}</div>
                               )}
                               
                               {/* Pharmacy Response */}
                               {review.pharmacyResponse && (
-                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100 rounded-lg shadow-sm">
+                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-700 border border-sky-100 dark:border-gray-600 rounded-lg shadow-sm">
                                   <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
-                                    <span className="font-poppins font-semibold text-[13px] text-sky-700">
+                                    <div className="w-2 h-2 bg-sky-500 dark:bg-sky-400 rounded-full"></div>
+                                    <span className="font-poppins font-semibold text-[13px] text-sky-700 dark:text-white">
                                       {pharmacy?.name || 'Pharmacy'} Response
                                     </span>
                                     {(review.pharmacyResponse.respondedAt || review.responseDate) && (
-                                      <span className="text-[10px] text-sky-500 ml-auto">
+                                      <span className="text-[10px] text-sky-500 dark:text-zinc-300 ml-auto">
                                         {new Date((review.pharmacyResponse.respondedAt?.seconds || review.responseDate?.seconds || review.responseDate) * 1000).toLocaleDateString()}
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-zinc-700 text-[13px] font-poppins leading-relaxed pl-4">
+                                  <div className="text-zinc-700 dark:text-white text-[13px] font-poppins leading-relaxed pl-4">
                                     "{typeof review.pharmacyResponse === 'string' ? review.pharmacyResponse : review.pharmacyResponse.message || review.pharmacyResponse}"
                                   </div>
                                 </div>
@@ -611,7 +611,7 @@ export default function ProductDetail({ product, pharmacy }) {
                     <div className="mt-4 border-b"></div>
                     {/* Review Form */}
                     <form className="p-4 mt-6 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
-                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
+                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700 dark:text-zinc-300">Leave a Review</div>
                       <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
                         <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
                       <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review... (optional)" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
@@ -644,9 +644,9 @@ export default function ProductDetail({ product, pharmacy }) {
       </button>
       <a
         href={`tel:${pharmacy?.phone || ''}`}
-        className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
       >
-        <Phone className="h-4 w-4" /> Call to Order
+        <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> Call to Order
       </a>
     </div>
   </div>
@@ -657,13 +657,13 @@ export default function ProductDetail({ product, pharmacy }) {
             <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto animate-bounce-in shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-lg font-medium animate-text-reveal">Products in "{product.category || 'General'}"</div>
-                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 hover:text-zinc-700 transition-colors duration-200 hover:scale-110 active:scale-95">Close</button>
+                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors duration-200 hover:scale-110 active:scale-95">Close</button>
               </div>
 
               {loadingCategoryProducts ? (
-                <div className="p-4 text-center text-zinc-500 animate-pulse">Loading…</div>
+                <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 animate-pulse">Loading…</div>
               ) : categoryProducts.length === 0 ? (
-                <div className="p-4 text-zinc-500 animate-fade-in">No products found.</div>
+                <div className="p-4 text-zinc-500 dark:text-zinc-400 animate-fade-in">No products found.</div>
               ) : (
                 <div className="space-y-2">
                   {categoryProducts.map((p, index) => (

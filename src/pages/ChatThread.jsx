@@ -108,8 +108,8 @@ ConditionalMessageStatus.displayName = 'ConditionalMessageStatus';
 // Skeleton component for loading messages
 const MessageSkeleton = React.memo(() => (
   <div className="flex flex-col items-start w-full mb-2 animate-pulse">
-    <div className="bg-gray-200 rounded-2xl h-10 w-48 mb-1"></div>
-    <div className="bg-gray-200 rounded-2xl h-6 w-32"></div>
+    <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl h-10 w-48 mb-1"></div>
+    <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl h-6 w-32"></div>
   </div>
 ));
 
@@ -407,7 +407,7 @@ export default function ChatThread() {
 
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
-    <div className="h-screen w-full flex flex-col items-stretch overflow-visible" style={{ position: 'relative' }}>
+    <div className="h-screen w-full flex flex-col items-stretch overflow-visible bg-white dark:bg-gray-900" style={{ position: 'relative' }}>
       {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
       <div
         aria-hidden
@@ -434,7 +434,7 @@ export default function ChatThread() {
          <audio ref={audioRef} src={notificationSound} preload="none" />
         {/* Header (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
         <div
-          className="sticky top-0 z-20 bg-white/90 pt-1 pb-1"
+          className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 pt-1 pb-1"
           style={{
             paddingTop: 'env(safe-area-inset-top, 0)',
             // Force the header background to span the full viewport width even when content is centered with max-width
@@ -454,14 +454,14 @@ export default function ChatThread() {
                     navigate('/messages');
                   }
                 }}
-                className="rounded-full border px-3 sm:px-4 py-1"
+                className="rounded-full border border-gray-200 dark:border-gray-600 px-3 sm:px-4 py-1 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
               {/* Customer: show pharmacy name as link */}
               {profile?.role === 'customer' ? (
                 <button
-                  className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none"
+                  className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none text-gray-900 dark:text-white"
                   onClick={() => {
                     if (threadId) {
                       const [vId] = threadId.split('__');
@@ -474,8 +474,8 @@ export default function ChatThread() {
                 </button>
               ) : (
                 <div className="min-w-0">
-                  <div className="font-light text-[15px] sm:text-[17px] truncate">{otherName || '...'}</div>
-                  <div className="text-[9px] text-zinc-500 truncate">{otherSubline}</div>
+                  <div className="font-light text-[15px] sm:text-[17px] truncate text-gray-900 dark:text-white">{otherName || '...'}</div>
+                  <div className="text-[9px] text-zinc-500 dark:text-zinc-400 truncate">{otherSubline}</div>
                 </div>
               )}
             </div>
@@ -483,7 +483,7 @@ export default function ChatThread() {
             {profile?.role === 'customer' && (
               <a
                 href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
-                className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50' : 'opacity-40 cursor-not-allowed'}`}
+                className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 dark:text-sky-400 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50 dark:hover:bg-sky-900/20' : 'opacity-40 cursor-not-allowed'}`}
                 style={{ minWidth: 32 }}
                 title={pharmacyPhone ? `Call ${otherName}` : 'No phone number'}
                 tabIndex={pharmacyPhone ? 0 : -1}
@@ -496,7 +496,7 @@ export default function ChatThread() {
             {profile?.role === 'pharmacy' && threadId && (
               <Menu as="div" className="relative inline-block text-left ml-2">
                 <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">Actions ▾</Menu.Button>
-                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white border border-sky-200 divide-y divide-gray-100 rounded-[5px] shadow-lg focus:outline-none z-50">
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white dark:bg-gray-800 border border-sky-200 dark:border-gray-600 divide-y divide-gray-100 dark:divide-gray-700 rounded-[5px] shadow-lg focus:outline-none z-50">
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
@@ -538,7 +538,7 @@ export default function ChatThread() {
               <div className="flex justify-center py-4">
                 <button 
                   onClick={() => setVisibleMessageCount(prev => Math.min(prev + 50, messages.length))}
-                  className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors"
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1 rounded-full transition-colors"
                 >
                   Load {Math.min(50, messages.length - visibleMessageCount)} more messages
                 </button>
@@ -550,18 +550,18 @@ export default function ChatThread() {
                 {/* Show skeleton messages while loading */}
                 <MessageSkeleton />
                 <div className="flex flex-col items-end w-full mb-2 animate-pulse">
-                  <div className="bg-blue-200 rounded-2xl h-10 w-40 mb-1"></div>
-                  <div className="bg-blue-200 rounded-2xl h-6 w-24"></div>
+                  <div className="bg-blue-200 dark:bg-blue-700 rounded-2xl h-10 w-40 mb-1"></div>
+                  <div className="bg-blue-200 dark:bg-blue-700 rounded-2xl h-6 w-24"></div>
                 </div>
                 <MessageSkeleton />
                 <div className="flex flex-col items-end w-full mb-2 animate-pulse">
-                  <div className="bg-blue-200 rounded-2xl h-8 w-56 mb-1"></div>
+                  <div className="bg-blue-200 dark:bg-blue-700 rounded-2xl h-8 w-56 mb-1"></div>
                 </div>
                 <MessageSkeleton />
               </div>
             ) : visibleMessages.length === 0 ? (
               <div className="flex justify-center items-center py-12">
-                <div className="text-gray-400 text-sm text-center">
+                <div className="text-gray-400 dark:text-gray-500 text-sm text-center">
                   <div className="text-lg mb-2">💬</div>
                   Start your conversation
                 </div>
@@ -584,7 +584,7 @@ export default function ChatThread() {
                     <React.Fragment key={m.id}>
                       {showDate && t && (
                         <div className="flex justify-center my-6 mb-4">
-                          <span className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2.5 py-1 rounded-lg">
+                          <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-[10px] font-medium px-2.5 py-1 rounded-lg">
                             {getDateLabel(t)}
                           </span>
                         </div>
@@ -594,7 +594,7 @@ export default function ChatThread() {
                           className={`${
                             isMine 
                               ? 'bg-blue-500 text-white ml-8' 
-                              : 'bg-white text-gray-900 mr-8 border border-gray-200'
+                              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-700'
                           } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
                           style={{ 
                             borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
@@ -606,7 +606,7 @@ export default function ChatThread() {
                             <MessageWithLinks text={m.text} isMine={isMine} />
                           </React.Suspense>
                         </div>
-                        <div className={`flex items-center text-[10px] text-gray-400 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                        <div className={`flex items-center text-[10px] text-gray-400 dark:text-gray-500 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
                           <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                           <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} />
                         </div>
@@ -621,7 +621,7 @@ export default function ChatThread() {
 
           {/* Composer (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
           <div
-            className="w-full sticky bottom-0 z-20 bg-white/85 backdrop-blur"
+            className="w-full sticky bottom-0 z-20 bg-white/85 dark:bg-gray-900/85 backdrop-blur"
             style={{
               paddingBottom: 'env(safe-area-inset-bottom, 0)',
               // Make the composer background truly full-bleed across the viewport
@@ -640,7 +640,7 @@ export default function ChatThread() {
                   value={text}
                   onChange={e => setText(e.target.value)}
                   placeholder="Message"
-                  className="flex-1 min-w-0 outline-none px-3 py-2 bg-white border border-gray-300 rounded-full placeholder:text-gray-400 placeholder:text-[14px] focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all duration-200"
+                  className="flex-1 min-w-0 outline-none px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-full placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-[14px] focus:border-blue-400 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
                   style={{ fontSize: 14 }}
                 />
                 <button 
