@@ -157,7 +157,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   </div>
                   
                   {isCart && cartCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
+                    <span className="absolute -top-0.5 -right-0.5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                       {cartCount}
                     </span>
                   )}
@@ -174,7 +174,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                     (() => {
                       try {
                         return (
-                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
+                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-2 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                             {displayUnread}
                           </span>
                         );
