@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { sendVerification } from './email';
 
@@ -51,32 +51,58 @@ export function AuthProvider({ children }) {
 
   const signUpWithGoogle = async (userLocation) => {
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    const { user } = result;
     
-    // Check if this is a new user by looking for existing profile
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      // New user - create profile with location-based address
-      const userData = {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        role: 'customer',
-        address: userLocation?.address || 'Location not available',
-        lat: userLocation?.latitude,
-        lon: userLocation?.longitude
-      };
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const { user } = result;
       
-      await setDoc(userRef, userData);
+      // Check if this is a new user by looking for existing profile
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
       
-      // No need to send verification for Google users
-      return { user, verificationSent: false, isNewUser: true };
-    } else {
-      // Existing user
-      return { user, verificationSent: false, isNewUser: false };
+      if (!userSnap.exists()) {
+        // Completely new user - create profile with location-based address
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          role: 'customer',
+          address: userLocation?.address || 'Location not available',
+          lat: userLocation?.latitude,
+          lon: userLocation?.longitude,
+          createdAt: new Date().toISOString(),
+          authMethod: 'google'
+        };
+        
+        await setDoc(userRef, userData);
+        
+        // No need to send verification for Google users
+        return { user, verificationSent: false, isNewUser: true };
+      } else {
+        // Existing user - check if they're a customer
+        const existingData = userSnap.data();
+        
+        if (existingData.role !== 'customer') {
+          // User exists but is not a customer - this shouldn't happen in customer registration
+          throw new Error('This email is associated with a pharmacy account. Please use pharmacy sign-in instead.');
+        }
+        
+        // Existing customer - just sign them in
+        return { user, verificationSent: false, isNewUser: false, existingCustomer: true };
+      }
+    } catch (error) {
+      // Handle specific Firebase Auth errors
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        // This means the email exists with a different sign-in method (email/password)
+        throw new Error('An account with this email already exists. Please sign in with your email and password instead, or use the "Sign In with Google" option.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      }
+      
+      // Re-throw other errors
+      throw error;
     }
   };
 

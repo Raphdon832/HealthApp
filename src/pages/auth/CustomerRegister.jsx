@@ -67,14 +67,20 @@ latitude: userCoords?.latitude,
 longitude: userCoords?.longitude
 };
 const result = await signUpWithGoogle(userLocation);
+
 if (result.isNewUser) {
-setSuccess(result.user.email);
+  // New user created successfully
+  setSuccess(result.user.email);
+} else if (result.existingCustomer) {
+  // Existing customer account - just sign them in
+  navigate('/');
 } else {
-// Existing user, just navigate
-navigate('/');
+  // Existing user, just navigate
+  navigate('/');
 }
 } catch (err) {
-alert(err.message);
+// Display user-friendly error message
+alert(err.message || 'Google registration failed. Please try again.');
 }
 finally {
 setGoogleLoading(false);

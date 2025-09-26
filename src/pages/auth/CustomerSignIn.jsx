@@ -22,6 +22,20 @@ const getUserFriendlyErrorMessage = (error) => {
   if (errorCode.includes('auth/network-request-failed')) {
     return 'Network error. Please check your connection and try again.';
   }
+  if (errorCode.includes('auth/popup-closed-by-user')) {
+    return 'Google sign-in was cancelled. Please try again.';
+  }
+  if (errorCode.includes('auth/popup-blocked')) {
+    return 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+  }
+  if (errorCode.includes('auth/account-exists-with-different-credential')) {
+    return 'An account with this email exists with a different sign-in method. Please use your email and password instead.';
+  }
+  
+  // Check if it's already a user-friendly message
+  if (!errorCode.includes('auth/') && !errorCode.includes('Firebase:')) {
+    return error.message;
+  }
   
   // Default fallback
   return 'Sign in failed. Please try again.';
