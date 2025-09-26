@@ -61,37 +61,20 @@ export default function Settings() {
 
       {/* Settings content */}
       <div className="mt-4 space-y-6">
-        {/* Notifications Section */}
+        {/* General Settings Section - First */}
         <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up">
           <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-full bg-sky-100 p-2">
-              <Bell className="h-5 w-5 text-sky-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Notifications</h2>
-              <p className="text-sm text-gray-600">Manage your notification preferences</p>
-            </div>
-          </div>
-          
-          <div className="pl-0">
-            <NotificationSettings />
-          </div>
-        </div>
-
-        {/* Navigation Settings Section */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-gray-100 p-2">
-              <Smartphone className="h-5 w-5 text-gray-600" />
+              <SettingsIcon className="h-5 w-5 text-gray-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Navigation</h2>
-              <p className="text-sm text-gray-600">Customize your navigation experience</p>
+              <h2 className="text-xl font-semibold text-gray-800 font-poppins">General</h2>
+              <p className="text-sm text-gray-600">App preferences and navigation settings</p>
             </div>
           </div>
           
           <div className="space-y-4">
-            {/* Swipe Navigation Toggle */}
+            {/* Swipe Navigation Toggle - Now part of General */}
             <div className="flex items-center justify-between py-2">
               <div>
                 <h3 className="text-sm font-medium text-gray-800">Swipe Navigation</h3>
@@ -107,22 +90,90 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION)}
                   onChange={(e) => handleSwipeToggle(e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
               </label>
             </div>
             
             {/* Help text when swipe is enabled */}
             {getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION) && isMobileOrTablet && (
-              <div className="bg-sky-50 rounded-lg p-3 mt-2">
-                <p className="text-xs text-sky-700">
+              <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                <p className="text-xs text-gray-700">
                   <span className="font-medium">How to use:</span> Swipe left or right anywhere on the screen to navigate between Home, Cart, Messages, and Orders pages.
                 </p>
               </div>
             )}
+
+            {/* Data Saver Mode */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">Data Saver Mode</h3>
+                <p className="text-xs text-gray-500 mt-1">Reduce bandwidth usage and optimize for slower connections</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.DATA_SAVER_MODE)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.DATA_SAVER_MODE, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+              </label>
+            </div>
+
+            {/* Message Read Receipts */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">Read Receipts</h3>
+                <p className="text-xs text-gray-500 mt-1">Show when you've read messages in chats</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+              </label>
+            </div>
           </div>
         </div>
 
-        {/* Appearance Settings */}
+        {/* Language & Region - Second */}
+        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-full bg-orange-100 p-2">
+              <Globe className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Language & Region</h2>
+              <p className="text-sm text-gray-600">Set your language and regional preferences</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Language */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">App Language</h3>
+                <p className="text-xs text-gray-500 mt-1">Choose your preferred language</p>
+              </div>
+              <select 
+                value={getSetting(SETTINGS_KEYS.LANGUAGE)} 
+                onChange={(e) => updateSetting(SETTINGS_KEYS.LANGUAGE, e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-orange-300"
+              >
+                <option value="en">English</option>
+                <option value="yo">Yoruba</option>
+                <option value="ha">Hausa</option>
+                <option value="ig">Igbo</option>
+                <option value="fr">Français</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Appearance Settings - Third */}
         <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-purple-100 p-2">
@@ -144,7 +195,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.THEME_MODE)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.THEME_MODE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -161,7 +212,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.FONT_SIZE)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.FONT_SIZE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -171,8 +222,74 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Privacy & Security */}
+        {/* Accessibility - Fourth */}
         <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-full bg-blue-100 p-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Accessibility</h2>
+              <p className="text-sm text-gray-600">Make the app easier to use for everyone</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {/* High Contrast */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">High Contrast</h3>
+                <p className="text-xs text-gray-500 mt-1">Increase contrast for better visibility</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.HIGH_CONTRAST)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.HIGH_CONTRAST, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {/* Reduce Motion */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">Reduce Motion</h3>
+                <p className="text-xs text-gray-500 mt-1">Minimize animations and transitions</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.REDUCE_MOTION)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.REDUCE_MOTION, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Notifications Section - Fifth */}
+        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-full bg-sky-100 p-2">
+              <Bell className="h-5 w-5 text-sky-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Notifications</h2>
+              <p className="text-sm text-gray-600">Manage your notification preferences</p>
+            </div>
+          </div>
+          
+          <div className="pl-0">
+            <NotificationSettings />
+          </div>
+        </div>
+
+        {/* Privacy & Security - Sixth */}
+        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-green-100 p-2">
               <Shield className="h-5 w-5 text-green-600" />
@@ -238,145 +355,30 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Accessibility */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        {/* Reset Settings - Last */}
+        <div className="bg-white rounded-2xl border border-red-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
           <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-full bg-blue-100 p-2">
-              <Eye className="h-5 w-5 text-blue-600" />
+            <div className="rounded-full bg-red-100 p-2">
+              <SettingsIcon className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Accessibility</h2>
-              <p className="text-sm text-gray-600">Make the app easier to use for everyone</p>
+              <h2 className="text-xl font-semibold text-red-600 font-poppins">Reset Settings</h2>
+              <p className="text-sm text-gray-600">Restore all settings to their default values</p>
             </div>
           </div>
           
           <div className="space-y-4">
-            {/* High Contrast */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">High Contrast</h3>
-                <p className="text-xs text-gray-500 mt-1">Increase contrast for better visibility</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={getSetting(SETTINGS_KEYS.HIGH_CONTRAST)}
-                  onChange={(e) => updateSetting(SETTINGS_KEYS.HIGH_CONTRAST, e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
-            {/* Reduce Motion */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">Reduce Motion</h3>
-                <p className="text-xs text-gray-500 mt-1">Minimize animations and transitions</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={getSetting(SETTINGS_KEYS.REDUCE_MOTION)}
-                  onChange={(e) => updateSetting(SETTINGS_KEYS.REDUCE_MOTION, e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Language & Region */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-full bg-orange-100 p-2">
-              <Globe className="h-5 w-5 text-orange-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 font-poppins">Language & Region</h2>
-              <p className="text-sm text-gray-600">Set your language and regional preferences</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Language */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">App Language</h3>
-                <p className="text-xs text-gray-500 mt-1">Choose your preferred language</p>
-              </div>
-              <select 
-                value={getSetting(SETTINGS_KEYS.LANGUAGE)} 
-                onChange={(e) => updateSetting(SETTINGS_KEYS.LANGUAGE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-orange-300"
-              >
-                <option value="en">English</option>
-                <option value="yo">Yoruba</option>
-                <option value="ha">Hausa</option>
-                <option value="ig">Igbo</option>
-                <option value="fr">Français</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* General Settings Section */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-full bg-gray-100 p-2">
-              <SettingsIcon className="h-5 w-5 text-gray-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 font-poppins">General</h2>
-              <p className="text-sm text-gray-600">App preferences and account settings</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Data Saver Mode */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">Data Saver Mode</h3>
-                <p className="text-xs text-gray-500 mt-1">Reduce bandwidth usage and optimize for slower connections</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={getSetting(SETTINGS_KEYS.DATA_SAVER_MODE)}
-                  onChange={(e) => updateSetting(SETTINGS_KEYS.DATA_SAVER_MODE, e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
-              </label>
-            </div>
-
-            {/* Message Read Receipts */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">Read Receipts</h3>
-                <p className="text-xs text-gray-500 mt-1">Show when you've read messages in chats</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={getSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS)}
-                  onChange={(e) => updateSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS, e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
-              </label>
-            </div>
-
-            {/* Reset Settings Button */}
-            <div className="pt-4 border-t border-gray-100">
+            <div className="bg-red-50 rounded-lg p-4">
+              <p className="text-sm text-red-700 mb-3">
+                <span className="font-medium">Warning:</span> This will reset all your preferences including theme, language, navigation settings, and accessibility options. This action cannot be undone.
+              </p>
               <button 
                 onClick={() => {
                   if (confirm('Are you sure you want to reset all settings to default? This cannot be undone.')) {
                     resetSettings();
                   }
                 }}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                className="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
               >
                 Reset All Settings
               </button>
