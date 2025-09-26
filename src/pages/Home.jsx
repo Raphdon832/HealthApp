@@ -17,16 +17,16 @@ import { useTranslation } from '@/lib/language';
 // Fixed Header Component - matching exact styling from original
 const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharmacy, vendors, userCoords, t }) => {
   return createPortal(
-    <div className="fixed top-0 left-0 right-0 z-[100] w-full bg-white border-b flex-shrink-0 px-2">
+    <div className="fixed top-0 left-0 right-0 z-[100] w-full bg-white dark:bg-gray-900 border-b dark:border-gray-700 flex-shrink-0 px-2">
       <div className="w-full mx-auto pt-8 pb-4">
         <div className="pt-4 pb-2 w-full">
           <div className="w-full mx-auto px-0">
             <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
               <div className="flex flex-col justify-center">
-                <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
+                <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins text-gray-900 dark:text-white">
                   {t('hello', 'Hello')}{user ? `, ${user.displayName?.split(' ')[0] || t('friend', 'Friend')}` : ''}
                 </div>
-                <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
+                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
                   {location}
                 </span>
               </div>
@@ -467,11 +467,11 @@ export default function Home() {
         userCoords={userCoords}
         t={t}
       />
-      <div className="min-h-screen w-full px-0 pb-20 pt-32">
+      <div className="min-h-screen w-full px-0 pb-20 pt-32 bg-white dark:bg-gray-900">
 
       <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pb-28 px-0">
-        <div className="flex items-center gap-3 border-b border-zinc-300 pb-2">
-          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
+        <div className="flex items-center gap-3 border-b border-zinc-300 dark:border-zinc-600 pb-2">
+          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400 dark:text-zinc-500" />
           <input
             value={q}
             onChange={(e) => { 
@@ -519,7 +519,7 @@ export default function Home() {
               }, 200);
             }}
             placeholder="Search drugs, pharmacies"
-            className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
+            className="w-full outline-none bg-transparent text-gray-900 dark:text-white placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] dark:placeholder:text-[#aaaaaa] placeholder:font-light"
           />
         </div>
 

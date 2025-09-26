@@ -77,24 +77,22 @@
   scroll-behavior: auto !important;
 }
 
-html, body, #root { height: 100%; }
-
-/* Settings-based styles */
-/* Theme Mode Styles */
-.dark {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2d2d2d;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --border-color: #404040;
+html, body, #root { 
+  height: 100%; 
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text-primary: #000000;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
+/* Global theme application */
+.dark body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark #root {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Font Size Styles */
@@ -210,6 +208,13 @@ input, select, textarea {
   transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
 }
 
+/* Dark mode liquid navigation */
+.dark .liquid-bottom-nav {
+  border: 1px solid rgba(54, 165, 255, 0.2);
+  background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,0.90));
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
 /* Subtle glossy sweep */
 .liquid-bottom-nav::before {
   content: '';
@@ -226,6 +231,11 @@ input, select, textarea {
   filter: blur(18px);
 }
 
+/* Dark mode glossy sweep */
+.dark .liquid-bottom-nav::before {
+  background: linear-gradient(120deg, rgba(96,165,250,0.08) 0%, rgba(59,130,246,0.04) 40%, rgba(96,165,250,0.06) 70%, rgba(96,165,250,0)) ;
+}
+
 /* Inner soft edge for depth */
 .liquid-bottom-nav::after {
   content: '';
@@ -234,6 +244,11 @@ input, select, textarea {
   border-radius: 40px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -6px 24px rgba(2,6,23,0.08);
   pointer-events: none;
+}
+
+/* Dark mode inner soft edge */
+.dark .liquid-bottom-nav::after {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -6px 24px rgba(0,0,0,0.3);
 }
 
 /* Button interactions */

@@ -44,14 +44,15 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       <nav
         role="navigation"
         aria-label="Bottom navigation"
-        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3"
+        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200 dark:border-gray-700"
       >
         {/* Use gap-based layout with fixed-size cells so icons are spaced evenly and not cramped */}
         <div className="flex items-center justify-center gap-[-1] px-2">
           {items.map((it) => {
             const isActive = tab === it.key;
             const IconComponent = it.icon;
-            const iconProps = { color: isActive ? '#36A5FF' : 'black' };
+            // Make icon color theme-aware
+            const iconProps = { color: isActive ? '#36A5FF' : undefined };
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
             const isOrders = it.key === '/orders';
@@ -62,7 +63,9 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   aria-label={it.label}
                   aria-pressed={isActive}
                   className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none transition-all duration-200 ${
-                    isActive ? 'text-sky-600 transform scale-105' : 'text-zinc-500 hover:text-zinc-700'
+                    isActive 
+                      ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
                 >
                   {/* Faint blue round background for active icons with smooth transition */}
@@ -73,7 +76,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   />
                   
                   <div className="relative z-10 transition-transform duration-200 hover:scale-110">
-                    <IconComponent {...iconProps} className="h-7 w-7 mb-2" />
+                    <IconComponent {...iconProps} className={`h-6 w-6 mb-1 ${!isActive ? 'text-current' : ''}`} />
                   </div>
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
