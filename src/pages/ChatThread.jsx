@@ -63,8 +63,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'sent') {
     return (
       <Check 
-        className="w-3 h-3 text-gray-400 ml-1" 
-        strokeWidth={2}
+        className="w-3.5 h-3.5 text-gray-400 ml-2 opacity-70" 
+        strokeWidth={2.5}
         title="Sent"
       />
     );
@@ -73,8 +73,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'delivered') {
     return (
       <CheckCheck 
-        className="w-3 h-3 text-gray-400 ml-1" 
-        strokeWidth={2}
+        className="w-3.5 h-3.5 text-gray-400 ml-2 opacity-70" 
+        strokeWidth={2.5}
         title="Delivered"
       />
     );
@@ -83,8 +83,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'read' || isRead) {
     return (
       <CheckCheck 
-        className="w-3 h-3 text-blue-500 ml-1" 
-        strokeWidth={2}
+        className="w-3.5 h-3.5 text-blue-500 ml-2 opacity-90" 
+        strokeWidth={2.5}
         title="Read"
       />
     );
@@ -436,7 +436,7 @@ export default function ChatThread() {
 
         {/* Messages */}
         <div className="w-full flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-28 min-h-0 hide-scrollbar" style={{ paddingTop: 12 }}>
+          <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-32 min-h-0 hide-scrollbar" style={{ paddingTop: 16 }}>
             {(() => {
               let lastDate = null;
               return messages.map((m) => {
@@ -453,20 +453,29 @@ export default function ChatThread() {
                 return (
                   <React.Fragment key={m.id}>
                     {showDate && t && (
-                      <div className="flex justify-center my-6 mb-6">
-                        <span className="bg-zinc-200 text-zinc-600 text-[10px] px-3 py-1 rounded-full shadow-sm">
+                      <div className="flex justify-center my-8 mb-6">
+                        <span className="bg-gray-200/80 backdrop-blur-sm text-gray-600 text-[11px] font-medium px-3 py-1.5 rounded-full shadow-sm">
                           {getDateLabel(t)}
                         </span>
                       </div>
                     )}
-                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
+                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-3`}>
                       <div
-                        className={`${isMine ? 'bg-sky-600 text-white' : 'bg-zinc-100 text-zinc-900'} px-3 py-2 rounded-2xl max-w-[90%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm`}
-                        style={{ borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 13 }}
+                        className={`${
+                          isMine 
+                            ? 'bg-blue-500 text-white ml-12' 
+                            : 'bg-gray-100 text-black mr-12'
+                        } px-4 py-3 max-w-[85%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm transition-all duration-200 hover:shadow-md`}
+                        style={{ 
+                          borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                          fontSize: 16,
+                          lineHeight: 1.4,
+                          backdropFilter: 'blur(10px)'
+                        }}
                       >
                         <MessageWithLinks text={m.text} isMine={isMine} />
                       </div>
-                      <div className={`flex items-center text-[9px] sm:text-[10px] text-zinc-400 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                      <div className={`flex items-center text-[11px] text-gray-500 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
                         <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                         <MessageStatus message={m} isMine={isMine} />
                       </div>
@@ -491,22 +500,30 @@ export default function ChatThread() {
             }}
           >
             <div className="w-full">
-              <form className="mx-3 sm:mx-5 flex items-center gap-2 py-2" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
-                <label className="flex items-center cursor-not-allowed mr-1 opacity-40" title="Attachments coming soon">
-                  <Paperclip className="h-5 w-5 text-zinc-400" />
+              <form className="mx-4 sm:mx-5 flex items-center gap-3 py-3" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
+                <label className="flex items-center cursor-not-allowed opacity-40" title="Attachments coming soon">
+                  <Paperclip className="h-5 w-5 text-gray-400" />
                 </label>
                 <input
                   value={text}
                   onChange={e => setText(e.target.value)}
-                  placeholder="Type a message"
-                  className="flex-1 min-w-0 outline-none px-3 bg-transparent border border-zinc-300 rounded-3xl placeholder:text-[11px] sm:placeholder:text-[12px]"
-                  style={{ fontSize: 13, height: 34 }}
+                  placeholder="iMessage"
+                  className="flex-1 min-w-0 outline-none px-4 py-2.5 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full placeholder:text-gray-400 placeholder:text-[14px] shadow-sm focus:border-blue-300 focus:shadow-md transition-all duration-200"
+                  style={{ fontSize: 16 }}
                 />
-                <button type="submit" className="ml-1 flex items-center justify-center disabled:opacity-50" disabled={!text.trim()}>
-                  <img src={SendButtonUrl} alt="Send" className="h-5 w-5" />
+                <button 
+                  type="submit" 
+                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
+                    text.trim() 
+                      ? 'bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg transform hover:scale-105' 
+                      : 'bg-gray-300 cursor-not-allowed'
+                  }`}
+                  disabled={!text.trim()}
+                >
+                  <img src={SendButtonUrl} alt="Send" className="h-4 w-4" />
                 </button>
               </form>
-              <div style={{ height: 6 }} />
+              <div style={{ height: 8 }} />
             </div>
           </div>
         </div>
