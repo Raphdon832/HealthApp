@@ -76,8 +76,8 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                 >
                   {/* Faint blue round background for active icons with smooth transition */}
                   <div 
-                    className={`absolute top-1 w-12 h-9 bg-sky-400 rounded-[10px] transition-all duration-300 ${
-                      isActive ? 'opacity-10 scale-100' : 'opacity-0 scale-90'
+                    className={`absolute bottom-16 w-14 h-2 bg-sky-600 rounded-[17px] transition-all duration-300 ${
+                      isActive ? 'opacity-80 scale-100' : 'opacity-0 scale-90'
                     }`} 
                   />
                   
@@ -112,7 +112,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                       }
                     })()
                   )}
-                  <span className={`truncate max-w-[72px] block text-center text-[14px] ${
+                  <span className={`truncate max-w-[72px] block text-center text-[10px] ${
                     isActive ? 'font-bold' : 'font-normal'
                   }`}>{it.label}</span>
                 </button>
