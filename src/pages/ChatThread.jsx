@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
 import { db } from '@/lib/firebase';
 import {
   getOrCreateThread,
@@ -95,7 +96,14 @@ const MessageStatus = React.memo(({ message, isMine }) => {
   return null;
 });
 
+// Enhanced MessageStatus that respects read receipts setting
+const ConditionalMessageStatus = React.memo(({ message, isMine, showReadReceipts }) => {
+  if (!isMine || !showReadReceipts) return null;
+  return <MessageStatus message={message} isMine={isMine} />;
+});
+
 MessageStatus.displayName = 'MessageStatus';
+ConditionalMessageStatus.displayName = 'ConditionalMessageStatus';
 
 // Skeleton component for loading messages
 const MessageSkeleton = React.memo(() => (
@@ -109,6 +117,7 @@ MessageSkeleton.displayName = 'MessageSkeleton';
 
 export default function ChatThread() {
   const { user, profile } = useAuth();
+  const { getSetting } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -294,6 +303,10 @@ export default function ChatThread() {
   const visibleMessages = useMemo(() => {
     return messages.slice(-visibleMessageCount);
   }, [messages, visibleMessageCount]);
+
+  // Get settings for functionality
+  const showReadReceipts = getSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS);
+  const dataSaverMode = getSetting(SETTINGS_KEYS.DATA_SAVER_MODE);
 
   // Page visibility for message tone
   useEffect(() => {
@@ -595,7 +608,7 @@ export default function ChatThread() {
                         </div>
                         <div className={`flex items-center text-[10px] text-gray-400 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
                           <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-                          <MessageStatus message={m} isMine={isMine} />
+                          <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} />
                         </div>
                       </div>
                     </React.Fragment>

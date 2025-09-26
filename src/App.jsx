@@ -15,6 +15,7 @@ import { listenUserThreads } from '@/lib/db';
 import PageTransitionWrapper from '@/components/PageTransitionWrapper';
 import InteractiveSwipeWrapper from '@/components/InteractiveSwipeWrapper';
 import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
+import useApplySettings from '@/hooks/useApplySettings';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -390,6 +391,9 @@ function Shell() {
 }
 
 export default function App() {
+  // Apply global settings
+  useApplySettings();
+  
   return (
     <AuthProvider>
       <NotificationManager />

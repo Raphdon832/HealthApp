@@ -6,19 +6,22 @@ import CartIcon from '../icons/react/CartIcon';
 import ProfileIcon from '../icons/react/ProfileIcon';
 import DashboardIcon from '../icons/react/DashboardIcon';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 
 export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const isPharmacy = profile && profile.role === 'pharmacy';
+  
   const items = [
     isPharmacy
-      ? { key: '/', label: 'Dashboard', icon: DashboardIcon }
-      : { key: '/', label: 'Home', icon: HomeIcon },
-    { key: '/orders', label: 'Orders', icon: OrdersIcon },
-    { key: '/messages', label: 'Messages', icon: MessagesIcon },
+      ? { key: '/', label: t('dashboard', 'Dashboard'), icon: DashboardIcon }
+      : { key: '/', label: t('home', 'Home'), icon: HomeIcon },
+    { key: '/orders', label: t('orders', 'Orders'), icon: OrdersIcon },
+    { key: '/messages', label: t('messages', 'Messages'), icon: MessagesIcon },
     // Only show Cart if not pharmacy
-    ...(!isPharmacy ? [{ key: '/cart', label: 'Cart', icon: CartIcon }] : []),
-    { key: '/profile', label: 'Profile', icon: ProfileIcon },
+    ...(!isPharmacy ? [{ key: '/cart', label: t('cart', 'Cart'), icon: CartIcon }] : []),
+    { key: '/profile', label: t('profile', 'Profile'), icon: ProfileIcon },
   ];
 
   // Clamp large unread counts for badge display and make it a string
@@ -70,7 +73,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   />
                   
                   <div className="relative z-10 transition-transform duration-200 hover:scale-110">
-                    <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                    <IconComponent {...iconProps} className="h-7 w-7 mb-2" />
                   </div>
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
@@ -100,7 +103,9 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                       }
                     })()
                   )}
-                  <span className="font-medium truncate max-w-[72px] block text-center">{it.label}</span>
+                  <span className={`truncate max-w-[72px] block text-center text-[14px] ${
+                    isActive ? 'font-bold' : 'font-normal'
+                  }`}>{it.label}</span>
                 </button>
               </div>
             );

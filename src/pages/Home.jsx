@@ -12,9 +12,10 @@ import { db } from '@/lib/firebase';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { findClosestPharmacyWithETA } from '@/lib/eta';
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from '@/lib/language';
 
 // Fixed Header Component - matching exact styling from original
-const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharmacy, vendors, userCoords }) => {
+const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharmacy, vendors, userCoords, t }) => {
   return createPortal(
     <div className="fixed top-0 left-0 right-0 z-[100] w-full bg-white border-b flex-shrink-0 px-2">
       <div className="w-full mx-auto pt-8 pb-4">
@@ -23,7 +24,7 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
             <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
               <div className="flex flex-col justify-center">
                 <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
-                  Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
+                  {t('hello', 'Hello')}{user ? `, ${user.displayName?.split(' ')[0] || t('friend', 'Friend')}` : ''}
                 </div>
                 <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
                   {location}
@@ -74,6 +75,7 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   // Use shared location hook
@@ -463,6 +465,7 @@ export default function Home() {
         closestPharmacy={closestPharmacy}
         vendors={vendors}
         userCoords={userCoords}
+        t={t}
       />
       <div className="min-h-screen w-full px-0 pb-20 pt-32">
 
