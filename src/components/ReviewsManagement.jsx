@@ -161,23 +161,23 @@ export default function ReviewsManagement() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 overflow-hidden">
         <div className="text-center py-16">
           <div className="relative mx-auto w-12 h-12 mb-6">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200"></div>
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 dark:border-gray-600 border-t-transparent absolute top-0 left-0"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 dark:border-sky-400 border-t-transparent absolute top-0 left-0"></div>
           </div>
-          <p className="text-gray-600 font-medium">Loading your reviews...</p>
-          <p className="text-gray-400 text-sm mt-1">Please wait while we fetch your data</p>
+          <p className="text-gray-600 dark:text-gray-300 font-medium">Loading your reviews...</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Please wait while we fetch your data</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 overflow-hidden">
       {/* Header with stats */}
-      <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+      <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Reviews Management</h2>
           <button
@@ -352,24 +352,24 @@ export default function ReviewsManagement() {
                 
                 {/* Pharmacy response */}
                 {review.pharmacyResponse && (
-                  <div className="ml-0 sm:ml-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg p-3 sm:p-4 border-l-4 border-blue-400 shadow-sm">
+                  <div className="ml-0 sm:ml-4 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 rounded-lg p-3 sm:p-4 border-l-4 border-blue-400 dark:border-blue-500 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                      <Reply className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                      <span className="text-sm font-semibold text-blue-900">Your Response</span>
-                      <span className="text-xs text-blue-600 ml-auto">
+                      <Reply className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">Your Response</span>
+                      <span className="text-xs text-blue-600 dark:text-blue-400 ml-auto">
                         {review.pharmacyResponse.respondedAt && new Date(review.pharmacyResponse.respondedAt.seconds * 1000).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-blue-900 text-sm leading-relaxed">{review.pharmacyResponse.message || review.pharmacyResponse}</p>
+                    <p className="text-blue-900 dark:text-blue-200 text-sm leading-relaxed">{review.pharmacyResponse.message || review.pharmacyResponse}</p>
                   </div>
                 )}
                 
                 {/* Response form */}
                 {!review.pharmacyResponse && (
-                  <div className="border-t border-gray-200 pt-4">
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
                     <button
                       onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: !prev[review.id] }))}
-                      className="flex items-center gap-2 text-sky-600 hover:text-sky-700 text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 text-sm font-medium transition-colors"
                     >
                       <Reply className="h-4 w-4" />
                       {expandedReviews[review.id] ? 'Cancel Response' : 'Respond to Review'}
@@ -382,18 +382,18 @@ export default function ReviewsManagement() {
                             value={responseText[review.id] || ''}
                             onChange={(e) => setResponseText(prev => ({ ...prev, [review.id]: e.target.value }))}
                             placeholder="Write a thoughtful response to this review..."
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:border-gray-600 resize-none text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:focus:ring-sky-400 dark:focus:border-sky-400 resize-none text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             rows={4}
                             maxLength={500}
                           />
-                          <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                          <div className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500">
                             {(responseText[review.id] || '').length}/500
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => handleResponse(review.id, review.productId, responseText[review.id] || '')}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
                             disabled={!responseText[review.id]?.trim()}
                           >
                             Submit Response

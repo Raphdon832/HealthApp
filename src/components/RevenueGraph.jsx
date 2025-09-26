@@ -35,18 +35,18 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
   const totalRevenue = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 dark:border-gray-600 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
+    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-sky-500 dark:border-gray-600 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100/30 dark:from-sky-800/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 dark:from-blue-800/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
 
       {/* Header Section */}
       <div className="flex items-center justify-between mb-4 min-w-0 relative z-0">
         <div>
-          <h2 className="text-black font-light text-xl tracking-tight mb-1">Revenue Analytics</h2>
+          <h2 className="text-black dark:text-white font-light text-xl tracking-tight mb-1">Revenue Analytics</h2>
           <div className="flex items-center gap-3">
-            <div className="text-2xl font-semibold text-sky-700">₦{totalRevenue.toLocaleString()}</div>
-            <div className="px-2 py-1 bg-sky-100 rounded-full text-xs text-sky-700 font-medium">
+            <div className="text-2xl font-semibold text-sky-700 dark:text-sky-400">₦{totalRevenue.toLocaleString()}</div>
+            <div className="px-2 py-1 bg-sky-100 dark:bg-sky-800 rounded-full text-xs text-sky-700 dark:text-sky-300 font-medium">
               Total
             </div>
           </div>

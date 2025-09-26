@@ -88,7 +88,7 @@ export default function Messages() {
     <>
       <FixedHeader title="My Conversations" />
       <div className="min-h-screen pt-24 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
-        <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 pb-2">
+        <div className="mt-14 flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 pb-2">
           <Search className="h-4 w-4 text-zinc-400"/>
           <input
             placeholder="Search chats"
@@ -98,7 +98,7 @@ export default function Messages() {
           />
         </div>
 
-      <div className="mt-6 space-y-4 w-full">
+      <div className="mt-12 space-y-4 w-full">
         {filtered.map((t, index) => (
           <button
             key={t.id}
