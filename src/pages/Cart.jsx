@@ -396,7 +396,7 @@ export default function Cart() {
 
       {/* Order Summary Modal */}
       {showOrderSummary && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -462,7 +462,7 @@ export default function Cart() {
                       </button>
                     </div>
                     {addressSuggestions.length > 0 && (
-                      <div className="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      <div className="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto relative z-[10000]">
                         {addressSuggestions.map((suggestion, index) => (
                           <button
                             key={index}
@@ -540,7 +540,7 @@ export default function Cart() {
 
       {/* Payment Methods Modal */}
       {showPaymentMethods && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-3xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
