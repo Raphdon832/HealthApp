@@ -68,7 +68,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   onClick={() => setTab(it.key)}
                   aria-label={it.label}
                   aria-pressed={isActive}
-                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none transition-all duration-200 ${
+                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-2 py-3 focus:outline-none transition-all duration-200 ${
                     isActive 
                       ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -76,13 +76,13 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                 >
                   {/* Faint blue round background for active icons with smooth transition */}
                   <div 
-                    className={`absolute bottom-16 w-14 h-2 bg-sky-600 rounded-[17px] transition-all duration-300 ${
+                    className={`absolute bottom-20 w-10 h-2 bg-sky-600 rounded-[17px] transition-all duration-300 ${
                       isActive ? 'opacity-80 scale-100' : 'opacity-0 scale-90'
                     }`} 
                   />
                   
                   <div className="relative z-10 transition-transform duration-200 hover:scale-110">
-                    <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                    <IconComponent {...iconProps} className="h-7 w-7 mb-2" />
                   </div>
                   {isCart && cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
@@ -112,7 +112,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                       }
                     })()
                   )}
-                  <span className={`truncate max-w-[72px] block text-center text-[10px] ${
+                  <span className={`truncate max-w-[72px] block text-center text-[12px] ${
                     isActive ? 'font-bold' : 'font-normal'
                   }`}>{it.label}</span>
                 </button>
