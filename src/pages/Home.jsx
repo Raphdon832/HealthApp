@@ -625,8 +625,8 @@ export default function Home() {
                   key={cat}
                   className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border transition-all duration-200 btn-interactive animate-fadeInUp ${
                     isSelected 
-                      ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-md scale-105' 
-                      : 'bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm'
+                      ? 'bg-sky-100 dark:bg-sky-900 border-sky-400 dark:border-sky-500 text-sky-700 dark:text-sky-300 shadow-md scale-105' 
+                      : 'bg-zinc-100 dark:bg-gray-700 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-gray-600 hover:bg-sky-50 dark:hover:bg-sky-800 hover:border-sky-300 dark:hover:border-sky-500 hover:shadow-sm'
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => setSelectedCategory(cat)}
@@ -636,7 +636,7 @@ export default function Home() {
                       <img
                         src={`/${encodeURIComponent(icon)}`}
                         alt={`${cat} icon`}
-                        className={`h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0 transition-transform duration-200 ${
+                        className={`h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0 transition-transform duration-200 dark:invert dark:brightness-0 dark:contrast-100 ${
                           isSelected ? 'scale-110' : ''
                         }`}
                       />

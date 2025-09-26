@@ -85,13 +85,13 @@ export default function PrescriptionList({ chatThreadId, prescriptions: propPres
 
   return (
     <div className="mt-4">
-      <div className="text-lg font-light mb-2">Prescriptions</div>
+      <div className="text-lg font-light mb-2 text-black dark:text-white">Prescriptions</div>
       {prescriptions.length === 0 && <div className="text-zinc-400 text-sm">No prescriptions yet.</div>}
       {prescriptions.map(p => (
-        <div key={p.id} className="mb-4 border rounded-2xl p-4 bg-white shadow-sm relative">
+        <div key={p.id} className="mb-4 border rounded-2xl p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 shadow-sm relative">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <div className="font-thin text-[14px] mb-1">Created: {new Date(p.startDate).toLocaleDateString()}</div>
+              <div className="font-thin text-[14px] mb-1 text-black dark:text-white">Created: {new Date(p.startDate).toLocaleDateString()}</div>
               <div className="mb-1 text-xs text-zinc-500 font-light">Status: {p.status}</div>
             </div>
             <div className="flex flex-col gap-2">

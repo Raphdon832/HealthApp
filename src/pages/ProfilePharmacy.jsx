@@ -498,7 +498,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       {/* Search modal */}
       {showSearch && (
         <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-blue-400 max-h-[80vh] overflow-hidden">
             <div className="mb-3">
               <div className="flex items-center gap-3 w-full">
                 <div className="flex-1 min-w-0">
@@ -516,7 +516,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] dark:border-blue-400 px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white w-36">
                     <option value="products">Products</option>
                     <option value="orders">Orders</option>
                     <option value="all">All</option>
@@ -533,7 +533,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] dark:border-blue-400 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex-shrink-0">
                           {r.type === 'product' ? (
@@ -571,7 +571,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       <div className="mt-8 w-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* LEFT: Profile detail card */}
         <aside className="min-w-0 lg:pr-2">
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
             <div className="mb-2">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] shadow" />
@@ -612,7 +612,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         {/* RIGHT: Storefront preview, controls and product list (scrollable on desktop) */}
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
           {/* Storefront Preview Section */}
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative overflow-hidden">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 flex flex-col items-start relative overflow-hidden">
             <div className="text-[18px] font-light font-poppins text-black mb-2 tracking-tight">Storefront Preview</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 font-light">Inventory</span>
@@ -656,7 +656,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             </button>
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 relative overflow-hidden">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="text-[17px] font-light font-poppins text-black tracking-tight">Products</div>
               {inventory.length > 3 && (
@@ -673,7 +673,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               {(showAllProducts ? inventory : inventory.slice(0,3)).map(p => (
                 <button
                   key={p.id}
-                  className="w-full text-left rounded-2xl border border-[#9ED3FF] p-3 flex items-center gap-3 bg-white hover:bg-[#E3F3FF] transition shadow-sm min-w-0 overflow-hidden"
+                  className="w-full text-left rounded-2xl border border-[#9ED3FF] dark:border-blue-400 p-3 flex items-center gap-3 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition shadow-sm min-w-0 overflow-hidden"
                   onClick={() => setEditingProduct(p)}
                   type="button"
                 >
@@ -703,13 +703,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] relative overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] dark:border-blue-400 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 relative">
               <div className="text-lg font-medium font-poppins text-black">Edit Product</div>
               <div className="relative">
                 <button className="rounded-full border border-zinc-300 text-zinc-500 py-2 flex items-center justify-center ml-2" style={{width:'36px',height:'36px'}} onClick={e => {e.stopPropagation(); setShowAdvanced(v=>!v);}}><MoreVertical className="h-4 w-4"/></button>
                 {showAdvanced && (
-                  <div className="absolute right-0 top-full mt-2 bg-white border border-[#9ED3FF] rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 border border-[#9ED3FF] dark:border-blue-400 rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
                     <button className="flex items-center gap-2 text-red-600 text-[13px] font-light px-2 py-1 hover:bg-red-50 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> Delete</button>
                   </div>
                 )}
@@ -774,7 +774,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
             {showDeleteConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-3xl" onClick={()=>setShowDeleteConfirm(false)}>
-                <div className="bg-white rounded-2xl p-5 shadow-xl border border-[#9ED3FF] text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-xl border border-[#9ED3FF] dark:border-blue-400 text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
                   <div className="text-[15px] font-light mb-4">Are you sure you want to delete this item?</div>
                   <div className="flex gap-2 justify-center">
                     <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>Yes, Delete</button>

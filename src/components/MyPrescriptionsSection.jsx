@@ -126,7 +126,7 @@ export default function MyPrescriptionsSection() {
 
   return (
     <div className="w-full">
-      <div className="text-[18px] font-light font-poppins text-black mb-2 tracking-tight">
+      <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">
         My Prescriptions
         {prescriptions.length > 0 && (
           <button
