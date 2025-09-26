@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { updateProfile, updatePhoneNumber, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, onSnapshot } from 'firebase/firestore';
-import { listenUserWishlist } from '@/lib/db';
+import { listenUserWishlist, listenUserBookmarkedVendors } from '@/lib/db';
 import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 
 // Fixed Header Component
@@ -44,6 +44,8 @@ export default function ProfileCustomer() {
   const [activeChats, setActiveChats] = useState(0);
   const [wishlist, setWishlist] = useState([]);
   const [showWishlist, setShowWishlist] = useState(false);
+  const [bookmarkedVendors, setBookmarkedVendors] = useState([]);
+  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'vendors'
   const [drugsBought, setDrugsBought] = useState([]);
   // Real-time customer profile from Firestore (name, address, email, phone)
   const [customerProfile, setCustomerProfile] = useState({
@@ -77,9 +79,15 @@ export default function ProfileCustomer() {
       setWishlist(wishlistItems);
     });
 
-    // Cleanup wishlist listener on unmount
+    // Listen to user's bookmarked vendors
+    const unsubscribeBookmarks = listenUserBookmarkedVendors(user.uid, (bookmarks) => {
+      setBookmarkedVendors(bookmarks);
+    });
+
+    // Cleanup listeners on unmount
     return () => {
       if (unsubscribeWishlist) unsubscribeWishlist();
+      if (unsubscribeBookmarks) unsubscribeBookmarks();
     };
     
     // Fetch drugs bought (harmonized by productId, using product name from products collection)
@@ -456,12 +464,12 @@ export default function ProfileCustomer() {
               <span className="text-[12px] text-sky-600 font-medium">{activeChats ?? 0}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Wishlist Items</span>
+              <span className="text-[12px] text-sky-500 font-light">Saved Items</span>
               <button 
                 className="text-[12px] text-sky-600 font-medium hover:underline"
                 onClick={() => setShowWishlist(true)}
               >
-                {wishlist?.length ?? 0}
+                {(wishlist?.length ?? 0) + (bookmarkedVendors?.length ?? 0)}
               </button>
             </div>
             <div className="w-full flex items-center justify-between mt-3 mb-1">
@@ -497,66 +505,141 @@ export default function ProfileCustomer() {
               </div>
             )}
 
-            {/* Modal for wishlist items */}
+            {/* Modal for saved items (Products & Vendors) */}
             {showWishlist && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                 <div className="bg-white border border-[#36A5FF] rounded-3xl p-5 w-[90vw] max-w-md shadow-xl">
-                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">My Wishlist</div>
+                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-4 tracking-tight">My Saved Items</div>
+                  
+                  {/* Tab Headers */}
+                  <div className="flex border-b border-gray-200 mb-4">
+                    <button
+                      className={`px-4 py-2 text-[14px] font-medium transition-colors ${
+                        activeTab === 'products'
+                          ? 'text-sky-600 border-b-2 border-sky-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                      onClick={() => setActiveTab('products')}
+                    >
+                      Products ({wishlist?.length ?? 0})
+                    </button>
+                    <button
+                      className={`px-4 py-2 text-[14px] font-medium transition-colors ${
+                        activeTab === 'vendors'
+                          ? 'text-sky-600 border-b-2 border-sky-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                      onClick={() => setActiveTab('vendors')}
+                    >
+                      Vendors ({bookmarkedVendors?.length ?? 0})
+                    </button>
+                  </div>
+
+                  {/* Tab Content */}
                   <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
-                    {wishlist?.length > 0 ? (
-                      wishlist.map((item) => (
-                        <div key={item.id} className="w-full flex items-center pb-3 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-                          <div className="flex items-center gap-3 w-full">
-                            {/* Product Image */}
-                            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                              {item.productData?.image ? (
-                                <img 
-                                  src={item.productData.image} 
-                                  alt={item.productData?.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-gray-400 text-xs font-medium">
-                                  {item.productData?.name?.[0] || 'P'}
-                                </span>
-                              )}
+                    {activeTab === 'products' ? (
+                      wishlist?.length > 0 ? (
+                        wishlist.map((item) => (
+                          <div key={item.id} className="w-full flex items-center pb-3 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+                            <div className="flex items-center gap-3 w-full">
+                              {/* Product Image */}
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {item.productData?.image ? (
+                                  <img 
+                                    src={item.productData.image} 
+                                    alt={item.productData?.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-gray-400 text-xs font-medium">
+                                    {item.productData?.name?.[0] || 'P'}
+                                  </span>
+                                )}
+                              </div>
+                              {/* Product Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[13px] font-medium text-gray-800 truncate">
+                                  {item.productData?.name || 'Unknown Product'}
+                                </div>
+                                <div className="text-[11px] text-gray-500">
+                                  {item.productData?.pharmacyName || 'Unknown Pharmacy'}
+                                </div>
+                                <div className="text-[12px] text-sky-600 font-medium">
+                                  ₦{item.productData?.price || '0'}
+                                </div>
+                              </div>
+                              {/* View Button */}
+                              <button
+                                className="px-3 py-1 bg-sky-100 text-sky-600 rounded-full text-[10px] font-medium hover:bg-sky-200 transition-colors"
+                                onClick={() => {
+                                  navigate(`/product/${item.productId}`);
+                                  setShowWishlist(false);
+                                }}
+                              >
+                                View
+                              </button>
                             </div>
-                            {/* Product Details */}
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-medium text-gray-800 truncate">
-                                {item.productData?.name || 'Unknown Product'}
-                              </div>
-                              <div className="text-[11px] text-gray-500">
-                                {item.productData?.pharmacyName || 'Unknown Pharmacy'}
-                              </div>
-                              <div className="text-[12px] text-sky-600 font-medium">
-                                ₦{item.productData?.price || '0'}
-                              </div>
-                            </div>
-                            {/* View Button */}
-                            <button
-                              className="px-3 py-1 bg-sky-100 text-sky-600 rounded-full text-[10px] font-medium hover:bg-sky-200 transition-colors"
-                              onClick={() => {
-                                navigate(`/product/${item.productId}`);
-                                setShowWishlist(false);
-                              }}
-                            >
-                              View
-                            </button>
                           </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <div className="text-4xl mb-2">💝</div>
+                          <div className="text-[14px] font-light">No products saved</div>
+                          <div className="text-[12px] text-gray-400 mt-1">Start adding products you like!</div>
                         </div>
-                      ))
+                      )
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <div className="text-4xl mb-2">💝</div>
-                        <div className="text-[14px] font-light">Your wishlist is empty</div>
-                        <div className="text-[12px] text-gray-400 mt-1">Start adding products you like!</div>
-                      </div>
+                      bookmarkedVendors?.length > 0 ? (
+                        bookmarkedVendors.map((bookmark) => (
+                          <div key={bookmark.id} className="w-full flex items-center pb-3 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+                            <div className="flex items-center gap-3 w-full">
+                              {/* Vendor Avatar */}
+                              <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-sky-600 text-lg font-medium">
+                                  {bookmark.vendorData?.name?.[0] || 'V'}
+                                </span>
+                              </div>
+                              {/* Vendor Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[13px] font-medium text-gray-800 truncate">
+                                  {bookmark.vendorData?.name || 'Unknown Vendor'}
+                                </div>
+                                <div className="text-[11px] text-gray-500 truncate">
+                                  {bookmark.vendorData?.address || 'Address not available'}
+                                </div>
+                                <div className="text-[11px] text-gray-500">
+                                  {bookmark.vendorData?.phone || ''}
+                                </div>
+                              </div>
+                              {/* Visit Button */}
+                              <button
+                                className="px-3 py-1 bg-sky-100 text-sky-600 rounded-full text-[10px] font-medium hover:bg-sky-200 transition-colors"
+                                onClick={() => {
+                                  navigate(`/vendor/${bookmark.vendorId}`);
+                                  setShowWishlist(false);
+                                }}
+                              >
+                                Visit
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <div className="text-4xl mb-2">🔖</div>
+                          <div className="text-[14px] font-light">No vendors bookmarked</div>
+                          <div className="text-[12px] text-gray-400 mt-1">Bookmark vendors you like!</div>
+                        </div>
+                      )
                     )}
                   </div>
+
                   <button 
                     className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" 
-                    onClick={() => setShowWishlist(false)}
+                    onClick={() => {
+                      setShowWishlist(false);
+                      setActiveTab('products'); // Reset to products tab
+                    }}
                   >
                     Close
                   </button>

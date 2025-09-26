@@ -442,3 +442,59 @@ export const listenUserWishlist = (userId, callback, onError = console.error) =>
     onError
   );
 };
+
+/* -----------------------------
+   VENDOR BOOKMARK FUNCTIONS
+----------------------------------*/
+export const addVendorBookmark = async (userId, vendorId, vendorData) => {
+  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  await setDoc(bookmarkRef, {
+    userId,
+    vendorId,
+    vendorData,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const removeVendorBookmark = async (userId, vendorId) => {
+  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  await deleteDoc(bookmarkRef);
+};
+
+export const isVendorBookmarked = async (userId, vendorId) => {
+  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  const snap = await getDoc(bookmarkRef);
+  return snap.exists();
+};
+
+export const getUserBookmarkedVendors = async (userId) => {
+  const q = query(
+    collection(db, 'vendorBookmarks'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+export const listenUserBookmarkedVendors = (userId, callback, onError = console.error) => {
+  const q = query(
+    collection(db, 'vendorBookmarks'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  
+  return onSnapshot(q, 
+    (snapshot) => {
+      const bookmarks = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(bookmarks);
+    },
+    onError
+  );
+};

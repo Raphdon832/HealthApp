@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Phone, MessageCircle, ArrowLeft, Search } from 'lucide-react';
+import { MapPin, Clock, Phone, MessageCircle, ArrowLeft, Search, Bookmark } from 'lucide-react';
 import { getDoc, doc } from 'firebase/firestore';
-import { listenProducts, getOrCreateThread } from '@/lib/db'; // ⬅︎ use new helper
+import { listenProducts, getOrCreateThread, addVendorBookmark, removeVendorBookmark, isVendorBookmarked } from '@/lib/db'; // ⬅︎ use new helper
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import jsPDF from 'jspdf';
@@ -19,6 +19,7 @@ export default function VendorProfile() {
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [etaInfo, setEtaInfo] = useState(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   
   // Search functionality
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +55,39 @@ export default function VendorProfile() {
     fetchVendor();
     return listenProducts(setProducts, id);
   }, [id]);
+
+  // Check bookmark status when vendor and user are available
+  useEffect(() => {
+    async function checkBookmarkStatus() {
+      if (user?.uid && id) {
+        const bookmarked = await isVendorBookmarked(user.uid, id);
+        setIsBookmarked(bookmarked);
+      }
+    }
+    checkBookmarkStatus();
+  }, [user?.uid, id]);
+
+  // Handle bookmark toggle
+  const handleBookmarkToggle = async () => {
+    if (!user?.uid || !vendor) return;
+    
+    try {
+      if (isBookmarked) {
+        await removeVendorBookmark(user.uid, id);
+        setIsBookmarked(false);
+      } else {
+        await addVendorBookmark(user.uid, id, {
+          name: vendor.name,
+          address: vendor.address,
+          phone: vendor.phone,
+          email: vendor.email,
+        });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
+  };
 
   // Calculate ETA when user location or vendor changes
   useEffect(() => {
@@ -246,6 +280,17 @@ export default function VendorProfile() {
         <div className="text-[18px] font-light font-poppins leading-none">Vendor Profile</div>
         <div className="flex items-center gap-2">
           <button
+            onClick={handleBookmarkToggle}
+            className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
+              isBookmarked ? 'bg-sky-100 border-sky-300' : 'hover:bg-sky-50'
+            }`}
+            aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
+          >
+            <Bookmark 
+              className={`w-5 h-5 ${isBookmarked ? 'text-sky-600 fill-sky-600' : 'text-sky-600'}`} 
+            />
+          </button>
+          <button
             onClick={() => setShowSearch(true)}
             className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
             aria-label="Search products"
@@ -270,6 +315,19 @@ export default function VendorProfile() {
             <ArrowLeft className="h-3 w-3 mr-0" /> Back
           </button>
           <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal">Vendor&nbsp;Profile</div>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleBookmarkToggle}
+              className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isBookmarked ? 'bg-sky-100 border-sky-300' : 'hover:bg-sky-50'
+              }`}
+              aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
+            >
+              <Bookmark 
+                className={`w-5 h-5 ${isBookmarked ? 'text-sky-600 fill-sky-600' : 'text-sky-600'}`} 
+              />
+            </button>
+          </div>
         </div>
 
       {/* Central responsive area: on mobile stacked (vendor then products), on md+ grid with products (left) and vendor details + message (right) */}
