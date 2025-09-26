@@ -63,8 +63,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'sent') {
     return (
       <Check 
-        className="w-3.5 h-3.5 text-gray-400 ml-2 opacity-70" 
-        strokeWidth={2.5}
+        className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
+        strokeWidth={2}
         title="Sent"
       />
     );
@@ -73,8 +73,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'delivered') {
     return (
       <CheckCheck 
-        className="w-3.5 h-3.5 text-gray-400 ml-2 opacity-70" 
-        strokeWidth={2.5}
+        className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
+        strokeWidth={2}
         title="Delivered"
       />
     );
@@ -83,8 +83,8 @@ function MessageStatus({ message, isMine }) {
   if (status === 'read' || isRead) {
     return (
       <CheckCheck 
-        className="w-3.5 h-3.5 text-blue-500 ml-2 opacity-90" 
-        strokeWidth={2.5}
+        className="w-3 h-3 text-green-500 ml-1" 
+        strokeWidth={2}
         title="Read"
       />
     );
@@ -436,7 +436,7 @@ export default function ChatThread() {
 
         {/* Messages */}
         <div className="w-full flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-32 min-h-0 hide-scrollbar" style={{ paddingTop: 16 }}>
+          <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 min-h-0 hide-scrollbar" style={{ paddingTop: 12 }}>
             {(() => {
               let lastDate = null;
               return messages.map((m) => {
@@ -453,29 +453,28 @@ export default function ChatThread() {
                 return (
                   <React.Fragment key={m.id}>
                     {showDate && t && (
-                      <div className="flex justify-center my-8 mb-6">
-                        <span className="bg-gray-200/80 backdrop-blur-sm text-gray-600 text-[11px] font-medium px-3 py-1.5 rounded-full shadow-sm">
+                      <div className="flex justify-center my-6 mb-4">
+                        <span className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2.5 py-1 rounded-lg">
                           {getDateLabel(t)}
                         </span>
                       </div>
                     )}
-                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-3`}>
+                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
                       <div
                         className={`${
                           isMine 
-                            ? 'bg-blue-500 text-white ml-12' 
-                            : 'bg-gray-100 text-black mr-12'
-                        } px-4 py-3 max-w-[85%] sm:max-w-[75%] whitespace-pre-wrap break-words shadow-sm transition-all duration-200 hover:shadow-md`}
+                            ? 'bg-blue-500 text-white ml-8' 
+                            : 'bg-white text-gray-900 mr-8 border border-gray-200'
+                        } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
                         style={{ 
-                          borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                          fontSize: 16,
-                          lineHeight: 1.4,
-                          backdropFilter: 'blur(10px)'
+                          borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+                          fontSize: 14,
+                          lineHeight: 1.3
                         }}
                       >
                         <MessageWithLinks text={m.text} isMine={isMine} />
                       </div>
-                      <div className={`flex items-center text-[11px] text-gray-500 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                      <div className={`flex items-center text-[10px] text-gray-400 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
                         <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                         <MessageStatus message={m} isMine={isMine} />
                       </div>
@@ -507,15 +506,15 @@ export default function ChatThread() {
                 <input
                   value={text}
                   onChange={e => setText(e.target.value)}
-                  placeholder="iMessage"
-                  className="flex-1 min-w-0 outline-none px-4 py-2.5 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full placeholder:text-gray-400 placeholder:text-[14px] shadow-sm focus:border-blue-300 focus:shadow-md transition-all duration-200"
-                  style={{ fontSize: 16 }}
+                  placeholder="Message"
+                  className="flex-1 min-w-0 outline-none px-3 py-2 bg-white border border-gray-300 rounded-full placeholder:text-gray-400 placeholder:text-[14px] focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all duration-200"
+                  style={{ fontSize: 14 }}
                 />
                 <button 
                   type="submit" 
                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
                     text.trim() 
-                      ? 'bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg transform hover:scale-105' 
+                      ? 'bg-blue-500 hover:bg-blue-600 active:scale-95' 
                       : 'bg-gray-300 cursor-not-allowed'
                   }`}
                   disabled={!text.trim()}
