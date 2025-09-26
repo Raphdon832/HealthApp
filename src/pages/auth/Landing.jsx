@@ -35,7 +35,7 @@ return (
       <button
         onClick={()=> navigate(role==='customer'? '/auth/customer/signin' : '/auth/pharmacy/signin')}
         disabled={!role}
-        className={`mt-8 w-full h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] font-light flex items-center justify-center btn-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm animate-fade-in-up ${!role ? 'border-zinc-300 dark:border-gray-600 text-zinc-400 cursor-not-allowed bg-white' : 'border-[#36A5FF] text-blue-600 cursor-pointer bg-white'}`}
+        className={`mt-8 w-full h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] font-light flex items-center justify-center btn-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm animate-fade-in-up ${!role ? 'border-zinc-300 dark:border-gray-600 text-zinc-400 cursor-not-allowed bg-white' : 'border-[#36A5FF] text-[#36A5FF] cursor-pointer bg-white'}`}
         style={{ animationDelay: '0.7s' }}
       >
         Continue
