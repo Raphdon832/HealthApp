@@ -470,7 +470,7 @@ export default function Home() {
       <div className="min-h-screen w-full px-0 pb-20 pt-32 bg-white dark:bg-gray-900">
 
       <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pb-28 px-0">
-        <div className="flex items-center gap-3 border-b border-zinc-300 dark:border-zinc-600 pb-2">
+        <div className="flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 dark:border-zinc-600 pb-2">
           <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400 dark:text-zinc-500" />
           <input
             value={q}
@@ -625,8 +625,8 @@ export default function Home() {
                   key={cat}
                   className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border transition-all duration-200 btn-interactive animate-fadeInUp ${
                     isSelected 
-                      ? 'bg-sky-100 dark:bg-sky-900 border-sky-400 dark:border-sky-500 text-sky-700 dark:text-sky-300 shadow-md scale-105' 
-                      : 'bg-zinc-100 dark:bg-gray-700 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-gray-600 hover:bg-sky-50 dark:hover:bg-sky-800 hover:border-sky-300 dark:hover:border-sky-500 hover:shadow-sm'
+                      ? 'bg-sky-100 dark:bg-sky-900 border-sky-400 dark:border-gray-600 dark:border-sky-500 text-sky-700 dark:text-sky-300 shadow-md scale-105' 
+                      : 'bg-zinc-100 dark:bg-gray-700 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-gray-600 hover:bg-sky-50 dark:hover:bg-sky-800 hover:border-sky-300 dark:border-gray-600 dark:hover:border-sky-500 hover:shadow-sm'
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => setSelectedCategory(cat)}

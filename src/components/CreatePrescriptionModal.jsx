@@ -44,7 +44,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
           {selectedDrugs.map((drug, idx) => (
             <div key={idx} className="mb-2 p-2 border rounded-lg bg-zinc-50 card-interactive hover:shadow-md transition-all duration-200 animate-fadeInUp" style={{ animationDelay: `${0.1 * idx}s` }}>
               <select
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200"
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200"
                 value={drug.productId}
                 onChange={e => {
                   const prod = products.find(p => p.id === e.target.value);
@@ -59,21 +59,21 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
               <input 
                 type="number" 
                 min="1" 
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200" 
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
                 placeholder="Quantity" 
                 value={drug.quantity} 
                 onChange={e => updateDrug(idx, 'quantity', e.target.value)} 
                 required 
               />
               <input 
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200" 
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
                 placeholder="Dosage (e.g. 1 tablet)" 
                 value={drug.dosage} 
                 onChange={e => updateDrug(idx, 'dosage', e.target.value)} 
                 required 
               />
               <input 
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200" 
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
                 placeholder="Frequency (e.g. 2x/day)" 
                 value={drug.frequency} 
                 onChange={e => updateDrug(idx, 'frequency', e.target.value)} 
@@ -82,14 +82,14 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
               <input 
                 type="number" 
                 min="1" 
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200" 
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
                 placeholder="Duration (days)" 
                 value={drug.duration} 
                 onChange={e => updateDrug(idx, 'duration', e.target.value)} 
                 required 
               />
               <input 
-                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200" 
+                className="mb-1 w-full border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
                 placeholder="Notes (optional)" 
                 value={drug.notes} 
                 onChange={e => updateDrug(idx, 'notes', e.target.value)} 
@@ -101,7 +101,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
                   <div key={tIdx} className="flex items-center gap-2 mb-1 animate-fade-in">
                     <input
                       type="time"
-                      className="border-b p-1 text-[12px] focus:border-sky-500 transition-colors duration-200"
+                      className="border-b p-1 text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200"
                       value={time}
                       onChange={e => updateDrugTime(idx, tIdx, e.target.value)}
                     />
@@ -136,7 +136,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
           <label className="block text-sm mb-1 font-light">Start Date</label>
           <input 
             type="date" 
-            className="border-b p-1 w-full text-[12px] focus:border-sky-500 transition-colors duration-200" 
+            className="border-b p-1 w-full text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
             value={startDate} 
             onChange={e => setStartDate(e.target.value)} 
             required 
@@ -147,7 +147,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
           <input 
             type="number" 
             min="1" 
-            className="border-b p-1 w-full text-[12px] focus:border-sky-500 transition-colors duration-200" 
+            className="border-b p-1 w-full text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
             value={duration} 
             onChange={e => setDuration(e.target.value)} 
             required 
@@ -156,7 +156,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
         <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <label className="block text-sm mb-1 font-light">Notes</label>
           <textarea 
-            className="border rounded p-1 w-full text-[12px] focus:border-sky-500 transition-colors duration-200" 
+            className="border rounded p-1 w-full text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
             value={notes} 
             onChange={e => setNotes(e.target.value)} 
           />

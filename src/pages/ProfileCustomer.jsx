@@ -258,10 +258,10 @@ export default function ProfileCustomer() {
       {/* Search modal (click outside to close) */}
       {showSearch && (
         <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fadeInScale" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-blue-400 max-h-[80vh] overflow-hidden modal-backdrop animate-bounceIn">
+          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-gray-600 max-h-[80vh] overflow-hidden modal-backdrop animate-bounceIn">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center bg-[#F0FAFF] dark:bg-gray-700 border border-[#9ED3FF] dark:border-blue-400 rounded-full px-3 py-2 w-full overflow-hidden input-interactive">
+                <div className="flex items-center bg-[#F0FAFF] dark:bg-gray-700 border border-[#9ED3FF] dark:border-gray-600 rounded-full px-3 py-2 w-full overflow-hidden input-interactive">
                   <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
                   <input
                     autoFocus
@@ -275,7 +275,7 @@ export default function ProfileCustomer() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] dark:border-blue-400 px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white w-36 input-interactive">
+                <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white w-36 input-interactive">
                   <option value="prescriptions">Prescriptions</option>
                   <option value="orders">Orders</option>
                   <option value="drugs">Drugs</option>
@@ -292,7 +292,7 @@ export default function ProfileCustomer() {
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] dark:border-blue-400 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           r.type === 'order' ? 'bg-green-100' : 
@@ -340,7 +340,7 @@ export default function ProfileCustomer() {
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
         {/* Left column: Profile card + logout */}
         <div className="space-y-6">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             {/* Avatar */}
             <div className="w-20 h-20 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-3 overflow-hidden">
               {user?.photoURL ? (
@@ -352,7 +352,7 @@ export default function ProfileCustomer() {
             <div className="w-full flex items-center justify-between mt-1">
               <div className="text-[20px] font-medium text-sky-600 tracking-tighter">{customerProfile.displayName || 'Customer'}</div>
               <button
-                className="ml-2 px-3 py-1 rounded-full border border-sky-200 text-sky-600 text-xs flex items-center gap-1 hover:bg-sky-50"
+                className="ml-2 px-3 py-1 rounded-full border border-sky-200 dark:border-gray-600 text-sky-600 text-xs flex items-center gap-1 hover:bg-sky-50"
                 onClick={() => setEditing(true)}
               >
                 <Pencil className="h-4 w-4" /> Edit
@@ -362,7 +362,7 @@ export default function ProfileCustomer() {
             {/* Edit form modal */}
             {editing && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fadeInScale">
-                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-blue-500 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
+                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
                   <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">Edit Profile</div>
                   <form
                     className="flex flex-col gap-4"
@@ -401,7 +401,7 @@ export default function ProfileCustomer() {
                   >
                     <label className="text-[12px] text-zinc-500 font-light animate-fadeInUp" style={{ animationDelay: '0.1s' }}></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all input-interactive animate-fadeInUp"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all input-interactive animate-fadeInUp"
                       style={{ animationDelay: '0.2s', boxShadow: 'none' }}
                       value={editName}
                       placeholder="Name"
@@ -409,7 +409,7 @@ export default function ProfileCustomer() {
                     />
                     <label className="text-[12px] text-zinc-500 font-light"></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       value={editPhone}
                       placeholder="Phone Number"
                       onChange={e => setEditPhone(e.target.value)}
@@ -417,7 +417,7 @@ export default function ProfileCustomer() {
                     />
                     <label className="text-[12px] text-zinc-500 font-light"></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       value={editAddress}
                       placeholder="Address"
                       onChange={e => setEditAddress(e.target.value)}
@@ -425,7 +425,7 @@ export default function ProfileCustomer() {
                     />
                     <label className="text-[12px] text-zinc-500 font-light"></label>
                     <input
-                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 transition-all"
+                      className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       type="password"
                       placeholder="Account Password (required to save)"
                       onChange={e => setEditPassword(e.target.value)}
@@ -447,13 +447,13 @@ export default function ProfileCustomer() {
           </div>
 
           {/*<div>
-            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
           </div>*/}
         </div>
 
         {/* Right column: Activity and Prescriptions stack */}
         <div className="space-y-6">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">My Activity</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 font-light">Items in Cart</span>
@@ -489,7 +489,7 @@ export default function ProfileCustomer() {
             {/* Modal for all drugs bought */}
             {showAllDrugs && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-blue-500 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
+                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
                   <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">All Drugs Bought</div>
                   <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
                     {drugsBought.map((drug, idx) => (
@@ -508,15 +508,15 @@ export default function ProfileCustomer() {
             {/* Modal for saved items (Products & Vendors) */}
             {showWishlist && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-blue-500 rounded-3xl p-5 w-[90vw] max-w-md shadow-xl">
+                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-md shadow-xl">
                   <div className="text-[18px] font-light font-poppins text-sky-600 dark:text-sky-400 mb-4 tracking-tight">My Saved Items</div>
                   
                   {/* Tab Headers */}
-                  <div className="flex border-b border-gray-200 dark:border-gray-600 mb-4">
+                  <div className="flex border-b border-gray-200 dark:border-gray-600 dark:border-gray-600 mb-4">
                     <button
                       className={`px-4 py-2 text-[14px] font-medium transition-colors ${
                         activeTab === 'products'
-                          ? 'text-sky-600 border-b-2 border-sky-600'
+                          ? 'text-sky-600 border-b-2 border-sky-600 dark:border-gray-600'
                           : 'text-gray-500 hover:text-gray-700'
                       }`}
                       onClick={() => setActiveTab('products')}
@@ -526,7 +526,7 @@ export default function ProfileCustomer() {
                     <button
                       className={`px-4 py-2 text-[14px] font-medium transition-colors ${
                         activeTab === 'vendors'
-                          ? 'text-sky-600 border-b-2 border-sky-600'
+                          ? 'text-sky-600 border-b-2 border-sky-600 dark:border-gray-600'
                           : 'text-gray-500 hover:text-gray-700'
                       }`}
                       onClick={() => setActiveTab('vendors')}
@@ -648,13 +648,13 @@ export default function ProfileCustomer() {
             )}
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-blue-500 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             <MyPrescriptionsSection />
           </div>
         </div>
       </div>
        <div>
-            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
           </div>
       </div>
     </>

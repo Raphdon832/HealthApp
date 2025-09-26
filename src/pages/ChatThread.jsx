@@ -454,7 +454,7 @@ export default function ChatThread() {
                     navigate('/messages');
                   }
                 }}
-                className="rounded-full border border-gray-200 dark:border-gray-600 px-3 sm:px-4 py-1 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-full border border-gray-200 dark:border-gray-600 dark:border-gray-600 px-3 sm:px-4 py-1 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
@@ -594,7 +594,7 @@ export default function ChatThread() {
                           className={`${
                             isMine 
                               ? 'bg-blue-500 text-white ml-8' 
-                              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-700'
+                              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-600 dark:border-gray-700'
                           } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
                           style={{ 
                             borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
@@ -640,7 +640,7 @@ export default function ChatThread() {
                   value={text}
                   onChange={e => setText(e.target.value)}
                   placeholder="Message"
-                  className="flex-1 min-w-0 outline-none px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-full placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-[14px] focus:border-blue-400 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
+                  className="flex-1 min-w-0 outline-none px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-full placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-[14px] focus:border-blue-400 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
                   style={{ fontSize: 14 }}
                 />
                 <button 

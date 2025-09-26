@@ -88,7 +88,7 @@ export default function Messages() {
     <>
       <FixedHeader title="My Conversations" />
       <div className="min-h-screen pt-24 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
-        <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 pb-2">
+        <div className="mt-8 flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 pb-2">
           <Search className="h-4 w-4 text-zinc-400"/>
           <input
             placeholder="Search chats"
@@ -103,7 +103,7 @@ export default function Messages() {
           <button
             key={t.id}
             onClick={() => openThread(t)}
-            className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
+            className="w-full rounded-[10px] border border-gray-300 dark:border-gray-600 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">

@@ -9,7 +9,7 @@ export default function MessagesPreview({ threads, unreadCount, onThreadClick })
   };
 
   return (
-    <div className="relative bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8">
+    <div className="relative bg-[#F7F7F7] rounded-2xl border border-sky-500 dark:border-gray-600 p-5 mt-8">
       <div 
         className="flex items-center justify-between mb-2 cursor-pointer hover:bg-sky-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
         onClick={handleHeaderClick}

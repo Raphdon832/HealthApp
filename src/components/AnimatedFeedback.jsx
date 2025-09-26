@@ -29,7 +29,7 @@ const colors = {
   },
   info: {
     bg: 'bg-blue-50',
-    border: 'border-blue-200',
+    border: 'border-blue-200 dark:border-gray-600',
     text: 'text-blue-800',
     icon: 'text-blue-600'
   }

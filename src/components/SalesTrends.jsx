@@ -5,7 +5,7 @@ export default function SalesTrends({ data }) {
   
   if (!data || data.length === 0) {
     return (
-      <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8 text-zinc-400 text-sm text-center">
+      <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 dark:border-gray-600 p-5 mt-8 text-zinc-400 text-sm text-center">
         No sales trend data.
       </div>
     );
@@ -47,7 +47,7 @@ export default function SalesTrends({ data }) {
   const areaPath = `${pathData} L ${points[points.length - 1].x} ${chartHeight - padding} L ${points[0].x} ${chartHeight - padding} Z`;
 
   return (
-    <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8 relative overflow-hidden">
+    <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 dark:border-gray-600 p-5 mt-8 relative overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-black font-light text-lg tracking-tight">Sales Trends</h2>

@@ -165,7 +165,7 @@ export default function ReviewsManagement() {
         <div className="text-center py-16">
           <div className="relative mx-auto w-12 h-12 mb-6">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200"></div>
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 border-t-transparent absolute top-0 left-0"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 dark:border-gray-600 border-t-transparent absolute top-0 left-0"></div>
           </div>
           <p className="text-gray-600 font-medium">Loading your reviews...</p>
           <p className="text-gray-400 text-sm mt-1">Please wait while we fetch your data</p>
@@ -192,7 +192,7 @@ export default function ReviewsManagement() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm">
+          <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 dark:border-gray-600 shadow-sm">
             <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.total}</div>
             <div className="text-xs sm:text-sm text-blue-600 font-medium">Total Reviews</div>
           </div>
@@ -218,7 +218,7 @@ export default function ReviewsManagement() {
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="all">All Products</option>
                 {Object.values(products).map(product => (
@@ -231,7 +231,7 @@ export default function ReviewsManagement() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -244,7 +244,7 @@ export default function ReviewsManagement() {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="all">All Reviews</option>
                 <option value="positive">Positive (4+ stars)</option>
@@ -382,7 +382,7 @@ export default function ReviewsManagement() {
                             value={responseText[review.id] || ''}
                             onChange={(e) => setResponseText(prev => ({ ...prev, [review.id]: e.target.value }))}
                             placeholder="Write a thoughtful response to this review..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:border-gray-600 resize-none text-sm"
                             rows={4}
                             maxLength={500}
                           />

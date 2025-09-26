@@ -291,7 +291,7 @@ export default function ProductDetail({ product, pharmacy }) {
       <div className="px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+          className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 dark:border-gray-600 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </button>
@@ -332,7 +332,7 @@ export default function ProductDetail({ product, pharmacy }) {
           <div className="pt-6 sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
           <button
             onClick={() => navigate(-1)}
-            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 text-gray-900 dark:text-white hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>
@@ -547,7 +547,7 @@ export default function ProductDetail({ product, pharmacy }) {
                             dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                           }
                           return (
-                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
+                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 dark:border-gray-600 animate-slide-up transition-all duration-200">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
                                   <span className="font-poppins font-semibold text-[14px] text-zinc-700 dark:text-zinc-200">{review.name}</span>
@@ -578,7 +578,7 @@ export default function ProductDetail({ product, pharmacy }) {
                               
                               {/* Pharmacy Response */}
                               {review.pharmacyResponse && (
-                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-700 border border-sky-100 dark:border-gray-600 rounded-lg shadow-sm">
+                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-700 border border-sky-100 dark:border-gray-600 dark:border-gray-600 rounded-lg shadow-sm">
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="w-2 h-2 bg-sky-500 dark:bg-sky-400 rounded-full"></div>
                                     <span className="font-poppins font-semibold text-[13px] text-sky-700 dark:text-white">
@@ -615,7 +615,7 @@ export default function ProductDetail({ product, pharmacy }) {
                       <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
                         <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
                       <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review... (optional)" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
-                      <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
+                      <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 dark:border-gray-600 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
                         {submitting ? 'Submitting…' : 'Submit Review'}
                       </button>
                     </form>
@@ -692,7 +692,7 @@ export default function ProductDetail({ product, pharmacy }) {
             <div className="bg-white rounded-2xl p-6 w-[90vw] max-w-xs shadow-xl animate-bounce-in flex flex-col gap-4">
               <div className="font-poppins font-medium text-[16px] mb-2 text-center">Share Product</div>
               <button
-                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 dark:border-gray-600 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleShareProduct}
               >
                 <Share2 className="w-4 h-4" /> Share Product

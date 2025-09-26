@@ -318,7 +318,7 @@ export default function PharmacyMap() {
 
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Current Location with improved status */}
-        <div className="bg-gray dark:bg-transparent rounded-lg p-4 mb-4 border border-sky-300 dark:border-sky-600">
+        <div className="bg-gray dark:bg-transparent rounded-lg p-4 mb-4 border border-sky-300 dark:border-gray-600 dark:border-gray-600">
           <div className="flex items-center gap-3">
             {userCoords ? (
               <>
@@ -348,7 +348,7 @@ export default function PharmacyMap() {
         </div>
 
         {/* Search and Filters */}
-        <div className="dark:bg-transparent rounded-lg p-4 border mb-4 border-sky-300 dark:border-sky-600">
+        <div className="dark:bg-transparent rounded-lg p-4 border mb-4 border-sky-300 dark:border-gray-600 dark:border-gray-600">
           <div className="flex gap-2">
             <div className="flex-1 relative bg-transparent">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -360,13 +360,13 @@ export default function PharmacyMap() {
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 autoComplete="off"
               />
               
               {/* Search Suggestions Dropdown */}
               {showSuggestions && searchQuery.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-fade-in">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-fade-in">
                   {searchSuggestions.length > 0 ? (
                     searchSuggestions.map((suggestion, index) => (
                       <button
@@ -374,7 +374,7 @@ export default function PharmacyMap() {
                         onClick={() => handleSuggestionClick(suggestion)}
                         className={`w-full text-left px-4 py-3 focus:outline-none transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0 animate-fadeInUp ${
                           index === selectedSuggestionIndex 
-                            ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700' 
+                            ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-gray-600 dark:border-gray-600' 
                             : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-50 dark:focus:bg-blue-900/20'
                         }`}
                         style={{ animationDelay: `${index * 0.05}s` }}
@@ -445,7 +445,7 @@ export default function PharmacyMap() {
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                showFilters ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-700 dark:text-gray-300'
+                showFilters ? 'bg-blue-500 text-white border-blue-500 dark:border-gray-600' : 'text-gray-700 dark:text-gray-300'
               }`}
             >
               <FilterIcon className="h-4 w-4" />
@@ -572,15 +572,15 @@ export default function PharmacyMap() {
             <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-black rounded-full border border-white dark:border-gray-300"></div>
+                  <div className="w-3 h-3 bg-black rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
                   <span className="text-gray-700 dark:text-gray-300">Your location</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full border border-white dark:border-gray-300"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
                   <span className="text-gray-700 dark:text-gray-300">Pharmacy</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-300"></div>
+                  <div className="w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
                   <span className="text-gray-700 dark:text-gray-300">Selected</span>
                 </div>
               </div>
@@ -590,7 +590,7 @@ export default function PharmacyMap() {
 
         {/* Enhanced Selected Pharmacy Details */}
         {selectedPharmacy && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 mb-4 shadow-sm border border-blue-200 dark:border-blue-700">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 mb-4 shadow-sm border border-blue-200 dark:border-gray-600 dark:border-gray-600">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-start gap-2 flex-1 min-w-0">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg flex-shrink-0">
@@ -644,7 +644,7 @@ export default function PharmacyMap() {
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 btn-interactive"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
               >
                 <span className="hidden sm:inline">View Products</span>
                 <span className="sm:hidden">View Products</span>
@@ -696,10 +696,10 @@ export default function PharmacyMap() {
               <div
                 key={pharmacy.id || index}
                 id={`pharmacy-${pharmacy.id}`}
-                className={`bg-white dark:bg-transparent rounded-lg p-3 border border-gray-200 dark:border-gray-600 cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
+                className={`bg-white dark:bg-transparent rounded-lg p-3 border border-gray-200 dark:border-gray-600 dark:border-gray-600 cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
-                    ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30 shadow-blue-100 scale-102'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md'
+                    ? 'border-blue-300 dark:border-gray-600 bg-blue-50 dark:bg-blue-900/30 shadow-blue-100 scale-102'
+                    : 'border-gray-200 dark:border-gray-600 dark:border-gray-600 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 hover:shadow-md'
                 }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handlePharmacySelect(pharmacy)}

@@ -62,7 +62,7 @@ export default function Settings() {
       {/* Settings content */}
       <div className="mt-4 space-y-6">
         {/* General Settings Section - First */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-gray-100 p-2">
               <SettingsIcon className="h-5 w-5 text-gray-600" />
@@ -90,7 +90,7 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION)}
                   onChange={(e) => handleSwipeToggle(e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
               </label>
             </div>
             
@@ -116,7 +116,7 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.DATA_SAVER_MODE)}
                   onChange={(e) => updateSetting(SETTINGS_KEYS.DATA_SAVER_MODE, e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
               </label>
             </div>
 
@@ -133,14 +133,14 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS)}
                   onChange={(e) => updateSetting(SETTINGS_KEYS.MESSAGE_READ_RECEIPTS, e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
               </label>
             </div>
           </div>
         </div>
 
         {/* Language & Region - Second */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-orange-100 p-2">
               <Globe className="h-5 w-5 text-orange-600" />
@@ -161,7 +161,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.LANGUAGE)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.LANGUAGE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-orange-300"
               >
                 <option value="en">English</option>
                 <option value="yo">Yoruba</option>
@@ -174,7 +174,7 @@ export default function Settings() {
         </div>
 
         {/* Appearance Settings - Third */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-purple-100 p-2">
               <Palette className="h-5 w-5 text-purple-600" />
@@ -195,7 +195,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.THEME_MODE)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.THEME_MODE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -212,7 +212,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.FONT_SIZE)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.FONT_SIZE, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -223,7 +223,7 @@ export default function Settings() {
         </div>
 
         {/* Accessibility - Fourth */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-blue-100 p-2">
               <Eye className="h-5 w-5 text-blue-600" />
@@ -248,7 +248,7 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.HIGH_CONTRAST)}
                   onChange={(e) => updateSetting(SETTINGS_KEYS.HIGH_CONTRAST, e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
 
@@ -265,14 +265,14 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.REDUCE_MOTION)}
                   onChange={(e) => updateSetting(SETTINGS_KEYS.REDUCE_MOTION, e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
           </div>
         </div>
 
         {/* Notifications Section - Fifth */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-sky-100 p-2">
               <Bell className="h-5 w-5 text-sky-600" />
@@ -289,7 +289,7 @@ export default function Settings() {
         </div>
 
         {/* Privacy & Security - Sixth */}
-        <div className="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-green-100 p-2">
               <Shield className="h-5 w-5 text-green-600" />
@@ -314,7 +314,7 @@ export default function Settings() {
                   checked={getSetting(SETTINGS_KEYS.BIOMETRIC_LOGIN)}
                   onChange={(e) => updateSetting(SETTINGS_KEYS.BIOMETRIC_LOGIN, e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
               </label>
             </div>
 
@@ -327,7 +327,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.AUTO_LOCK)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.AUTO_LOCK, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-300"
               >
                 <option value="1min">1 minute</option>
                 <option value="5min">5 minutes</option>
@@ -345,7 +345,7 @@ export default function Settings() {
               <select 
                 value={getSetting(SETTINGS_KEYS.LOCATION_PRECISION)} 
                 onChange={(e) => updateSetting(SETTINGS_KEYS.LOCATION_PRECISION, e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-300"
               >
                 <option value="precise">Precise</option>
                 <option value="approximate">Approximate</option>
@@ -356,7 +356,7 @@ export default function Settings() {
         </div>
 
         {/* Reset Settings - Last */}
-        <div className="bg-white rounded-2xl border border-red-100 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-red-100 dark:border-gray-600 p-6 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-red-100 p-2">
               <SettingsIcon className="h-5 w-5 text-red-600" />

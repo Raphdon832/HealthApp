@@ -35,7 +35,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
   const totalRevenue = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
+    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 dark:border-gray-600 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>

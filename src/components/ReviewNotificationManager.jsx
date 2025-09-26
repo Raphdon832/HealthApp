@@ -42,7 +42,7 @@ const ReviewNotificationToast = ({ review, onDismiss, onViewReview }) => {
     <div className={`fixed top-4 right-4 z-50 transform transition-all duration-300 ${
       isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
     }`}>
-      <div className="bg-white border-l-4 border-sky-500 rounded-lg shadow-lg p-4 max-w-sm">
+      <div className="bg-white border-l-4 border-sky-500 dark:border-gray-600 dark:border-gray-600 rounded-lg shadow-lg p-4 max-w-sm">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             <MessageCircle size={16} className="text-sky-500" />

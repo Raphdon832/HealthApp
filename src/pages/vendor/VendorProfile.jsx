@@ -43,11 +43,11 @@ export default function VendorProfile() {
   return (
     <div className="min-h-screen bg-white w-full max-w-md mx-auto pb-28">
       {/* Fixed header with back button and vendor profile text */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-600 dark:border-gray-700">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center px-3 py-2 rounded-full bg-gray-50 border border-gray-200 text-sm font-medium hover:bg-gray-100 active:scale-95 transition-all duration-150"
+            className="flex items-center justify-center px-3 py-2 rounded-full bg-gray-50 border border-gray-200 dark:border-gray-600 text-sm font-medium hover:bg-gray-100 active:scale-95 transition-all duration-150"
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </button>

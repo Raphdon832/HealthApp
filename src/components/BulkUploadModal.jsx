@@ -90,7 +90,7 @@ export default function BulkUploadModal({ pharmacyId, onClose }) {
 
         <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="CSV or XLSX File"
             type="file"
             onChange={(e) => onFiles(e.target.files)}

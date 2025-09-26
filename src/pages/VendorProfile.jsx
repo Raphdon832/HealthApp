@@ -273,7 +273,7 @@ export default function VendorProfile() {
       <div className="px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+          className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 dark:border-gray-600 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
         >
           <ArrowLeft className="h-3 w-3 mr-0" /> Back
         </button>
@@ -282,7 +282,7 @@ export default function VendorProfile() {
           <button
             onClick={handleBookmarkToggle}
             className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
-              isBookmarked ? 'bg-sky-100 border-sky-300' : 'hover:bg-sky-50'
+              isBookmarked ? 'bg-sky-100 border-sky-300 dark:border-gray-600' : 'hover:bg-sky-50'
             }`}
             aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
           >
@@ -310,7 +310,7 @@ export default function VendorProfile() {
         <div className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 items-center gap-3 animate-slide-down-fade hidden md:flex">
           <button
             onClick={() => navigate(-1)}
-            className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 text-gray-900 dark:text-white mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="h-3 w-3 mr-0" /> Back
           </button>
@@ -319,7 +319,7 @@ export default function VendorProfile() {
             <button
               onClick={handleBookmarkToggle}
               className={`p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:scale-110 active:scale-95 transition-all duration-200 ${
-                isBookmarked ? 'bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-sky-600' : 'hover:bg-sky-50 dark:hover:bg-sky-900/20'
+                isBookmarked ? 'bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-gray-600 dark:border-sky-600 dark:border-gray-600' : 'hover:bg-sky-50 dark:hover:bg-sky-900/20'
               }`}
               aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
             >
@@ -457,13 +457,13 @@ export default function VendorProfile() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent font-poppins"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent font-poppins"
                 autoFocus
               />
               
               {/* Live Suggestions Dropdown */}
               {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto z-10">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-y-auto z-10">
                   {searchSuggestions.map((product, index) => (
                     <button
                       key={product.id}
@@ -525,7 +525,7 @@ export default function VendorProfile() {
                   setShowSearch(false);
                   setShowSuggestions(false);
                 }}
-                className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-poppins"
+                className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 transition-colors font-poppins"
               >
                 Clear
               </button>

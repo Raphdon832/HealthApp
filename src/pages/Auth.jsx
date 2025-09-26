@@ -41,8 +41,8 @@ export default function AuthPage() {
           <div className="mb-4">
             <div className="text-sm text-zinc-600 mb-2">Account type</div>
             <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={()=>setRole('customer')} className={`rounded-2xl border px-3 py-2 ${role==='customer'?'border-sky-400 text-sky-700':''}`}>Customer</button>
-              <button type="button" onClick={()=>setRole('pharmacy')} className={`rounded-2xl border px-3 py-2 ${role==='pharmacy'?'border-sky-400 text-sky-700':''}`}>Pharmacy</button>
+              <button type="button" onClick={()=>setRole('customer')} className={`rounded-2xl border px-3 py-2 ${role==='customer'?'border-sky-400 dark:border-gray-600 text-sky-700':''}`}>Customer</button>
+              <button type="button" onClick={()=>setRole('pharmacy')} className={`rounded-2xl border px-3 py-2 ${role==='pharmacy'?'border-sky-400 dark:border-gray-600 text-sky-700':''}`}>Pharmacy</button>
             </div>
           </div>
         )}

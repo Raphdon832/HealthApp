@@ -327,7 +327,7 @@ export default function Cart() {
             {/* Quantity selector */}
             <div className="flex items-center gap-2 mt-1">
               <button
-                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light disabled:opacity-40 btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
+                className="w-6 h-6 rounded-full border border-zinc-300 dark:border-gray-600 flex items-center justify-center text-[18px] font-light disabled:opacity-40 btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
                 onClick={async () => {
                   if (i.qty > 1) {
                     // Remove one instance (by id)
@@ -341,7 +341,7 @@ export default function Cart() {
               </button>
               <span className="text-[13px] font-poppins w-6 text-center font-medium">{i.qty}</span>
               <button
-                className="w-6 h-6 rounded-full border border-zinc-300 flex items-center justify-center text-[18px] font-light btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
+                className="w-6 h-6 rounded-full border border-zinc-300 dark:border-gray-600 flex items-center justify-center text-[18px] font-light btn-interactive transition-all duration-200 hover:border-sky-500 hover:text-sky-600"
                 onClick={async () => {
                   // Add one more of this product
                   if (i.product?.id) {
@@ -363,7 +363,7 @@ export default function Cart() {
         )}
       </div>
       {harmonizedItems.length > 0 && (
-        <div className="mt-6 rounded-xl border border-sky-400 p-3">
+        <div className="mt-6 rounded-xl border border-sky-400 dark:border-gray-600 p-3">
           <div className="flex flex-col gap-2 text-[13px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-regular">
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
@@ -451,7 +451,7 @@ export default function Cart() {
                           searchAddresses(e.target.value);
                         }}
                         placeholder="Enter delivery address"
-                        className="w-full p-3 border border-gray-300 rounded-lg text-[14px] pr-10"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-[14px] pr-10"
                       />
                       <button
                         onClick={useCurrentLocation}
@@ -462,7 +462,7 @@ export default function Cart() {
                       </button>
                     </div>
                     {addressSuggestions.length > 0 && (
-                      <div className="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto relative z-[10000]">
+                      <div className="mt-2 bg-white border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto relative z-[10000]">
                         {addressSuggestions.map((suggestion, index) => (
                           <button
                             key={index}
@@ -489,7 +489,7 @@ export default function Cart() {
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
                         placeholder="Enter phone number"
-                        className="w-full p-3 border border-gray-300 rounded-lg text-[14px]"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-[14px]"
                       />
                     </div>
                     <div>
@@ -501,7 +501,7 @@ export default function Cart() {
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="Enter email address"
-                        className="w-full p-3 border border-gray-300 rounded-lg text-[14px]"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-[14px]"
                       />
                     </div>
                   </div>
@@ -560,7 +560,7 @@ export default function Cart() {
                   className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
                     selectedPaymentMethod === 'cash'
                       ? 'border-sky-500 bg-sky-50'
-                      : 'border-gray-200 hover:border-sky-300'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-sky-300 dark:border-gray-600'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -578,7 +578,7 @@ export default function Cart() {
                   className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
                     selectedPaymentMethod === 'online'
                       ? 'border-sky-500 bg-sky-50'
-                      : 'border-gray-200 hover:border-sky-300'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-sky-300 dark:border-gray-600'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -593,7 +593,7 @@ export default function Cart() {
                 {/* Insurance Payment (Disabled) */}
                 <button
                   disabled
-                  className="w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-100 text-left cursor-not-allowed opacity-60"
+                  className="w-full p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-gray-100 text-left cursor-not-allowed opacity-60"
                 >
                   <div className="flex items-center gap-3 justify-between">
                     <div className="flex items-center gap-3">

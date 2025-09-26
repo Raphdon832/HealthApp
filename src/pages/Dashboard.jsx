@@ -486,7 +486,7 @@ export default function Dashboard() {
                 + Add Product
               </button>
               <button
-                className="flex-1 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
+                className="flex-1 rounded-full border border-sky-600 dark:border-gray-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
                 onClick={() => setShowBulk(true)}
               >
                 Bulk Upload

@@ -140,13 +140,13 @@ export default function Orders() {
         {/* Filters */}
         <div className="mt-8 flex gap-2 flex-wrap">
           <button
-            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
             onClick={()=>setStatusFilter('all')}
           >All</button>
           {ORDER_STATUSES.map(s => (
             <button
               key={s}
-              className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600' : 'border-zinc-300 text-zinc-600'}`}
+              className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
               onClick={()=>setStatusFilter(s)}
             >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
         ))}
@@ -168,7 +168,7 @@ export default function Orders() {
               <div
                 key={o.id}
                 id={`order-${o.id}`}
-                className={`relative rounded-[10px] border border-gray-200 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition-all duration-200 card-interactive animate-fadeInUp ${
+                className={`relative rounded-[10px] border border-gray-200 dark:border-gray-600 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition-all duration-200 card-interactive animate-fadeInUp ${
                   highlightOrderId===o.id ? 'ring-4 ring-sky-200 bg-sky-50 scale-102' : ''
                 }`}
                 style={{ 
