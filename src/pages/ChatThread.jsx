@@ -648,7 +648,7 @@ export default function ChatThread() {
         </div>
 
         {/* Create Prescription Modal */}
-        <React.Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"><div className="bg-white rounded-lg p-4">Loading...</div></div>}>
+        <React.Suspense fallback={null}>
           <CreatePrescriptionModal
             open={showPrescriptionModal}
             onClose={() => setShowPrescriptionModal(false)}
@@ -658,7 +658,7 @@ export default function ChatThread() {
         </React.Suspense>
         {/* Prescription History Modal */}
         <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
-          <React.Suspense fallback={<div className="p-4">Loading prescription history...</div>}>
+          <React.Suspense fallback={null}>
             <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
           </React.Suspense>
         </Modal>
