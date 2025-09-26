@@ -14,14 +14,34 @@ export const useSettings = () => {
 export const SETTINGS_KEYS = {
   SWIPE_NAVIGATION: 'swipe_navigation_enabled',
   THEME_MODE: 'theme_mode',
-  LANGUAGE: 'language'
+  LANGUAGE: 'language',
+  FONT_SIZE: 'font_size',
+  BIOMETRIC_LOGIN: 'biometric_login_enabled',
+  AUTO_LOCK: 'auto_lock_timeout',
+  LOCATION_PRECISION: 'location_precision',
+  MESSAGE_READ_RECEIPTS: 'message_read_receipts',
+  ORDER_NOTIFICATIONS: 'order_notifications_enabled',
+  PRESCRIPTION_REMINDERS: 'prescription_reminders_enabled',
+  DATA_SAVER_MODE: 'data_saver_mode_enabled',
+  HIGH_CONTRAST: 'high_contrast_enabled',
+  REDUCE_MOTION: 'reduce_motion_enabled'
 };
 
 // Default settings
 const DEFAULT_SETTINGS = {
   [SETTINGS_KEYS.SWIPE_NAVIGATION]: false, // Disabled by default
   [SETTINGS_KEYS.THEME_MODE]: 'light',
-  [SETTINGS_KEYS.LANGUAGE]: 'en'
+  [SETTINGS_KEYS.LANGUAGE]: 'en',
+  [SETTINGS_KEYS.FONT_SIZE]: 'medium',
+  [SETTINGS_KEYS.BIOMETRIC_LOGIN]: false,
+  [SETTINGS_KEYS.AUTO_LOCK]: '5min',
+  [SETTINGS_KEYS.LOCATION_PRECISION]: 'precise',
+  [SETTINGS_KEYS.MESSAGE_READ_RECEIPTS]: true,
+  [SETTINGS_KEYS.ORDER_NOTIFICATIONS]: true,
+  [SETTINGS_KEYS.PRESCRIPTION_REMINDERS]: true,
+  [SETTINGS_KEYS.DATA_SAVER_MODE]: false,
+  [SETTINGS_KEYS.HIGH_CONTRAST]: false,
+  [SETTINGS_KEYS.REDUCE_MOTION]: false
 };
 
 export const SettingsProvider = ({ children }) => {
