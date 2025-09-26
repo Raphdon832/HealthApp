@@ -71,7 +71,7 @@ export default function ProductCard({
       </div>
 
       <div
-        className="mt-1 font-poppins transition-colors duration-200 group-hover:text-zinc-800"
+        className="mt-1 font-poppins transition-colors duration-200 group-hover:text-zinc-800 dark:group-hover:text-white"
         style={{ fontSize: nameSize, fontWeight: nameWeight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         title={product.name}
       >

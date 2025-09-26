@@ -44,7 +44,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       <nav
         role="navigation"
         aria-label="Bottom navigation"
-        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200 dark:border-gray-700"
+        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3 bg-white/95 dark:bg-gray-900/40 backdrop-blur-md border border-gray-200 dark:border-gray-700"
       >
         {/* Use gap-based layout with fixed-size cells so icons are spaced evenly and not cramped */}
         <div className="flex items-center justify-center gap-[-1] px-2">
