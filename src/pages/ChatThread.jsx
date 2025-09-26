@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import {
   getOrCreateThread,
-  listenThreadMessages,
+  listenThreadMessagesPaginated,
   sendChatMessage,
   markThreadRead,
   markMessageDelivered
@@ -15,13 +15,15 @@ import { Paperclip } from 'lucide-react';
 import SendButtonUrl from '@/icons/SendButton.svg?url';
 import CallIcon from '@/icons/react/CallIcon';
 import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
-import CreatePrescriptionModal from '@/components/CreatePrescriptionModal';
-import PrescriptionList from '@/components/PrescriptionList';
-import MessageWithLinks from '@/components/MessageWithLinks';
 import { createPrescription } from '@/lib/db';
 import { Menu } from '@headlessui/react';
 import Modal from '@/components/Modal';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+
+// Lazy load heavy components
+const CreatePrescriptionModal = React.lazy(() => import('@/components/CreatePrescriptionModal'));
+const PrescriptionList = React.lazy(() => import('@/components/PrescriptionList'));
+const MessageWithLinks = React.lazy(() => import('@/components/MessageWithLinks'));
 // Use the SVG placed in the `public/` folder so production (Netlify) serves it at root
 const ChatBgUrl = '/ChatBg.svg';
 
@@ -53,8 +55,8 @@ function isProductPreviewMessage(m) {
   return m.type === 'product-preview';
 }
 
-// Message status indicator component
-function MessageStatus({ message, isMine }) {
+// Message status indicator component - memoized to prevent unnecessary re-renders
+const MessageStatus = React.memo(({ message, isMine }) => {
   if (!isMine) return null; // Only show status for sent messages
   
   const status = message.status || 'sent';
@@ -91,7 +93,19 @@ function MessageStatus({ message, isMine }) {
   }
   
   return null;
-}
+});
+
+MessageStatus.displayName = 'MessageStatus';
+
+// Skeleton component for loading messages
+const MessageSkeleton = React.memo(() => (
+  <div className="flex flex-col items-start w-full mb-2 animate-pulse">
+    <div className="bg-gray-200 rounded-2xl h-10 w-48 mb-1"></div>
+    <div className="bg-gray-200 rounded-2xl h-6 w-32"></div>
+  </div>
+));
+
+MessageSkeleton.displayName = 'MessageSkeleton';
 
 export default function ChatThread() {
   const { user, profile } = useAuth();
@@ -112,7 +126,10 @@ export default function ChatThread() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [pharmacyPhone, setPharmacyPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [visibleMessageCount, setVisibleMessageCount] = useState(50); // Start with 50 messages
   const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const [lastMessageId, setLastMessageId] = useState(null);
   const [isTabActive, setIsTabActive] = useState(true);
@@ -203,11 +220,14 @@ export default function ChatThread() {
     })().catch(console.error);
   }, [threadId, profile?.role]);
 
-  // Live messages + mark read
+  // Live messages + mark read - using paginated listener for better performance
   useEffect(() => {
     if (!threadId || !user?.uid) return;
-    const stop = listenThreadMessages(threadId, (newMessages) => {
+    
+    setIsLoading(true);
+    const stop = listenThreadMessagesPaginated(threadId, (newMessages) => {
       setMessages(newMessages);
+      setIsLoading(false);
       
       // Mark incoming messages as delivered (simulate recipient receiving them)
       newMessages.forEach(async (msg) => {
@@ -219,13 +239,61 @@ export default function ChatThread() {
           }
         }
       });
-    }, console.error);
+    }, console.error, 100); // Load latest 100 messages initially
     
     markThreadRead(threadId, user.uid).catch(console.error);
     return stop;
   }, [threadId, user?.uid]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length]);
+  // Optimized scroll to bottom - only when new messages arrive
+  const scrollToBottom = useCallback((immediate = false) => {
+    if (immediate) {
+      bottomRef.current?.scrollIntoView();
+    } else {
+      bottomRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && messages.length > 0) {
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => scrollToBottom(false));
+    }
+  }, [messages.length, isLoading, scrollToBottom]);
+
+  // Throttled scroll handler for better performance
+  const throttledHandleScroll = useMemo(() => {
+    let timeoutId = null;
+    return (e) => {
+      if (timeoutId) return; // Skip if already throttled
+      
+      timeoutId = setTimeout(() => {
+        const container = e.target;
+        const scrollTop = container.scrollTop;
+        
+        // If user scrolls near the top and there are more messages, load more
+        if (scrollTop < 200 && visibleMessageCount < messages.length) {
+          setVisibleMessageCount(prev => Math.min(prev + 50, messages.length));
+        }
+        
+        timeoutId = null;
+      }, 100); // Throttle to 100ms
+    };
+  }, [visibleMessageCount, messages.length]);
+
+  // Handle scroll to load more messages
+  const handleScroll = useCallback((e) => {
+    throttledHandleScroll(e);
+  }, [throttledHandleScroll]);
+
+  // Get visible messages (latest N messages)
+  const visibleMessages = useMemo(() => {
+    return messages.slice(-visibleMessageCount);
+  }, [messages, visibleMessageCount]);
 
   // Page visibility for message tone
   useEffect(() => {
@@ -258,18 +326,28 @@ export default function ChatThread() {
     prevMsgId.current = lastMsg.id;
   }, [messages, user?.uid]);
 
-  const otherUid = () => {
+  const otherUid = useCallback(() => {
     if (!threadId || !user) return null;
     const [vId, cId] = threadId.split('__');
     return user.uid === vId ? cId : vId;
-  };
+  }, [threadId, user]);
 
-  const onSend = async () => {
+  const onSend = useCallback(async () => {
     const to = otherUid();
     if (!to || !text.trim() || !threadId) return;
-    await sendChatMessage(threadId, { senderId: user.uid, to, text: text.trim() });
+    
+    // Optimistically clear input immediately for better UX
+    const messageText = text.trim();
     setText('');
-  };
+    
+    try {
+      await sendChatMessage(threadId, { senderId: user.uid, to, text: messageText });
+    } catch (error) {
+      // Restore text if send fails
+      setText(messageText);
+      console.error('Failed to send message:', error);
+    }
+  }, [threadId, text, user?.uid, otherUid]);
 
   // Defer pharmacy products listener until the prescription modal opens
   useEffect(() => {
@@ -436,53 +514,95 @@ export default function ChatThread() {
 
         {/* Messages */}
         <div className="w-full flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 min-h-0 hide-scrollbar" style={{ paddingTop: 12 }}>
-            {(() => {
-              let lastDate = null;
-              return messages.map((m) => {
-                const isMine = m.senderId === user?.uid;
-                const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
-                let showDate = false;
-                if (t) {
-                  const dayStr = t.toDateString();
-                  if (lastDate !== dayStr) {
-                    showDate = true;
-                    lastDate = dayStr;
+          <div 
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 min-h-0 hide-scrollbar" 
+            style={{ paddingTop: 12 }}
+            onScroll={handleScroll}
+          >
+            {/* Show load more indicator */}
+            {visibleMessageCount < messages.length && (
+              <div className="flex justify-center py-4">
+                <button 
+                  onClick={() => setVisibleMessageCount(prev => Math.min(prev + 50, messages.length))}
+                  className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors"
+                >
+                  Load {Math.min(50, messages.length - visibleMessageCount)} more messages
+                </button>
+              </div>
+            )}
+            
+            {isLoading ? (
+              <div className="space-y-4">
+                {/* Show skeleton messages while loading */}
+                <MessageSkeleton />
+                <div className="flex flex-col items-end w-full mb-2 animate-pulse">
+                  <div className="bg-blue-200 rounded-2xl h-10 w-40 mb-1"></div>
+                  <div className="bg-blue-200 rounded-2xl h-6 w-24"></div>
+                </div>
+                <MessageSkeleton />
+                <div className="flex flex-col items-end w-full mb-2 animate-pulse">
+                  <div className="bg-blue-200 rounded-2xl h-8 w-56 mb-1"></div>
+                </div>
+                <MessageSkeleton />
+              </div>
+            ) : visibleMessages.length === 0 ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-gray-400 text-sm text-center">
+                  <div className="text-lg mb-2">💬</div>
+                  Start your conversation
+                </div>
+              </div>
+            ) : (
+              (() => {
+                let lastDate = null;
+                return visibleMessages.map((m) => {
+                  const isMine = m.senderId === user?.uid;
+                  const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
+                  let showDate = false;
+                  if (t) {
+                    const dayStr = t.toDateString();
+                    if (lastDate !== dayStr) {
+                      showDate = true;
+                      lastDate = dayStr;
+                    }
                   }
-                }
-                return (
-                  <React.Fragment key={m.id}>
-                    {showDate && t && (
-                      <div className="flex justify-center my-6 mb-4">
-                        <span className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2.5 py-1 rounded-lg">
-                          {getDateLabel(t)}
-                        </span>
+                  return (
+                    <React.Fragment key={m.id}>
+                      {showDate && t && (
+                        <div className="flex justify-center my-6 mb-4">
+                          <span className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2.5 py-1 rounded-lg">
+                            {getDateLabel(t)}
+                          </span>
+                        </div>
+                      )}
+                      <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
+                        <div
+                          className={`${
+                            isMine 
+                              ? 'bg-blue-500 text-white ml-8' 
+                              : 'bg-white text-gray-900 mr-8 border border-gray-200'
+                          } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
+                          style={{ 
+                            borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+                            fontSize: 14,
+                            lineHeight: 1.3
+                          }}
+                        >
+                          <React.Suspense fallback={<span>{m.text}</span>}>
+                            <MessageWithLinks text={m.text} isMine={isMine} />
+                          </React.Suspense>
+                        </div>
+                        <div className={`flex items-center text-[10px] text-gray-400 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                          <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                          <MessageStatus message={m} isMine={isMine} />
+                        </div>
                       </div>
-                    )}
-                    <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
-                      <div
-                        className={`${
-                          isMine 
-                            ? 'bg-blue-500 text-white ml-8' 
-                            : 'bg-white text-gray-900 mr-8 border border-gray-200'
-                        } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
-                        style={{ 
-                          borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-                          fontSize: 14,
-                          lineHeight: 1.3
-                        }}
-                      >
-                        <MessageWithLinks text={m.text} isMine={isMine} />
-                      </div>
-                      <div className={`flex items-center text-[10px] text-gray-400 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
-                        <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-                        <MessageStatus message={m} isMine={isMine} />
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              });
-            })()}
+                    </React.Fragment>
+                  );
+                });
+              })()
+            )}
             <div ref={bottomRef} />
           </div>
 
@@ -528,15 +648,19 @@ export default function ChatThread() {
         </div>
 
         {/* Create Prescription Modal */}
-        <CreatePrescriptionModal
-          open={showPrescriptionModal}
-          onClose={() => setShowPrescriptionModal(false)}
-          products={pharmacyProducts}
-          onSubmit={handleCreatePrescription}
-        />
+        <React.Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"><div className="bg-white rounded-lg p-4">Loading...</div></div>}>
+          <CreatePrescriptionModal
+            open={showPrescriptionModal}
+            onClose={() => setShowPrescriptionModal(false)}
+            products={pharmacyProducts}
+            onSubmit={handleCreatePrescription}
+          />
+        </React.Suspense>
         {/* Prescription History Modal */}
         <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
-          <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
+          <React.Suspense fallback={<div className="p-4">Loading prescription history...</div>}>
+            <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
+          </React.Suspense>
         </Modal>
 
         {/* Prescription Quick Actions (for customer) */}

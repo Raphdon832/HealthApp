@@ -181,6 +181,24 @@ export const listenThreadMessages = (threadId, cb, onErr) => {
   );
 };
 
+/** Paginated messages listener for better performance */
+export const listenThreadMessagesPaginated = (threadId, cb, onErr, messageLimit = 50) => {
+  const q = query(
+    collection(db, "threads", threadId, "messages"),
+    orderBy("createdAt", "desc"), // Get newest first
+    limit(messageLimit)
+  );
+  return onSnapshot(
+    q,
+    (s) => {
+      // Reverse to show oldest first (chronological order)
+      const messages = s.docs.map((d) => ({ id: d.id, ...d.data() })).reverse();
+      cb(messages);
+    },
+    (e) => onErr?.(e)
+  );
+};
+
 /**
  * Real-time thread list for a user (customer or vendor), newest first.
  * Pass { noSort: true } while your composite index is still building to avoid errors.
