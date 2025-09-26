@@ -1,5 +1,5 @@
 // src/pages/auth/CustomerRegister.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import BackButton from './BackButton';
@@ -8,6 +8,7 @@ import SuccessScreen from './SuccessScreen';
 import { Eye, EyeOff } from 'lucide-react';
 import GoogleButton from '@/components/GoogleButton';
 import { useUserLocation } from '@/hooks/useUserLocation';
+import { checkGoogleAuthConfig } from '@/lib/googleAuthDebug';
 
 
 export default function CustomerRegister(){
@@ -22,6 +23,11 @@ const [selectedAddress, setSelectedAddress] = useState(null);
 const addressTimeout = useRef();
 const [showPassword, setShowPassword] = useState(false);
 const navigate = useNavigate();
+
+// Debug Google Auth configuration
+useEffect(() => {
+  checkGoogleAuthConfig();
+}, []);
 
 
 const fetchAddressSuggestions = async (query) => {
@@ -61,29 +67,43 @@ alert(err.message);
 const handleGoogleRegister = async () => {
 setGoogleLoading(true);
 try {
-const userLocation = {
-address: location,
-latitude: userCoords?.latitude,
-longitude: userCoords?.longitude
-};
-const result = await signUpWithGoogle(userLocation);
-
-if (result.isNewUser) {
-  // New user created successfully
-  setSuccess(result.user.email);
-} else if (result.existingCustomer) {
-  // Existing customer account - just sign them in
-  navigate('/');
-} else {
-  // Existing user, just navigate
-  navigate('/');
-}
+  console.log('Starting Google registration process...');
+  console.log('User location:', { location, userCoords });
+  
+  const userLocation = {
+    address: location,
+    latitude: userCoords?.latitude,
+    longitude: userCoords?.longitude
+  };
+  
+  const result = await signUpWithGoogle(userLocation);
+  console.log('Google registration result:', result);
+  
+  if (result.isNewUser) {
+    console.log('New user created, showing success screen');
+    // New user created successfully
+    setSuccess(result.user.email);
+  } else if (result.existingCustomer) {
+    console.log('Existing customer, navigating to home');
+    // Existing customer account - just sign them in
+    navigate('/');
+  } else {
+    console.log('Existing user, navigating to home');
+    // Existing user, just navigate
+    navigate('/');
+  }
 } catch (err) {
-// Display user-friendly error message
-alert(err.message || 'Google registration failed. Please try again.');
+  console.error('Google registration failed:', err);
+  
+  // Check if it's a user-friendly error message already
+  if (err.message && !err.message.includes('Firebase:')) {
+    alert(err.message);
+  } else {
+    alert('Google registration failed. Please try again or contact support if the issue persists.');
+  }
 }
 finally {
-setGoogleLoading(false);
+  setGoogleLoading(false);
 }
 }
 

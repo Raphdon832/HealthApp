@@ -1,11 +1,12 @@
 // src/pages/auth/CustomerSignIn.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import BackButton from './BackButton';
 import { useAuth } from '@/lib/auth';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import GoogleButton from '@/components/GoogleButton';
+import { checkGoogleAuthConfig } from '@/lib/googleAuthDebug';
 
 const getUserFriendlyErrorMessage = (error) => {
   const errorCode = error.code || error.message;
@@ -50,6 +51,11 @@ const [error, setError] = useState(null);
 const [showPassword, setShowPassword] = useState(false);
 const navigate = useNavigate();
 
+// Debug Google Auth configuration
+useEffect(() => {
+  checkGoogleAuthConfig();
+}, []);
+
 const submit = async (e)=>{
 e.preventDefault();
 setBusy(true);
@@ -67,13 +73,23 @@ const handleGoogleSignIn = async () => {
 setGoogleLoading(true);
 setError(null);
 try {
-await signInWithGoogle();
-navigate('/');
+  console.log('Starting Google sign-in process...');
+  const result = await signInWithGoogle();
+  console.log('Google sign-in successful, navigating to home');
+  navigate('/');
 } catch (err) {
-setError(getUserFriendlyErrorMessage(err));
+  console.error('Google sign-in failed:', err);
+  
+  // Check if it's a user-friendly error message already
+  if (err.message && !err.message.includes('Firebase:')) {
+    setError(err.message);
+  } else {
+    // Use the error message function for other errors
+    setError(getUserFriendlyErrorMessage(err));
+  }
 }
 finally {
-setGoogleLoading(false);
+  setGoogleLoading(false);
 }
 }
 

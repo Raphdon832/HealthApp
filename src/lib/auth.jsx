@@ -45,27 +45,67 @@ export function AuthProvider({ children }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    return result;
+    
+    // Configure the provider for better UX
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    try {
+      console.log('Attempting Google sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-in successful:', result.user.email);
+      return result;
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      
+      // Handle specific Firebase Auth errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (error.code === 'auth/internal-error') {
+        throw new Error('Google sign-in is not properly configured. Please contact support.');
+      } else if (error.code === 'auth/configuration-not-found') {
+        throw new Error('Google sign-in configuration missing. Please contact support.');
+      }
+      
+      // Re-throw the original error for debugging
+      throw error;
+    }
   };
 
   const signUpWithGoogle = async (userLocation) => {
     const provider = new GoogleAuthProvider();
     
+    // Configure the provider for better UX
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
     try {
+      console.log('Attempting Google registration/sign-in...');
       const result = await signInWithPopup(auth, provider);
       const { user } = result;
+      console.log('Google auth successful for:', user.email);
       
       // Check if this is a new user by looking for existing profile
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
+        console.log('Creating new customer profile for:', user.email);
         // Completely new user - create profile with location-based address
         const userData = {
           uid: user.uid,
           email: user.email,
-          displayName: user.displayName,
+          displayName: user.displayName || 'Google User',
           role: 'customer',
           address: userLocation?.address || 'Location not available',
           lat: userLocation?.latitude,
@@ -75,10 +115,12 @@ export function AuthProvider({ children }) {
         };
         
         await setDoc(userRef, userData);
+        console.log('New customer profile created successfully');
         
         // No need to send verification for Google users
         return { user, verificationSent: false, isNewUser: true };
       } else {
+        console.log('Existing user found:', user.email);
         // Existing user - check if they're a customer
         const existingData = userSnap.data();
         
@@ -91,6 +133,8 @@ export function AuthProvider({ children }) {
         return { user, verificationSent: false, isNewUser: false, existingCustomer: true };
       }
     } catch (error) {
+      console.error('Google registration/sign-in error:', error);
+      
       // Handle specific Firebase Auth errors
       if (error.code === 'auth/account-exists-with-different-credential') {
         // This means the email exists with a different sign-in method (email/password)
@@ -99,9 +143,15 @@ export function AuthProvider({ children }) {
         throw new Error('Sign-in was cancelled. Please try again.');
       } else if (error.code === 'auth/popup-blocked') {
         throw new Error('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (error.code === 'auth/internal-error') {
+        throw new Error('Google sign-in is not properly configured. Please contact support.');
+      } else if (error.code === 'auth/configuration-not-found') {
+        throw new Error('Google sign-in configuration missing. Please contact support.');
       }
       
-      // Re-throw other errors
+      // Re-throw the original error for debugging
       throw error;
     }
   };
