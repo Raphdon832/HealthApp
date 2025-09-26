@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { sendVerification } from './email';
 
@@ -43,10 +43,47 @@ export function AuthProvider({ children }) {
     return { user, verificationSent: true };
   };
 
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    return result;
+  };
+
+  const signUpWithGoogle = async (userLocation) => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const { user } = result;
+    
+    // Check if this is a new user by looking for existing profile
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      // New user - create profile with location-based address
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        role: 'customer',
+        address: userLocation?.address || 'Location not available',
+        lat: userLocation?.latitude,
+        lon: userLocation?.longitude
+      };
+      
+      await setDoc(userRef, userData);
+      
+      // No need to send verification for Google users
+      return { user, verificationSent: false, isNewUser: true };
+    } else {
+      // Existing user
+      return { user, verificationSent: false, isNewUser: false };
+    }
+  };
+
   const logout = () => signOut(auth);
 
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, logout }}>
+    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signUpWithGoogle, logout }}>
       {children}
     </AuthCtx.Provider>
   );

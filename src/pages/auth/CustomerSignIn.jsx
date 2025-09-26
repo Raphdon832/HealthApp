@@ -5,6 +5,7 @@ import AuthLayout from './AuthLayout';
 import BackButton from './BackButton';
 import { useAuth } from '@/lib/auth';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import GoogleButton from '@/components/GoogleButton';
 
 const getUserFriendlyErrorMessage = (error) => {
   const errorCode = error.code || error.message;
@@ -27,9 +28,10 @@ const getUserFriendlyErrorMessage = (error) => {
 };
 
 export default function CustomerSignIn(){
-const { signIn } = useAuth();
+const { signIn, signInWithGoogle } = useAuth();
 const [form, setForm] = useState({ email:'', password:'' });
 const [busy, setBusy] = useState(false);
+const [googleLoading, setGoogleLoading] = useState(false);
 const [error, setError] = useState(null);
 const [showPassword, setShowPassword] = useState(false);
 const navigate = useNavigate();
@@ -45,6 +47,20 @@ navigate('/');
 setError(getUserFriendlyErrorMessage(err));
 }
 finally{ setBusy(false); }
+}
+
+const handleGoogleSignIn = async () => {
+setGoogleLoading(true);
+setError(null);
+try {
+await signInWithGoogle();
+navigate('/');
+} catch (err) {
+setError(getUserFriendlyErrorMessage(err));
+}
+finally {
+setGoogleLoading(false);
+}
 }
 
 return (
@@ -87,6 +103,18 @@ return (
 <button disabled={busy} className="w-full sm:w-[359px] h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] lg:text-[18px] font-light border-[#36A5FF] dark:border-sky-400 text-[#36A5FF] dark:text-sky-400 bg-white dark:bg-gray-800 mt-4 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{busy?'Signing in…':'Sign In'}</button>
 </div>
 </form>
+
+<div className="mt-6 flex items-center justify-center">
+<div className="border-t border-gray-300 dark:border-gray-600 flex-1"></div>
+<span className="px-4 text-gray-500 dark:text-gray-400 text-sm">or</span>
+<div className="border-t border-gray-300 dark:border-gray-600 flex-1"></div>
+</div>
+
+<div className="mt-6 flex justify-center">
+<GoogleButton onClick={handleGoogleSignIn} loading={googleLoading}>
+Sign in with Google
+</GoogleButton>
+</div>
 <div className="mt-6 text-center text-zinc-500 dark:text-zinc-400 text-[13px] sm:text-[14px] md:text-[16px] font-light">
 <Link to="/auth/forgot-password" className="text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300">Forgot password?</Link>
 </div>
