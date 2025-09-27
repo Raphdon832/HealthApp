@@ -47,6 +47,8 @@ import PharmacySignIn from "@/pages/auth/PharmacySignIn";
 import VerifyEmail from "@/pages/VerifyEmail";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 
+import AddProduct from '@/pages/AddProduct';
+
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
 import ProductPreview from '@/pages/ProductPreview';
@@ -333,6 +335,14 @@ function Shell() {
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
+        <Route 
+          path="/add-product" 
+          element={
+            <RequireAuth>
+              <AddProduct />
+            </RequireAuth>
+          } 
+        />
         <Route
           path="/messages"
           element={

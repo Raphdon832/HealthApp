@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getBestSellingProducts } from '../lib/db';
 import { useAuth } from '../lib/auth';
-import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import RevenueGraph from '@/components/RevenueGraph';
 import VendorStatsCarousel from '@/components/VendorStatsCarousel';
@@ -22,7 +21,7 @@ export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
   const { profile, user } = useAuth();
   const { t } = useTranslation();
-  const [showAdd, setShowAdd] = useState(false);
+  const navigate = useNavigate();
   const [showBulk, setShowBulk] = useState(false);
   const [revenueData, setRevenueData] = useState([]);
   const [revenueFilter, setRevenueFilter] = useState({ type: 'month', value: '' });
@@ -43,7 +42,6 @@ export default function Dashboard() {
   const [lowStockItems, setLowStockItems] = useState(0);
   const [ordersThisMonth, setOrdersThisMonth] = useState(0);
   const [lastMonthOrders, setLastMonthOrders] = useState(0);
-  const navigate = useNavigate();
 
   // Review notifications
   const { newReviews, unreadReviewsCount, markReviewsAsRead } = useReviewNotifications();
@@ -487,7 +485,7 @@ export default function Dashboard() {
             <div className="flex gap-2 w-full">
               <button
                 className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
-                onClick={() => setShowAdd(true)}
+                onClick={() => navigate(`/add-product?pharmacyId=${profile?.uid || user?.uid}`)}
               >
                 + {t('add_product', 'Add Product')}
               </button>
@@ -499,7 +497,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {showAdd && <AddProductModal pharmacyId={profile?.uid || user?.uid} onClose={() => setShowAdd(false)} />}
+
             {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={() => setShowBulk(false)} />}
 
             {/* Sales Trends placed under Add buttons on left column */}
@@ -634,7 +632,7 @@ export default function Dashboard() {
       </main>
 
       {/* ✅ Portal-based Floating Action Button (always fixed to viewport) */}
-      <Fab onClick={() => setShowAdd(true)} disabled={showAdd} />
+      <Fab onClick={() => navigate(`/add-product?pharmacyId=${profile?.uid || user?.uid}`)} />
 
       {/* Review Notification Manager */}
       <ReviewNotificationManager

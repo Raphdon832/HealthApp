@@ -4,7 +4,6 @@ import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import { listenProducts } from '@/lib/db';
-import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { LogOut, Download, Trash, MoreVertical, Settings } from 'lucide-react';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -73,7 +72,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
   const { t } = useTranslation();
   const [inventory, setInventory] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
+
   const [showBulk, setShowBulk] = useState(false);
   const [productsSold, setProductsSold] = useState(0);
   const [activeChats, setActiveChats] = useState(0);
@@ -647,7 +646,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           <div className="flex gap-2 w-full">
             <button
               className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
-              onClick={() => setShowAdd(true)}
+              onClick={() => navigate(`/add-product?pharmacyId=${profile?.uid || user?.uid}`)}
             >
               + {t('add_product', 'Add Product')}
             </button>
@@ -701,7 +700,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </section>
       </div>
 
-      {showAdd && <AddProductModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowAdd(false)} />}
+
       {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowBulk(false)} />}
 
       {editingProduct && (
