@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Modal from '@/components/Modal';
 import ProductAvatar from '@/components/ProductAvatar';
@@ -10,11 +11,11 @@ import ProductAvatar from '@/components/ProductAvatar';
 const ORDER_STATUSES = ['pending', 'processing', 'fulfilled', 'cancelled'];
 
 // Fixed Header Component
-const FixedHeader = ({ title }) => {
+const FixedHeader = ({ title, t }) => {
   return createPortal(
     <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
-        <h1 className="mt-8 text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins text-gray-900 dark:text-white">Orders</h1>
+        <h1 className="mt-8 text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins text-gray-900 dark:text-white">{t('orders', 'Orders')}</h1>
       </div>
     </div>,
     document.body
@@ -23,6 +24,7 @@ const FixedHeader = ({ title }) => {
 
 export default function Orders() {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrders, setExpandedOrders] = useState({}); // Track expanded state per order
@@ -120,12 +122,12 @@ export default function Orders() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
+        <div className="text-xl font-poppins font-light mb-6">{t('please_sign_in_continue', 'Please sign in to continue')}</div>
         <button
           className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
           onClick={() => navigate('/auth/landing')}
         >
-          Sign In / Sign Up
+          {t('sign_in_sign_up', 'Sign In / Sign Up')}
         </button>
       </div>
     );
@@ -135,26 +137,26 @@ export default function Orders() {
 
   return (
     <>
-      <FixedHeader title="Orders" />
+      <FixedHeader title="Orders" t={t} />
       <div className="pt-24 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col">
         {/* Filters */}
         <div className="mt-8 flex gap-2 flex-wrap">
           <button
             className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
             onClick={()=>setStatusFilter('all')}
-          >All</button>
+          >{t('all', 'All')}</button>
           {ORDER_STATUSES.map(s => (
             <button
               key={s}
               className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
               onClick={()=>setStatusFilter(s)}
-            >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
+            >{t(s, s.charAt(0).toUpperCase()+s.slice(1))}</button>
         ))}
       </div>
       <div className="mt-4 space-y-6">
         {filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] text-center py-12 animate-fadeInUp">
-            No orders yet.
+            {t('no_orders_yet', 'No orders yet.')}
           </div>
         ) : (
           filteredOrders.map((o, index) => {
@@ -184,7 +186,7 @@ export default function Orders() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">Order #{o.id.slice(0,6)}</div>
+                    <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">{t('order_number', 'Order #')}{o.id.slice(0,6)}</div>
                     <div className="text-gray-500 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
                   </div>
                   <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
@@ -193,10 +195,10 @@ export default function Orders() {
                 {profile.role === 'pharmacy' && (
                   <div className="mt-2">
                     <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center gap-2">
-                      Customer: {o.customerName || o.customerId || o.customer_id || 'N/A'}
+                      {t('customer', 'Customer')}: {o.customerName || o.customerId || o.customer_id || 'N/A'}
                     </div>
                     <div className="text-[12px] text-zinc-400 font-light mb-2">{o.customerEmail || ''}</div>
-                    <div className="text-[13px] text-zinc-700 font-medium mb-1">Items:</div>
+                    <div className="text-[13px] text-zinc-700 font-medium mb-1">{t('items', 'Items')}:</div>
                     <ul className="ml-2 list-disc text-[13px] text-zinc-700">
                       {visibleItems.map((item, idx) => (
                         <li key={idx}>
@@ -213,17 +215,17 @@ export default function Orders() {
                           toggleExpand(o.id);
                         }}
                       >
-                        {isExpanded ? 'See less' : `See more (${items.length - 4} more)`}
+                        {isExpanded ? t('see_less', 'See less') : `${t('see_more', 'See more')} (${items.length - 4} ${t('more_items', 'more')})`}
                       </button>
                     )}
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[12px] text-zinc-500">Status:</span>
+                      <span className="text-[12px] text-zinc-500">{t('status', 'Status')}:</span>
                       <select
                         className="order-status-dropdown border rounded px-2 py-1 text-[12px]"
                         value={o.status || 'pending'}
                         onChange={e => handleStatusChange(o.id, e.target.value)}
                       >
-                        {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+                        {ORDER_STATUSES.map(s => <option key={s} value={s}>{t(s, s.charAt(0).toUpperCase()+s.slice(1))}</option>)}
                       </select>
                       {phone && !isRevealed && (
                         <button
@@ -232,7 +234,7 @@ export default function Orders() {
                             e.stopPropagation();
                             setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
                           }}
-                        >Reveal Number</button>
+                        >{t('reveal_number', 'Reveal Number')}</button>
                       )}
                       {phone && isRevealed && (
                         <span className="ml-2 text-[13px] text-zinc-700 font-medium">{phone}</span>
@@ -249,9 +251,9 @@ export default function Orders() {
       <Modal open={!!modalOrder} onClose={() => setModalOrder(null)}>
         {modalOrder && (
           <div>
-            <div className="text-lg font-medium mb-2">Order #{modalOrder.id.slice(0, 6)}</div>
+            <div className="text-lg font-medium mb-2">{t('order_number', 'Order #')}{modalOrder.id.slice(0, 6)}</div>
             <div className="text-zinc-500 text-xs mb-4">{modalOrder.createdAt?.toDate?.().toLocaleString?.()||''}</div>
-            <div className="mb-2 text-[15px] font-medium">Items:</div>
+            <div className="mb-2 text-[15px] font-medium">{t('items', 'Items')}:</div>
             <ul className="mb-4 space-y-2">
               {getHarmonizedItems(modalOrder.items).map((item, idx) => {
                 const prod = modalOrderProducts.find(p => p && p.id === item.productId);
@@ -262,7 +264,7 @@ export default function Orders() {
                     ) : null}
                     <div className="flex-1">
                       <div className="font-poppins font-medium text-[14px]">{prod ? prod.name : item.productId}</div>
-                      <div className="text-zinc-500 text-xs">Qty: {item.qty}</div>
+                      <div className="text-zinc-500 text-xs">{t('qty', 'Qty')}: {item.qty}</div>
                     </div>
                     <div className="text-[14px] font-medium text-sky-600">₦{Number(item.price || prod?.price || 0).toLocaleString()}</div>
                   </li>
@@ -270,10 +272,10 @@ export default function Orders() {
               })}
             </ul>
             <div className="flex justify-between items-center border-t pt-3 mt-2">
-              <div className="text-[15px] font-medium">Total:</div>
+              <div className="text-[15px] font-medium">{t('total', 'Total')}:</div>
               <div className="text-[15px] font-bold text-sky-700">₦{Number(modalOrder.total).toLocaleString()}</div>
             </div>
-            <div className="mt-2 text-xs text-zinc-400">Status: {modalOrder.status || 'pending'}</div>
+            <div className="mt-2 text-xs text-zinc-400">{t('status', 'Status')}: {t(modalOrder.status || 'pending', modalOrder.status || 'pending')}</div>
           </div>
         )}
       </Modal>

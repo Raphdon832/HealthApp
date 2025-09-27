@@ -338,6 +338,26 @@ export default function Home() {
   useEffect(() => setPopularPage(1), [popularProducts.length]);
   useEffect(() => setAllNewPage(1), [allNewArrivals.length]);
 
+  // Helper function to translate info card text if it contains translation keys
+  const translateCardText = (text) => {
+    if (!text) return text;
+    
+    // Check if the text looks like a translation key (starts with t: or is surrounded by curly braces)
+    if (text.startsWith('t:')) {
+      const key = text.substring(2);
+      return t(key, text);
+    }
+    
+    // Check for {key} pattern
+    const keyMatch = text.match(/^\{(.+)\}$/);
+    if (keyMatch) {
+      return t(keyMatch[1], text);
+    }
+    
+    // Return original text if no translation pattern found
+    return text;
+  };
+
   // Normalize and classify links from info cards so clicks open the intended target
   const normalizeHref = (link) => {
     if (!link) return '';
@@ -713,10 +733,12 @@ export default function Home() {
                     <div className="relative z-10 h-full flex items-center">
                       <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[60%]">
                         <div style={{ color: headerColor, fontSize: headerFontSize + 'px', lineHeight: 1, fontWeight: 300, letterSpacing: '-0.02em' }}>
-                          {card.header || '—'}
+                          {translateCardText(card.header) || '—'}
                         </div>
                         {card.preview && (
-                          <div style={{ marginTop: 8, color: previewColor, fontSize: previewFontSize + 'px', lineHeight: 1.2 }}>{card.preview}</div>
+                          <div style={{ marginTop: 8, color: previewColor, fontSize: previewFontSize + 'px', lineHeight: 1.2 }}>
+                            {translateCardText(card.preview)}
+                          </div>
                         )}
                         {card.link && card.linkText && (
                           (() => {
@@ -735,7 +757,7 @@ export default function Home() {
                                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                                 style={{ display: 'inline-block', marginTop: 12, textDecoration: 'underline', color: linkColor, fontSize: linkFontSize + 'px', fontWeight: 500 }}
                               >
-                                {card.linkText}
+                                {translateCardText(card.linkText)}
                               </a>
                             );
                           })()
