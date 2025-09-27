@@ -457,13 +457,13 @@ export default function ProfileCustomer() {
         {/* Right column: Activity and Prescriptions stack */}
         <div className="space-y-6">
           <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
-            <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">My Activity</div>
+            <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('my_activity', 'My Activity')}</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 font-light">{t('items_in_cart', 'Items in Cart')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{cartCount ?? 0}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Active Chats</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('active_chats', 'Active Chats')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{activeChats ?? 0}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
@@ -477,7 +477,7 @@ export default function ProfileCustomer() {
             </div>
             <div className="w-full flex items-center justify-between mt-3 mb-1">
               <span className="text-[14px] font-light text-zinc-800 dark:text-zinc-200">{t('drugs_bought', 'Drugs Bought')}</span>
-              <button className="text-[12px] text-sky-600 font-light px-2 py-1 rounded-full hover:bg-sky-50" onClick={() => setShowAllDrugs(true)}>See more</button>
+              <button className="text-[12px] text-sky-600 font-light px-2 py-1 rounded-full hover:bg-sky-50" onClick={() => setShowAllDrugs(true)}>{t('see_more', 'See more')}</button>
             </div>
             <div className="w-full flex flex-col gap-2">
               {(drugsBought.slice(0,3)).map((drug, idx) => (

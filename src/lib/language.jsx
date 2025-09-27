@@ -183,11 +183,21 @@ const translations = {
     'inventory': 'Inventory',
     'edit_product': 'Edit Product',
     'delete_product': 'Delete Product',
-    'products_sold': 'Products Sold',
-    'active_chats': 'Active Chats',
-        'reviews': 'Reviews',
-    
-    // ProductDetail page
+      'products_sold': 'Products Sold',
+      'active_chats': 'Active Chats',
+      'reviews': 'Reviews',
+      
+      // Products section translations
+      'no_products_yet': 'No products yet. Use the buttons above to add or bulk\u2011upload.',
+      'edit_product': 'Edit Product',
+      'product_image': 'Product Image',
+      'image_url_placeholder': 'Image URL (or choose file below)',
+      'product_description': 'Product Description',
+      'enter_product_description': 'Enter product description',
+      'confirm_delete_product': 'Are you sure you want to delete this item?',
+      'yes_delete': 'Yes, Delete',
+      'delete': 'Delete',
+      'log_out': 'Log Out',    // ProductDetail page
     'back': 'Back',
     'call_to_order': 'Call to Order',
     'get_directions': 'Get Directions',
@@ -403,6 +413,23 @@ const translations = {
     'loading_reviews': 'Loading your reviews...',
     'loading_please_wait': 'Please wait while we fetch your data',
     
+    // My Prescriptions Section
+    'my_prescriptions': 'My Prescriptions',
+    'add_to_calendar': 'Add to Calendar',
+    'no_prescriptions_found': 'No prescriptions found.',
+    'see_more_count': 'See more ({count})',
+    'see_less': 'See less',
+    'time_to_take_medicine': 'Time to take {drugName}',
+    'take_medicine': 'Take {drugName}',
+    'dosage_frequency': 'Dosage: {dosage} ({frequency})',
+    
+    // Profile sections
+    'my_activity': 'My Activity',
+    'active_chats': 'Active Chats', 
+    'storefront_preview': 'Storefront Preview',
+    'inventory': 'Inventory',
+    'products_sold': 'Products Sold',
+    
     // Pharmacy-specific terms
     
     // Settings
@@ -435,10 +462,11 @@ const translations = {
     'delete': 'Pa rẹ',
     'edit': 'Ṣatunkọ',
     'loading': 'N gbe...',
+    'profile': 'Profaili',
     
     // Chat
-    'message': 'Ifiranše',
-    'sent': 'Ti fi ranše',
+    'message': 'Ifiranşe',
+    'sent': 'Ti fi ranşe',
     'delivered': 'Ti gba',
     'read': 'Ti ka',
     'type_message': 'Kọ ifiranše...',
@@ -795,6 +823,23 @@ const translations = {
     'loading_reviews': 'Ngba awọn atunyẹwo rẹ...',
     'loading_please_wait': 'Jọwọ duro nigba ti a n gba data rẹ',
     
+    // My Prescriptions Section (Yoruba)
+    'my_prescriptions': 'Awọn Iwe-aṣẹ Oogun Mi',
+    'add_to_calendar': 'Fi si Kalenda',
+    'no_prescriptions_found': 'Ko ri iwe-aṣẹ oogun kankan.',
+    'see_more_count': 'Wo sii ({count})',
+    'see_less': 'Wo kere',
+    'time_to_take_medicine': 'Akoko lati mu {drugName}',
+    'take_medicine': 'Mu {drugName}',
+    'dosage_frequency': 'Iwọn: {dosage} ({frequency})',
+    
+    // Profile sections (Yoruba)
+    'my_activity': 'Iṣẹ Mi',
+    'active_chats': 'Awọn Ibaraẹnisọrọ Ti Nṣiṣẹ',
+    'storefront_preview': 'Iwoye Ile-itaja',
+    'inventory': 'Ipamọ',
+    'products_sold': 'Awọn Ọja Ti A Ta',
+    
     // Pharmacy-specific terms (Yoruba)
     'add_product': 'Fi ọja kun',
     'bulk_upload': 'Gbigbe ọpọlọpọ',
@@ -804,11 +849,21 @@ const translations = {
     'inventory': 'Ibi ipamọ ọja',
     'edit_product': 'Ṣatunṣe ọja',
     'delete_product': 'Pa ọja rẹ',
-    'products_sold': 'Awọn ọja ti a ta',
-    'active_chats': 'Awọn ibaraẹnisọrọ ti nṣiṣẹ',
-    'reviews': 'Awọn atunyẹwo',
-    
-    // Settings
+      'products_sold': 'Awọn ọja ti a ta',
+      'active_chats': 'Awọn ibaraẹnisọrọ ti nṣiṣẹ',
+      'reviews': 'Awọn atunyẹwo',
+      
+      // Products section translations (Yoruba)
+      'no_products_yet': 'Ko si ọja sibẹsibẹ. Lo awọn bọtini ti o wa loke lati ṣafikun tabi gbé-gbe soke.',
+      'edit_product': 'Ṣatunṣe Ọja',
+      'product_image': 'Aworan Ọja',
+      'image_url_placeholder': 'URL aworan (tabi yan faili ti o wa nisalẹ)',
+      'product_description': 'Apejuwe Ọja',
+      'enter_product_description': 'Tẹ apejuwe ọja sii',
+      'confirm_delete_product': 'Ṣe o da ọ loju pe o fẹ pa nkan yii rẹ?',
+      'yes_delete': 'Bẹẹni, Pa rẹ',
+      'delete': 'Pa rẹ',
+      'log_out': 'Jade',    // Settings
     'general': 'Gbogbogbo',
     'appearance': 'Irisi',
     'language_region': 'Ede & Agbegbe',
@@ -838,6 +893,7 @@ const translations = {
     'delete': 'Share',
     'edit': 'Gyara',
     'loading': 'Ana lodawa...',
+    'profile': 'Bayanan martaba',
     
     // Product/Shopping (Hausa)
     'add_to_cart': 'Saka cikin kaya',
@@ -1173,6 +1229,34 @@ const translations = {
     'response_submit_failed': 'An kasa tura amsa. Da fatan za a sake gwadawa.',
     'loading_reviews': 'Ana ɗaukar sharhinku...',
     'loading_please_wait': 'Da fatan ku jira yayin da muke ɗaukar bayananku',
+    
+    // My Prescriptions Section (Hausa)
+    'my_prescriptions': 'Takardun Magani Na',
+    'add_to_calendar': 'Saka a Kalanda',
+    'no_prescriptions_found': 'Ba a sami takardar magani ba.',
+    'see_more_count': 'Duba ƙari ({count})',
+    'see_less': 'Duba kaɗan',
+    'time_to_take_medicine': 'Lokaci ya yi na shan {drugName}',
+    'take_medicine': 'Sha {drugName}',
+    'dosage_frequency': 'Adadin: {dosage} ({frequency})',
+    
+    // Profile sections (Hausa)
+    'my_activity': 'Ayyukan Na',
+    'active_chats': 'Tattaunawa Masu Aiki',
+    'storefront_preview': 'Kallaren Kantin',
+    'inventory': 'Ajiya',
+    'products_sold': 'Kayayyaki Da Aka Sayar',
+    
+    // Products section translations (Hausa)
+    'no_products_yet': 'Har yanzu babu kayayyaki. Yi amfani da maballin da ke sama don ƙara ko loda da yawa.',
+    'edit_product': 'Gyara Kayayyaki',
+    'product_image': 'Hoton Kayayyaki',
+    'image_url_placeholder': 'URL hoto (ko zaɓi fayil da ke ƙasa)',
+    'product_description': 'Bayanin Kayayyaki',
+    'enter_product_description': 'Shigar da bayanin kayayyaki',
+    'confirm_delete_product': 'Kana da tabbas kana son share wannan abu?',
+    'yes_delete': 'Eh, Share',
+    'log_out': 'Fita',
   },
   
   ig: {
@@ -1191,6 +1275,7 @@ const translations = {
     'delete': 'Hichapụ',
     'edit': 'Dezie',
     'loading': 'Na-ebu...',
+    'profile': 'Profaili',
     
     // Product/Shopping (Igbo)
     'add_to_cart': 'Tinye na ngwa ahịa',
@@ -1526,6 +1611,34 @@ const translations = {
     'response_submit_failed': 'E nweghị ike izipu nzaghachi. Biko nwaghachi ọzọ.',
     'loading_reviews': 'Na-ebu nyocha gị...',
     'loading_please_wait': 'Biko chere ka anyị na-eweta data gị',
+    
+    // My Prescriptions Section (Igbo)
+    'my_prescriptions': 'Akwụkwọ Ọgwụ M',
+    'add_to_calendar': 'Tinye na Kalenda',
+    'no_prescriptions_found': 'Achọtaghị akwụkwọ ọgwụ ọ bụla.',
+    'see_more_count': 'Lee ọzọ ({count})',
+    'see_less': 'Lee ntakịrị',
+    'time_to_take_medicine': 'Oge ịṅụ {drugName}',
+    'take_medicine': 'Ṅụọ {drugName}',
+    'dosage_frequency': 'Ọnụọgụgụ: {dosage} ({frequency})',
+    
+    // Profile sections (Igbo)
+    'my_activity': 'Ọrụ M',
+    'active_chats': 'Mkparịta Ụka Na-arụ Ọrụ',
+    'storefront_preview': 'Nlele Ụlọ Ahịa',
+    'inventory': 'Nchekwa Ngwaahịa',
+    'products_sold': 'Ngwaahịa E Rere',
+    
+    // Products section translations (Igbo)
+    'no_products_yet': 'Enwebeghị ngwaahịa. Jiri bọtịnụ ndị dị n\'elu tinye ma ọ bụ bulite ọtụtụ.',
+    'edit_product': 'Dezie Ngwaahịa',
+    'product_image': 'Foto Ngwaahịa',
+    'image_url_placeholder': 'URL foto (ma ọ bụ họrọ faịlụ n\'okpuru)',
+    'product_description': 'Nkọwa Ngwaahịa',
+    'enter_product_description': 'Tinye nkọwa ngwaahịa',
+    'confirm_delete_product': 'Ị ji n\'ezie chọọ ihichapụ ihe a?',
+    'yes_delete': 'Ee, Hichapụ',
+    'log_out': 'Pụọ',
   },
   
   fr: {
@@ -1544,6 +1657,7 @@ const translations = {
     'delete': 'Supprimer',
     'edit': 'Modifier',
     'loading': 'Chargement...',
+    'profile': 'Profil',
     
     // Product/Shopping (French)
     'add_to_cart': 'Ajouter au panier',
@@ -1879,6 +1993,34 @@ const translations = {
     'response_submit_failed': 'Échec de l\'envoi de la réponse. Veuillez réessayer.',
     'loading_reviews': 'Chargement de vos avis...',
     'loading_please_wait': 'Veuillez patienter pendant que nous récupérons vos données',
+    
+    // My Prescriptions Section (French)
+    'my_prescriptions': 'Mes Ordonnances',
+    'add_to_calendar': 'Ajouter au Calendrier',
+    'no_prescriptions_found': 'Aucune ordonnance trouvée.',
+    'see_more_count': 'Voir plus ({count})',
+    'see_less': 'Voir moins',
+    'time_to_take_medicine': 'Il est temps de prendre {drugName}',
+    'take_medicine': 'Prendre {drugName}',
+    'dosage_frequency': 'Dosage: {dosage} ({frequency})',
+    
+    // Profile sections (French)
+    'my_activity': 'Mon Activité',
+    'active_chats': 'Chats Actifs',
+    'storefront_preview': 'Aperçu de la Vitrine',
+    'inventory': 'Inventaire',
+    'products_sold': 'Produits Vendus',
+    
+    // Products section translations (French)
+    'no_products_yet': 'Pas encore de produits. Utilisez les boutons ci-dessus pour ajouter ou télécharger en masse.',
+    'edit_product': 'Modifier le Produit',
+    'product_image': 'Image du Produit',
+    'image_url_placeholder': 'URL de l\'image (ou choisissez un fichier ci-dessous)',
+    'product_description': 'Description du Produit',
+    'enter_product_description': 'Entrez la description du produit',
+    'confirm_delete_product': 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+    'yes_delete': 'Oui, Supprimer',
+    'log_out': 'Se Déconnecter',
   }
 };
 

@@ -50,7 +50,7 @@ const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSet
               aria-label="Open search"
               className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
             >
-              <Search className="h-5 w-5 text-sky-600" />
+              <Search className="h-5 w-5 text-sky-600 mt-8" />
             </button>
             
             {/* Settings button */}
@@ -59,7 +59,7 @@ const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSet
               aria-label="Open settings"
               className="ml-2 rounded-full p-2 hover:bg-sky-50 transition-all duration-200"
             >
-              <Settings className="h-5 w-5 text-sky-600" />
+              <Settings className="h-5 w-5 text-sky-600 mt-8" />
             </button>
           </div>
         </div>
@@ -616,21 +616,21 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
           {/* Storefront Preview Section */}
           <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative overflow-hidden">
-            <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">Storefront Preview</div>
+            <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('storefront_preview', 'Storefront Preview')}</div>
             <div className="w-full flex items-center justify-between pb-2 border-b dark:border-gray-600" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">Inventory</span>
+              <span className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">{t('inventory', 'Inventory')}</span>
               <span className="text-[12px] text-sky-600 dark:text-sky-400 font-medium">{inventory.length}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Products Sold</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('products_sold', 'Products Sold')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{productsSold}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Active Chats</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('active_chats', 'Active Chats')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{activeChats}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Reviews</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('reviews', 'Reviews')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{reviews}</span>
             </div>
             <div className="w-full flex justify-end mt-4">
@@ -661,13 +661,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
           <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-[17px] font-light font-poppins text-black dark:text-white tracking-tight">Products</div>
+              <div className="text-[17px] font-light font-poppins text-black dark:text-white tracking-tight">{t('products', 'Products')}</div>
               {inventory.length > 3 && (
                 <button
                   className="text-sky-600 text-[13px] font-light px-3 py-1 rounded-full hover:bg-[#E3F3FF]"
                   onClick={() => setShowAllProducts(v => !v)}
                 >
-                  {showAllProducts ? 'See less' : 'See more'}
+                  {showAllProducts ? t('see_less', 'See less') : t('see_more', 'See more')}
                 </button>
               )}
             </div>
@@ -690,7 +690,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   <div className="text-[15px] font-semibold text-sky-600 dark:text-sky-400 ml-3 flex-shrink-0 whitespace-nowrap">₦{Number(p.price).toLocaleString()}</div>
                 </button>
               ))}
-              {inventory.length===0 && <div className="text-zinc-500">No products yet. Use the buttons above to add or bulk‑upload.</div>}
+              {inventory.length===0 && <div className="text-zinc-500">{t('no_products_yet', 'No products yet. Use the buttons above to add or bulk‑upload.')}</div>}
             </div>
 
             <div className="w-full flex justify-end mt-3">
@@ -708,32 +708,32 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] dark:border-gray-600 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 relative">
-              <div className="text-lg font-medium font-poppins text-black dark:text-white">Edit Product</div>
+              <div className="text-lg font-medium font-poppins text-black dark:text-white">{t('edit_product', 'Edit Product')}</div>
               <div className="relative">
                 <button className="rounded-full border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-zinc-500 dark:text-zinc-400 py-2 flex items-center justify-center ml-2" style={{width:'36px',height:'36px'}} onClick={e => {e.stopPropagation(); setShowAdvanced(v=>!v);}}><MoreVertical className="h-4 w-4"/></button>
                 {showAdvanced && (
                   <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 border border-[#9ED3FF] dark:border-gray-600 rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <button className="flex items-center gap-2 text-red-600 dark:text-red-400 text-[13px] font-light px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> Delete</button>
+                    <button className="flex items-center gap-2 text-red-600 dark:text-red-400 text-[13px] font-light px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> {t('delete', 'Delete')}</button>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="space-y-3" onClick={()=>showAdvanced && setShowAdvanced(false)}>
-              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editName} onChange={e=>setEditName(e.target.value)} placeholder="Name" />
-              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editCategory} onChange={e=>setEditCategory(e.target.value)} placeholder="Category" />
-              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder="Stock" type="number" />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editName} onChange={e=>setEditName(e.target.value)} placeholder={t('name', 'Name')} />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editCategory} onChange={e=>setEditCategory(e.target.value)} placeholder={t('category', 'Category')} />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder={t('stock', 'Stock')} type="number" />
               <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editSKU} onChange={e=>setEditSKU(e.target.value)} placeholder="SKU" />
-              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder="Price" type="number" />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder={t('price', 'Price')} type="number" />
 
               {/* Image field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">Product Image</label>
+                <label className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">{t('product_image', 'Product Image')}</label>
                 <input
                   className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400"
                   value={editImage}
                   onChange={e => { setEditImage(e.target.value); setEditImageFile(null); }}
-                  placeholder="Image URL (or choose file below)"
+                  placeholder={t('image_url_placeholder', 'Image URL (or choose file below)')}
                   type="text"
                 />
                 <input
@@ -759,29 +759,29 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
               {/* Description field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] text-zinc-500 font-light">Product Description</label>
+                <label className="text-[12px] text-zinc-500 font-light">{t('product_description', 'Product Description')}</label>
                 <textarea
                   className="w-full border rounded p-2 text-sm"
                   rows={4}
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
-                  placeholder="Enter product description"
+                  placeholder={t('enter_product_description', 'Enter product description')}
                 />
               </div>
             </div>
 
             <div className="flex gap-2 mt-6 items-center">
-              <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>Save</button>
-              <button className="flex-1 rounded-full border border-zinc-300 dark:border-gray-600 text-zinc-500 text-[12px] font-light py-2" onClick={()=>setEditingProduct(null)}>Cancel</button>
+              <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>{t('save', 'Save')}</button>
+              <button className="flex-1 rounded-full border border-zinc-300 dark:border-gray-600 text-zinc-500 text-[12px] font-light py-2" onClick={()=>setEditingProduct(null)}>{t('cancel', 'Cancel')}</button>
             </div>
 
             {showDeleteConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-3xl" onClick={()=>setShowDeleteConfirm(false)}>
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-xl border border-[#9ED3FF] dark:border-gray-600 text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
-                  <div className="text-[15px] font-light mb-4 dark:text-white">Are you sure you want to delete this item?</div>
+                  <div className="text-[15px] font-light mb-4 dark:text-white">{t('confirm_delete_product', 'Are you sure you want to delete this item?')}</div>
                   <div className="flex gap-2 justify-center">
-                    <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>Yes, Delete</button>
-                    <button className="rounded-full border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-zinc-500 dark:text-zinc-400 text-[12px] font-light px-4 py-2" onClick={()=>setShowDeleteConfirm(false)}>Cancel</button>
+                    <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>{t('yes_delete', 'Yes, Delete')}</button>
+                    <button className="rounded-full border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-zinc-500 dark:text-zinc-400 text-[12px] font-light px-4 py-2" onClick={()=>setShowDeleteConfirm(false)}>{t('cancel', 'Cancel')}</button>
                   </div>
                 </div>
               </div>
@@ -798,7 +798,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
            }}
            className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 dark:text-red-400 px-3 py-1 inline-flex text-[12px] items-center gap-2"
          >
-           <LogOut className="h-4 w-4"/> Log Out
+           <LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}
          </button>
        </div>
       </div>

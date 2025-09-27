@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import PrescriptionList from '@/components/PrescriptionList';
 import { useAuth } from '@/lib/auth';
 import { fulfillPrescriptionIfOrdered } from '@/lib/db';
+import { useTranslation } from '@/lib/language';
 
 // Helper: Parse frequency string like "2x/day" to number of times per day
 function parseFrequency(freq) {
@@ -14,7 +15,7 @@ function parseFrequency(freq) {
 }
 
 // Helper: Schedule browser notifications for a prescription
-function scheduleNotifications(prescription) {
+function scheduleNotifications(prescription, t) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
   const { drugs, startDate, duration } = prescription;
@@ -31,8 +32,8 @@ function scheduleNotifications(prescription) {
         if (notifyTime > now) {
           const timeout = notifyTime.getTime() - now.getTime();
           setTimeout(() => {
-            new Notification(`Time to take ${drug.name}`, {
-              body: `Dosage: ${drug.dosage || ''} (${drug.frequency || ''})`,
+            new Notification(t('time_to_take_medicine', `Time to take ${drug.name}`), {
+              body: t('dosage_frequency', `Dosage: ${drug.dosage || ''} (${drug.frequency || ''})`, { dosage: drug.dosage || '', frequency: drug.frequency || '' }),
             });
           }, timeout);
         }
@@ -42,7 +43,7 @@ function scheduleNotifications(prescription) {
 }
 
 // Helper: Add prescription to Google Calendar (download .ics file)
-function addToCalendar(prescription) {
+function addToCalendar(prescription, t) {
   const { drugs, startDate, duration } = prescription;
   const start = new Date(startDate);
   const days = Number(duration) || 1;
@@ -53,7 +54,7 @@ function addToCalendar(prescription) {
       for (let t = 0; t < timesPerDay; t++) {
         const eventStart = new Date(start.getTime() + day * 24*60*60*1000 + t * (24/timesPerDay)*60*60*1000);
         const dt = eventStart.toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
-        ics += `BEGIN:VEVENT\nSUMMARY:Take ${drug.name}\nDESCRIPTION:Dosage: ${drug.dosage || ''} (${drug.frequency || ''})\nDTSTART:${dt}\nDTEND:${dt}\nEND:VEVENT\n`;
+        ics += `BEGIN:VEVENT\nSUMMARY:${t('take_medicine', 'Take {drugName}', { drugName: drug.name })}\nDESCRIPTION:${t('dosage_frequency', 'Dosage: {dosage} ({frequency})', { dosage: drug.dosage || '', frequency: drug.frequency || '' })}\nDTSTART:${dt}\nDTEND:${dt}\nEND:VEVENT\n`;
       }
     }
   });
@@ -89,6 +90,7 @@ function saveAlarms(prescriptions) {
 
 export default function MyPrescriptionsSection() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState([]);
   const [showAll, setShowAll] = useState(false);
 
@@ -105,7 +107,7 @@ export default function MyPrescriptionsSection() {
       setPrescriptions(data);
       // Schedule notifications and save alarms
       if (Notification.permission === 'granted') {
-        data.forEach(scheduleNotifications);
+        data.forEach(p => scheduleNotifications(p, t));
       }
       saveAlarms(data);
     }
@@ -127,17 +129,17 @@ export default function MyPrescriptionsSection() {
   return (
     <div className="w-full">
       <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">
-        My Prescriptions
+        {t('my_prescriptions', 'My Prescriptions')}
         {prescriptions.length > 0 && (
           <button
             className="ml-4 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"
-            onClick={() => prescriptions.forEach(addToCalendar)}
-          >Add to Calendar</button>
+            onClick={() => prescriptions.forEach(p => addToCalendar(p, t))}
+          >{t('add_to_calendar', 'Add to Calendar')}</button>
         )}
       </div>
 
       {prescriptions.length === 0 ? (
-        <div className="text-zinc-400 text-[12px] font-light">No prescriptions found.</div>
+        <div className="text-zinc-400 text-[12px] font-light">{t('no_prescriptions_found', 'No prescriptions found.')}</div>
       ) : (
         <>
           <PrescriptionList
@@ -149,13 +151,13 @@ export default function MyPrescriptionsSection() {
             <button
               className="mt-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-medium"
               onClick={() => setShowAll(true)}
-            >See more ({total})</button>
+            >{t('see_more_count', 'See more ({count})', { count: total })}</button>
           )}
           {showAll && total > 1 && (
             <button
               className="mt-2 px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 text-xs font-medium"
               onClick={() => setShowAll(false)}
-            >See less</button>
+            >{t('see_less', 'See less')}</button>
           )}
         </>
       )}
