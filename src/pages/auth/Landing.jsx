@@ -16,7 +16,7 @@ return (
     <div className="mt-8 flex flex-row gap-4 w-full max-w-[350px] mx-0 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
       <button 
         onClick={()=>setRole('customer')} 
-        className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${role==='customer'?'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]':'border-[#36A5FF]/10 border-[1px]'} card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
+        className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${role==='customer'?'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]':'border-[#36A5FF] border-[1px]'} card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
         style={{ animationDelay: '0.5s' }}
       >
         <div className="absolute left-[9px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">I’m a<br/>customer</div>

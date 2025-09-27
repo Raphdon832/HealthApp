@@ -597,7 +597,7 @@ export default function PharmacyMap() {
                   {sortedPharmacies.findIndex(p => p.id === selectedPharmacy.id) + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-base truncate">{selectedPharmacy.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{selectedPharmacy.name}</h3>
                   <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
                   <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
@@ -715,14 +715,14 @@ export default function PharmacyMap() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{pharmacy.name}</h3>
                         {index === 0 && (
-                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                             Closest
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{pharmacy.address}</p>
                       
-                      <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-3 text-sm">
                         <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                           <Clock className="h-3 w-3 flex-shrink-0" />
                           <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || 'Calculating...'}</span>

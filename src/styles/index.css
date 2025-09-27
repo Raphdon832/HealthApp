@@ -127,7 +127,7 @@ html, body, #root {
 .dark input[type="search"],
 .dark textarea,
 .dark select {
-  background-color: #374151 !important; /* gray-700 */
+  background-color: #37415100 !important; /* gray-700 */
   border-color: #4b5563 !important; /* gray-600 */
   color: #f9fafb !important; /* gray-50 */
 }
@@ -263,7 +263,7 @@ input, select, textarea {
 
 /* Apple-style liquid glass bottom navigation */
 .liquid-bottom-nav {
-  border-radius: 40px;
+  border-radius: 70px;
   
   /* Enhanced glass morphism border - more subtle and refined */
   border: 0.5px solid rgba(255,255,255,0.18);
