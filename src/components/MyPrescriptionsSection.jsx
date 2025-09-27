@@ -151,7 +151,7 @@ export default function MyPrescriptionsSection() {
             <button
               className="mt-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-medium"
               onClick={() => setShowAll(true)}
-            >{t('see_more_count', 'See more ({count})', { count: total })}</button>
+            >{t('see_more', 'See more')}</button>
           )}
           {showAll && total > 1 && (
             <button

@@ -197,7 +197,17 @@ const translations = {
       'confirm_delete_product': 'Are you sure you want to delete this item?',
       'yes_delete': 'Yes, Delete',
       'delete': 'Delete',
-      'log_out': 'Log Out',    // ProductDetail page
+      'log_out': 'Log Out',
+      
+      // Product Detail page translations
+      'customer_reviews': 'Customer Reviews',
+      'loading_reviews': 'Loading reviews…',
+      'no_reviews_yet': 'No reviews yet. Be the first to review!',
+      'pharmacy_response': '{pharmacyName} Response',
+      'message_vendor': 'Message Vendor',
+      'call_to_order': 'Call to Order',
+      'your_name': 'Your Name',
+      'your_review_optional': 'Your review... (optional)',    // ProductDetail page
     'back': 'Back',
     'call_to_order': 'Call to Order',
     'get_directions': 'Get Directions',
@@ -863,7 +873,17 @@ const translations = {
       'confirm_delete_product': 'Ṣe o da ọ loju pe o fẹ pa nkan yii rẹ?',
       'yes_delete': 'Bẹẹni, Pa rẹ',
       'delete': 'Pa rẹ',
-      'log_out': 'Jade',    // Settings
+      'log_out': 'Jade',
+      
+      // Product Detail page translations (Yoruba)
+      'customer_reviews': 'Awọn Atunyẹwo Alabara',
+      'loading_reviews': 'N gba awọn atunyẹwo…',
+      'no_reviews_yet': 'Ko si atunyẹwo sibẹ. Jẹ ki o jẹ ọkọ akoko lati ṣe atunyẹwo!',
+      'pharmacy_response': 'Idahun {pharmacyName}',
+      'message_vendor': 'Ranṣẹ si Olutasọja',
+      'call_to_order': 'Pe lati Bẹẹrẹ',
+      'your_name': 'Oruko Rẹ',
+      'your_review_optional': 'Atunyẹwo rẹ... (ni afoye)',    // Settings
     'general': 'Gbogbogbo',
     'appearance': 'Irisi',
     'language_region': 'Ede & Agbegbe',
@@ -1257,6 +1277,16 @@ const translations = {
     'confirm_delete_product': 'Kana da tabbas kana son share wannan abu?',
     'yes_delete': 'Eh, Share',
     'log_out': 'Fita',
+    
+    // Product Detail page translations (Hausa)
+    'customer_reviews': 'Sharhin Abokan Ciniki',
+    'loading_reviews': 'Ana loda sharhi…',
+    'no_reviews_yet': 'Har yanzu babu sharhi. Ka zama na farko da ya ba da sharhi!',
+    'pharmacy_response': 'Amsar {pharmacyName}',
+    'message_vendor': 'Aika Saƙo zuwa Dillali',
+    'call_to_order': 'Kira don Yin Oda',
+    'your_name': 'Sunan Ka',
+    'your_review_optional': 'Sharhin ka... (na zabin)',
   },
   
   ig: {
@@ -1639,6 +1669,16 @@ const translations = {
     'confirm_delete_product': 'Ị ji n\'ezie chọọ ihichapụ ihe a?',
     'yes_delete': 'Ee, Hichapụ',
     'log_out': 'Pụọ',
+    
+    // Product Detail page translations (Igbo)
+    'customer_reviews': 'Nyocha Ndị Ahịa',
+    'loading_reviews': 'Na-ebu nyocha…',
+    'no_reviews_yet': 'Enwebeghị nyocha. Bụrụ onye mbụ nyochaa!',
+    'pharmacy_response': 'Nzaghachi {pharmacyName}',
+    'message_vendor': 'Zigara Onye Na-ere Ahịa Ozi',
+    'call_to_order': 'Kpọọ Maka Ịzọ',
+    'your_name': 'Aha Gị',
+    'your_review_optional': 'Nyocha gị... (nhọrọ)',
   },
   
   fr: {
@@ -2021,6 +2061,16 @@ const translations = {
     'confirm_delete_product': 'Êtes-vous sûr de vouloir supprimer cet élément ?',
     'yes_delete': 'Oui, Supprimer',
     'log_out': 'Se Déconnecter',
+    
+    // Product Detail page translations (French)
+    'customer_reviews': 'Avis Clients',
+    'loading_reviews': 'Chargement des avis…',
+    'no_reviews_yet': 'Pas encore d\'avis. Soyez le premier à donner votre avis !',
+    'pharmacy_response': 'Réponse de {pharmacyName}',
+    'message_vendor': 'Contacter le Vendeur',
+    'call_to_order': 'Appeler pour Commander',
+    'your_name': 'Votre Nom',
+    'your_review_optional': 'Votre avis... (optionnel)',
   }
 };
 

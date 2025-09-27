@@ -585,8 +585,8 @@ export default function ChatThread() {
                   return (
                     <React.Fragment key={m.id}>
                       {showDate && timestamp && (
-                        <div className="flex justify-center my-6 mb-4">
-                          <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-[10px] font-medium px-2.5 py-1 rounded-lg">
+                        <div className="flex justify-center my-4 mb-3">
+                          <span className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[9px] font-light px-2 py-0.5 rounded-md opacity-80">
                             {getDateLabel(timestamp, t)}
                           </span>
                         </div>

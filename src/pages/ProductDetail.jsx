@@ -295,7 +295,7 @@ export default function ProductDetail({ product, pharmacy }) {
           onClick={() => navigate(-1)}
           className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 dark:border-gray-600 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> {t('back', 'Back')}
         </button>
         <div className="flex items-center gap-2">
           <button
@@ -336,7 +336,7 @@ export default function ProductDetail({ product, pharmacy }) {
             onClick={() => navigate(-1)}
             className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            <ArrowLeft className="h-4 w-4 mr-1" /> {t('back', 'Back')}
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -502,7 +502,7 @@ export default function ProductDetail({ product, pharmacy }) {
                     {/* Mobile/tablet: label left, value right on same line */}
                     <div className="block lg:hidden">
                       <div className="flex items-center justify-between">
-                        <div className="text-[15px] text-black font-poppins font-medium mb-2">Category</div>
+                        <div className="text-[15px] text-black font-poppins font-medium mb-2">{t('category', 'Category')}</div>
                         <div>
                           <button
                             type="button"
@@ -526,21 +526,21 @@ export default function ProductDetail({ product, pharmacy }) {
                   <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">Customer Reviews</span>
+                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">{t('customer_reviews', 'Customer Reviews')}</span>
                         <span className="text-sky-400 font-semibold text-[13px]">{reviews.length}</span>
                       </div>
                       {expandedReviews && (
                         <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setExpandedReviews(false); setVisibleReviews(3); }}>
-                          See less
+                          {t('see_less', 'See less')}
                         </button>
                       )}
                     </div>
                     {/* Reviews List */}
                     <div className="space-y-4 mb-6">
                       {loadingReviews ? (
-                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-pulse">Loading reviews…</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-pulse">{t('loading_reviews', 'Loading reviews…')}</div>
                       ) : reviews.length === 0 ? (
-                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-fade-in text-[12px]">{t('no_reviews_yet', 'No reviews yet. Be the first to review!')}</div>
                       ) : (
                         reviews.slice(0, visibleReviews).map((review, idx) => {
                           let dateStr = '';
@@ -584,7 +584,7 @@ export default function ProductDetail({ product, pharmacy }) {
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="w-2 h-2 bg-sky-500 dark:bg-sky-400 rounded-full"></div>
                                     <span className="font-poppins font-semibold text-[13px] text-sky-700 dark:text-white">
-                                      {pharmacy?.name || 'Pharmacy'} Response
+                                      {t('pharmacy_response', '{pharmacyName} Response', { pharmacyName: pharmacy?.name || 'Pharmacy' })}
                                     </span>
                                     {(review.pharmacyResponse.respondedAt || review.responseDate) && (
                                       <span className="text-[10px] text-sky-500 dark:text-zinc-300 ml-auto">
@@ -697,19 +697,19 @@ export default function ProductDetail({ product, pharmacy }) {
                 className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 dark:border-gray-600 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleShareProduct}
               >
-                <Share2 className="w-4 h-4" /> Share Product
+                <Share2 className="w-4 h-4" /> {t('share_product', 'Share Product')}
               </button>
               <button
                 className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleMessageVendor}
               >
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                Message Vendor
+                {t('message_vendor', 'Message Vendor')}
               </button>
               <button
                 className="mt-2 text-zinc-400 hover:text-zinc-700 text-[13px] font-poppins underline"
                 onClick={() => setShowShareOptions(false)}
-              >Cancel</button>
+              >{t('cancel', 'Cancel')}</button>
             </div>
           </div>
         )}
