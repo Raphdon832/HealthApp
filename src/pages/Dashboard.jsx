@@ -371,21 +371,21 @@ export default function Dashboard() {
                     className="text-black dark:text-white font-light text-xl tracking-tight animate-slideInLeft"
                     style={{ animationDelay: '0.2s' }}
                   >
-                    Top Products
+                    {t('top_products', 'Top Products')}
                   </h2>
                   <div
                     className="px-3 py-1 bg-sky-100 dark:bg-sky-800 rounded-full text-xs text-sky-700 dark:text-sky-300 font-medium animate-bounceIn"
                     style={{ animationDelay: '0.3s' }}
                   >
-                    🏆 Best Sellers
+                    🏆 {t('best_sellers', 'Best Sellers')}
                   </div>
                 </div>
 
                 {bestSelling.length === 0 ? (
                   <div className="text-center py-8 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
                     <div className="text-4xl mb-3">📊</div>
-                    <div className="text-zinc-400 dark:text-zinc-500 text-sm">No sales data yet</div>
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Start selling products to see your top performers</div>
+                    <div className="text-zinc-400 dark:text-zinc-500 text-sm">{t('no_sales_data', 'No sales data yet')}</div>
+                    <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{t('start_selling_message', 'Start selling products to see your top performers')}</div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
@@ -411,7 +411,7 @@ export default function Dashboard() {
                             <div className="font-medium text-[14px] text-zinc-800 dark:text-zinc-200 truncate max-w-[140px] group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">
                               {prod.name}
                             </div>
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{prod.sold} units sold</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{t('units_sold', '{count} units sold', { count: prod.sold })}</div>
                           </div>
 
                           <div className="flex-1 mx-4 relative">
@@ -470,7 +470,7 @@ export default function Dashboard() {
                             >
                               {prod.sold}
                             </span>
-                            <div className="text-xs text-zinc-400 dark:text-zinc-500">units</div>
+                            <div className="text-xs text-zinc-400 dark:text-zinc-500">{t('units', 'units')}</div>
                           </div>
                         </div>
 
@@ -489,13 +489,13 @@ export default function Dashboard() {
                 className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
                 onClick={() => setShowAdd(true)}
               >
-                + Add Product
+                + {t('add_product', 'Add Product')}
               </button>
               <button
                 className="flex-1 rounded-full border border-sky-600 dark:border-sky-400 text-sky-600 dark:text-sky-400 text-[13px] font-light py-2 hover:bg-[#E3F3FF] dark:hover:bg-sky-900/30"
                 onClick={() => setShowBulk(true)}
               >
-                Bulk Upload
+                {t('bulk_upload', 'Bulk Upload')}
               </button>
             </div>
 
@@ -523,38 +523,38 @@ export default function Dashboard() {
               <VendorStatsCarousel
                 cards={[
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Total Products</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('total_products', 'Total Products')}</div>
                     <div className="text-[19px] font-semibold text-sky-700 dark:text-sky-400 tracking-tight">{totalProducts}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Total Orders</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('total_orders', 'Total Orders')}</div>
                     <div className="text-[19px] font-semibold text-sky-700 dark:text-sky-400 tracking-tight">{totalOrders}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Total Revenue</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('total_revenue', 'Total Revenue')}</div>
                     <div className="text-[19px] font-semibold text-sky-700 dark:text-sky-400 tracking-tight">₦{totalRevenue.toLocaleString()}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Active Customers</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('active_customers', 'Active Customers')}</div>
                     <div className="text-[19px] font-semibold text-emerald-600 dark:text-emerald-400 tracking-tight">{activeCustomers}</div>
-                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">This Month</div>
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('this_month', 'This Month')}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Avg Order Value</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('avg_order_value', 'Avg Order Value')}</div>
                     <div className="text-[19px] font-semibold text-purple-600 dark:text-purple-400 tracking-tight">₦{averageOrderValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Pending Orders</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('pending_orders', 'Pending Orders')}</div>
                     <div className="text-[19px] font-semibold text-orange-600 dark:text-orange-400 tracking-tight">{pendingOrders}</div>
-                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">Awaiting</div>
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('awaiting', 'Awaiting')}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Low Stock Items</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('low_stock_items', 'Low Stock Items')}</div>
                     <div className="text-[19px] font-semibold text-red-600 dark:text-red-400 tracking-tight">{lowStockItems}</div>
-                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">Need Restock</div>
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('need_restock', 'Need Restock')}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Orders This Month</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('orders_this_month', 'Orders This Month')}</div>
                     <div className="text-[19px] font-semibold text-blue-600 dark:text-blue-400 tracking-tight">{ordersThisMonth}</div>
                     <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">
                       {lastMonthOrders > 0 ? (
@@ -564,20 +564,20 @@ export default function Dashboard() {
                           <span className="text-red-500 dark:text-red-400">↘ -{((lastMonthOrders - ordersThisMonth) / lastMonthOrders * 100).toFixed(0)}%</span>
                         )
                       ) : (
-                        <span className="text-gray-400 dark:text-gray-500">No comparison</span>
+                        <span className="text-gray-400 dark:text-gray-500">{t('no_comparison', 'No comparison')}</span>
                       )}
                     </div>
                   </div>,
                   // Reviews stats cards
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Pending Reviews</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('pending_reviews', 'Pending Reviews')}</div>
                     <div className="text-[19px] font-semibold text-yellow-600 dark:text-yellow-400 tracking-tight">{unreadReviewsCount}</div>
-                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">Need Response</div>
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('need_response', 'Need Response')}</div>
                   </div>,
                   <div>
-                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">Recent Reviews</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">{t('recent_reviews', 'Recent Reviews')}</div>
                     <div className="text-[19px] font-semibold text-indigo-600 dark:text-indigo-400 tracking-tight">{newReviews.length}</div>
-                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">Last 24h</div>
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{t('last_24h', 'Last 24h')}</div>
                   </div>
                 ]}
               />
@@ -591,14 +591,14 @@ export default function Dashboard() {
                     <span className="text-white text-sm font-bold">!</span>
                   </div>
                   <div>
-                    <div className="text-red-700 dark:text-red-400 font-medium text-sm">Low Stock Alert</div>
+                    <div className="text-red-700 dark:text-red-400 font-medium text-sm">{t('low_stock_alert', 'Low Stock Alert')}</div>
                     <div className="text-red-600 dark:text-red-500 text-xs">
-                      {lowStockItems} item{lowStockItems > 1 ? 's' : ''} need restocking
+                      {t('items_need_restocking', '{count} item{plural} need restocking', { count: lowStockItems, plural: lowStockItems > 1 ? 's' : '' })}
                     </div>
                   </div>
                 </div>
                 <div className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 rounded-lg px-3 py-2">
-                  💡 Check your inventory to avoid running out of popular products
+                  💡 {t('inventory_tip', 'Check your inventory to avoid running out of popular products')}
                 </div>
               </div>
             )}
