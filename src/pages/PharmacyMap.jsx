@@ -706,7 +706,7 @@ export default function PharmacyMap() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0 ${
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm flex-shrink-0 ${
                       selectedPharmacy?.id === pharmacy.id ? 'bg-blue-500' : 'bg-gray-400'
                     }`}>
                       {index + 1}

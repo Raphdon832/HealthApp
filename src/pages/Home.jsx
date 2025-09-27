@@ -41,8 +41,8 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
                   </div>
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
                     {etaInfo && closestPharmacy
-                      ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
-                      : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
+                      ? `${etaInfo.formatted} ${t('to', 'to')} ${vendors[closestPharmacy.vendorId]?.name || t('nearest_pharmacy', 'nearest pharmacy')}`
+                      : userCoords ? t('calculating_eta', 'Calculating ETA...') : t('fetching_location', 'Fetching location...')}
                   </span>
                 </button>
               ) : (
@@ -51,7 +51,7 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
                     <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
                   </div>
                   <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-800">
-                    {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
+                    {profile?.role === 'pharmacy' ? t('your_pharmacy_location', 'Your pharmacy location') : t('location_services', 'Location services')}
                   </span>
                 </div>
               )}
@@ -518,7 +518,7 @@ export default function Home() {
                 setSelectedSuggestionIndex(-1);
               }, 200);
             }}
-            placeholder="Search drugs, pharmacies"
+            placeholder={t('search_placeholder', 'Search drugs, pharmacies')}
             className="w-full outline-none bg-transparent text-gray-900 dark:text-white placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] dark:placeholder:text-[#aaaaaa] placeholder:font-light"
           />
         </div>
@@ -751,9 +751,9 @@ export default function Home() {
 
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
+            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">{t('new_arrivals', 'New Arrivals')}</div>
             <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600" onClick={() => setShowNewArrivalsModal(true)}>
-              view all
+              {t('view_all', 'view all')}
             </button>
           </div>
           <div
@@ -782,7 +782,7 @@ export default function Home() {
                   <ProductCard
                     product={p}
                     onOpen={() => handleProductOpen(p.id)}
-                    onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                    onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert(t('please_sign_in', 'Please sign in')))}
                     cardWidth="110px"
                     cardHeight="128px"
                     nameSize="11px"
@@ -795,7 +795,7 @@ export default function Home() {
                     addSize="9px"
                   />
                   <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                    New
+                    {t('new', 'New')}
                   </span>
                 </div>
               ))}
@@ -809,18 +809,18 @@ export default function Home() {
               <button
                 className="absolute top-2 right-2 text-zinc-500 hover:text-zinc-800 text-xl font-bold"
                 onClick={() => setShowNewArrivalsModal(false)}
-                aria-label="Close"
+                aria-label={t('close', 'Close')}
               >
                 &times;
               </button>
-              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
+              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">{t('all_new_products', 'All New Products')}</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
                 {allNewVisible.map((p) => (
                    <div className="relative flex flex-col items-center" key={p.id || p.sku}>
                      <ProductCard
                        product={p}
                        onOpen={() => handleProductOpen(p.id)}
-                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert(t(t('please_sign_in', 'please_sign_in', 'Please sign in'))))}
                        cardWidth="110px"
                        cardHeight="128px"
                        nameSize="11px"
@@ -833,7 +833,7 @@ export default function Home() {
                        addSize="9px"
                      />
                      <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                       New
+                       {t('new', 'New')}
                      </span>
                    </div>
                 ))}
@@ -844,9 +844,9 @@ export default function Home() {
                   <button
                     className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
                     onClick={() => setAllNewPage((p) => Math.min(allNewTotalPages, p + 1))}
-                    aria-label="Load more new arrivals"
+                    aria-label={t('load_more', 'Load more') + ' ' + t('new_arrivals', 'new arrivals')}
                   >
-                    Load more
+                    {t('load_more', 'Load more')}
                   </button>
                 </div>
               )}
@@ -855,7 +855,7 @@ export default function Home() {
         )}
 
         <div className="mt-10">
-          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
+          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">{t('popular_products', 'Popular Products')}</div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularVisible.map((p) => (
                <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
@@ -888,9 +888,9 @@ export default function Home() {
               <button
                 className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
                 onClick={() => setPopularPage((p) => Math.min(popularTotalPages, p + 1))}
-                aria-label="Load more popular products"
+                aria-label={t('load_more', 'Load more') + ' ' + t('popular_products', 'popular products')}
               >
-                Load more
+                {t('load_more', 'Load more')}
               </button>
             </div>
           )}
