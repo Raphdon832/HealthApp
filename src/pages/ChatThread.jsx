@@ -422,9 +422,13 @@ export default function ChatThread() {
           backgroundImage: `url(${ChatBgUrl})`,
           backgroundRepeat: 'repeat',
           backgroundPosition: 'center center',
-          backgroundSize: 'cover',
+          backgroundSize: '200px 200px', // Optimized: Smaller tile size for better performance
           pointerEvents: 'none',
-          zIndex: 0
+          zIndex: 0,
+          opacity: 0.3, // Optimized: Reduced opacity for subtlety and better text readability
+          willChange: 'transform', // Optimized: GPU acceleration hint
+          backfaceVisibility: 'hidden', // Optimized: Reduce repaints
+          transform: 'translateZ(0)' // Optimized: Force GPU layer
         }}
       />
 
