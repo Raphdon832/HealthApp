@@ -591,24 +591,24 @@ export default function ChatThread() {
                           </span>
                         </div>
                       )}
-                      <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-2`}>
+                      <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-1.5`}>
                         <div
                           className={`${
                             isMine 
                               ? 'bg-blue-500 text-white ml-8' 
                               : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-600 dark:border-gray-700'
-                          } px-3 py-2 max-w-[80%] sm:max-w-[70%] whitespace-pre-wrap break-words shadow-sm`}
+                          } px-2.5 py-1.5 max-w-[75%] sm:max-w-[65%] whitespace-pre-wrap break-words shadow-sm`}
                           style={{ 
-                            borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-                            fontSize: 14,
-                            lineHeight: 1.3
+                            borderRadius: isMine ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
+                            fontSize: 13,
+                            lineHeight: 1.2
                           }}
                         >
                           <React.Suspense fallback={<span>{m.text}</span>}>
                             <MessageWithLinks text={m.text} isMine={isMine} />
                           </React.Suspense>
                         </div>
-                        <div className={`flex items-center text-[10px] text-gray-400 dark:text-gray-500 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
+                        <div className={`flex items-center text-[9px] text-gray-400 dark:text-gray-500 mt-0.5 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
                           <span>{timestamp ? timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                           <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} t={t} />
                         </div>
