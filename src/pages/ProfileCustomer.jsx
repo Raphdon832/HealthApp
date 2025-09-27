@@ -1,4 +1,5 @@
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { MapPin, Phone, Search, LogOut, Pencil, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -11,11 +12,12 @@ import MyPrescriptionsSection from '@/components/MyPrescriptionsSection';
 
 // Fixed Header Component
 const FixedHeader = ({ title, onSearchClick, onSettingsClick }) => {
+  const { t } = useTranslation();
   return createPortal(
     <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
         <div className="mt-8 flex items-center justify-between">
-          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">My<br/>Profile</h1>
+          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">{t('my_profile', 'My\nProfile').replace('\\n', '\n')}</h1>
           <div className="flex items-center gap-2">
             <button onClick={onSearchClick} aria-label="Open search" className="rounded-full p-2 hover:bg-sky-50 transition-all duration-200">
               <Search className="h-5 w-5 text-sky-600" />
@@ -33,6 +35,7 @@ const FixedHeader = ({ title, onSearchClick, onSettingsClick }) => {
 
 export default function ProfileCustomer() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   // edit fields start empty and will be populated from real-time `customerProfile` when available
   const [editName, setEditName] = useState('');
@@ -268,7 +271,7 @@ export default function ProfileCustomer() {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
-                    placeholder="Search prescriptions, orders, drugs..."
+                    placeholder={t('search_placeholder_profile', 'Search prescriptions, orders, drugs...')}
                     className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
                     aria-label="Search query"
                   />
@@ -276,10 +279,10 @@ export default function ProfileCustomer() {
               </div>
               <div className="flex items-center gap-2">
                 <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white w-36 input-interactive">
-                  <option value="prescriptions">Prescriptions</option>
-                  <option value="orders">Orders</option>
-                  <option value="drugs">Drugs</option>
-                  <option value="all">All</option>
+                  <option value="prescriptions">{t('prescriptions', 'Prescriptions')}</option>
+                  <option value="orders">{t('orders_profile', 'Orders')}</option>
+                  <option value="drugs">{t('drugs', 'Drugs')}</option>
+                  <option value="all">{t('all_results', 'All')}</option>
                 </select>
               </div>
             </div>
@@ -355,7 +358,7 @@ export default function ProfileCustomer() {
                 className="ml-2 px-3 py-1 rounded-full border border-sky-200 dark:border-gray-600 text-sky-600 text-xs flex items-center gap-1 hover:bg-sky-50"
                 onClick={() => setEditing(true)}
               >
-                <Pencil className="h-4 w-4" /> Edit
+                <Pencil className="h-4 w-4" /> {t('edit', 'Edit')}
               </button>
             </div>
 
@@ -363,7 +366,7 @@ export default function ProfileCustomer() {
             {editing && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fadeInScale">
                 <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
-                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">Edit Profile</div>
+                  <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">{t('edit_profile', 'Edit Profile')}</div>
                   <form
                     className="flex flex-col gap-4"
                     onSubmit={async e => {
@@ -411,7 +414,7 @@ export default function ProfileCustomer() {
                     <input
                       className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       value={editPhone}
-                      placeholder="Phone Number"
+                      placeholder={t('phone_number_profile', 'Phone Number')}
                       onChange={e => setEditPhone(e.target.value)}
                       style={{boxShadow: 'none'}}
                     />
@@ -419,7 +422,7 @@ export default function ProfileCustomer() {
                     <input
                       className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       value={editAddress}
-                      placeholder="Address"
+                      placeholder={t('address_profile', 'Address')}
                       onChange={e => setEditAddress(e.target.value)}
                       style={{boxShadow: 'none'}}
                     />
@@ -427,14 +430,14 @@ export default function ProfileCustomer() {
                     <input
                       className="w-full border-b border-[#9ED3FF] bg-transparent px-1 py-2 text-[12px] font-light outline-none focus:border-sky-400 dark:border-gray-600 transition-all"
                       type="password"
-                      placeholder="Account Password (required to save)"
+                      placeholder={t('password', 'Account Password (required to save)')}
                       onChange={e => setEditPassword(e.target.value)}
                       required
                       style={{boxShadow: 'none'}}
                     />
                     <div className="flex gap-2 mt-4">
-                      <button type="button" className="px-4 py-2 rounded-full bg-zinc-100 text-[12px] font-light" onClick={() => setEditing(false)}>Cancel</button>
-                      <button type="submit" className="px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light">Save</button>
+                      <button type="button" className="px-4 py-2 rounded-full bg-zinc-100 text-[12px] font-light" onClick={() => setEditing(false)}>{t('cancel', 'Cancel')}</button>
+                      <button type="submit" className="px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light">{t('save', 'Save')}</button>
                     </div>
                   </form>
                 </div>
@@ -456,7 +459,7 @@ export default function ProfileCustomer() {
           <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">My Activity</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Items in Cart</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('items_in_cart', 'Items in Cart')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{cartCount ?? 0}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
@@ -464,7 +467,7 @@ export default function ProfileCustomer() {
               <span className="text-[12px] text-sky-600 font-medium">{activeChats ?? 0}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-sky-500 font-light">Saved Items</span>
+              <span className="text-[12px] text-sky-500 font-light">{t('saved_items', 'Saved Items')}</span>
               <button 
                 className="text-[12px] text-sky-600 font-medium hover:underline"
                 onClick={() => setShowWishlist(true)}
@@ -473,7 +476,7 @@ export default function ProfileCustomer() {
               </button>
             </div>
             <div className="w-full flex items-center justify-between mt-3 mb-1">
-              <span className="text-[14px] font-light text-zinc-800 dark:text-zinc-200">Drugs Bought</span>
+              <span className="text-[14px] font-light text-zinc-800 dark:text-zinc-200">{t('drugs_bought', 'Drugs Bought')}</span>
               <button className="text-[12px] text-sky-600 font-light px-2 py-1 rounded-full hover:bg-sky-50" onClick={() => setShowAllDrugs(true)}>See more</button>
             </div>
             <div className="w-full flex flex-col gap-2">
@@ -490,7 +493,7 @@ export default function ProfileCustomer() {
             {showAllDrugs && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                 <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
-                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">All Drugs Bought</div>
+                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">{t('all_drugs_bought', 'All Drugs Bought')}</div>
                   <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
                     {drugsBought.map((drug, idx) => (
                       <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
@@ -500,7 +503,7 @@ export default function ProfileCustomer() {
                       </div>
                     ))}
                   </div>
-                  <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" onClick={() => setShowAllDrugs(false)}>Close</button>
+                  <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" onClick={() => setShowAllDrugs(false)}>{t('close', 'Close')}</button>
                 </div>
               </div>
             )}
@@ -509,7 +512,7 @@ export default function ProfileCustomer() {
             {showWishlist && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                 <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-md shadow-xl">
-                  <div className="text-[18px] font-light font-poppins text-sky-600 dark:text-sky-400 mb-4 tracking-tight">My Saved Items</div>
+                  <div className="text-[18px] font-light font-poppins text-sky-600 dark:text-sky-400 mb-4 tracking-tight">{t('my_saved_items', 'My Saved Items')}</div>
                   
                   {/* Tab Headers */}
                   <div className="flex border-b border-gray-200 dark:border-gray-600 dark:border-gray-600 mb-4">
@@ -521,7 +524,7 @@ export default function ProfileCustomer() {
                       }`}
                       onClick={() => setActiveTab('products')}
                     >
-                      Products ({wishlist?.length ?? 0})
+                      {t('products', 'Products')} ({wishlist?.length ?? 0})
                     </button>
                     <button
                       className={`px-4 py-2 text-[14px] font-medium transition-colors ${
@@ -531,7 +534,7 @@ export default function ProfileCustomer() {
                       }`}
                       onClick={() => setActiveTab('vendors')}
                     >
-                      Vendors ({bookmarkedVendors?.length ?? 0})
+                      {t('vendors', 'Vendors')} ({bookmarkedVendors?.length ?? 0})
                     </button>
                   </div>
 
@@ -576,7 +579,7 @@ export default function ProfileCustomer() {
                                   setShowWishlist(false);
                                 }}
                               >
-                                View
+                                {t('view', 'View')}
                               </button>
                             </div>
                           </div>
@@ -584,8 +587,8 @@ export default function ProfileCustomer() {
                       ) : (
                         <div className="text-center py-8 text-gray-500">
                           <div className="text-4xl mb-2">💝</div>
-                          <div className="text-[14px] font-light">No products saved</div>
-                          <div className="text-[12px] text-gray-400 mt-1">Start adding products you like!</div>
+                          <div className="text-[14px] font-light">{t('no_products_saved', 'No products saved')}</div>
+                          <div className="text-[12px] text-gray-400 mt-1">{t('start_adding_products', 'Start adding products you like!')}</div>
                         </div>
                       )
                     ) : (
@@ -627,8 +630,8 @@ export default function ProfileCustomer() {
                       ) : (
                         <div className="text-center py-8 text-gray-500">
                           <div className="text-4xl mb-2">🔖</div>
-                          <div className="text-[14px] font-light">No vendors bookmarked</div>
-                          <div className="text-[12px] text-gray-400 mt-1">Bookmark vendors you like!</div>
+                          <div className="text-[14px] font-light">{t('no_vendors_bookmarked', 'No vendors bookmarked')}</div>
+                          <div className="text-[12px] text-gray-400 mt-1">{t('bookmark_vendors', 'Bookmark vendors you like!')}</div>
                         </div>
                       )
                     )}
@@ -641,7 +644,7 @@ export default function ProfileCustomer() {
                       setActiveTab('products'); // Reset to products tab
                     }}
                   >
-                    Close
+                    {t('close', 'Close')}
                   </button>
                 </div>
               </div>
@@ -654,7 +657,7 @@ export default function ProfileCustomer() {
         </div>
       </div>
        <div>
-            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> Log Out</button>
+            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}</button>
           </div>
       </div>
     </>

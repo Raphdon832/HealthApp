@@ -7,11 +7,13 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA, getDistance } from '@/lib/eta';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import FilterIcon from '@/icons/react/FilterIcon';
 
 export default function PharmacyMap() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { userCoords, location, isLoading: locationLoading } = useUserLocation();
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -254,7 +256,7 @@ export default function PharmacyMap() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-[25px] font-light text-gray-900 dark:text-white">Nearby Pharmacies</h1>
+            <h1 className="text-[25px] font-light text-gray-900 dark:text-white">{t('nearby_pharmacies', 'Nearby Pharmacies')}</h1>
           </div>
           <LoadingSkeleton lines={8} className="space-y-4 justify-center" />
         </div>
@@ -273,16 +275,16 @@ export default function PharmacyMap() {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1 text-left">
-          <div className="text-[18px] font-light tracking-tight">Nearby Pharmacies</div>
+          <div className="text-[18px] font-light tracking-tight">{t('nearby_pharmacies', 'Nearby Pharmacies')}</div>
           <div className="text-[12px] text-gray-400">
-            {userCoords ? `${sortedPharmacies.length} found near you` : 'Loading location...'}
+            {userCoords ? t('pharmacies_found_near_you', '{count} found near you').replace('{count}', sortedPharmacies.length) : t('loading_location', 'Loading location...')}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
-            aria-label="Filter pharmacies"
+            aria-label={t('filter_pharmacies', 'Filter pharmacies')}
           >
             <FilterIcon className="w-5 h-5 text-sky-600" />
           </button>
@@ -307,9 +309,9 @@ export default function PharmacyMap() {
               <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-white" />
             </button>
             <div>
-              <h1 className="text-[20px] font-light tracking-tight text-gray-900 dark:text-white">Nearby Pharmacies</h1>
+              <h1 className="text-[20px] font-light tracking-tight text-gray-900 dark:text-white">{t('nearby_pharmacies', 'Nearby Pharmacies')}</h1>
               <p className="text-[12px] text-gray-400 dark:text-gray-500">
-                {userCoords ? `${sortedPharmacies.length} pharmacies found near you` : 'Loading location...'}
+                {userCoords ? t('pharmacies_found_near_you_detailed', '{count} pharmacies found near you').replace('{count}', sortedPharmacies.length) : t('loading_location', 'Loading location...')}
               </p>
             </div>
           </div>
@@ -324,7 +326,7 @@ export default function PharmacyMap() {
               <>
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Your Location</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('your_location', 'Your Location')}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{location}</p>
                 </div>
               </>
@@ -333,12 +335,12 @@ export default function PharmacyMap() {
                 <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {locationLoading ? 'Getting your location...' : 'Location access needed'}
+                    {locationLoading ? t('getting_your_location', 'Getting your location...') : t('location_access_needed', 'Location access needed')}
                   </p>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     {locationLoading 
-                      ? 'Please allow location access for accurate ETAs' 
-                      : 'Enable location services to see nearby pharmacies'
+                      ? t('allow_location_access_etas', 'Please allow location access for accurate ETAs') 
+                      : t('enable_location_services', 'Enable location services to see nearby pharmacies')
                     }
                   </p>
                 </div>
@@ -354,7 +356,7 @@ export default function PharmacyMap() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search pharmacies..."
+                placeholder={t('search_pharmacies', 'Search pharmacies...')}
                 value={searchQuery}
                 onChange={(e) => handleSearchInputChange(e.target.value)}
                 onFocus={handleSearchFocus}
@@ -420,7 +422,7 @@ export default function PharmacyMap() {
                             </div>
                           </div>
                           <div className="text-xs text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
-                            {suggestion.type === 'name' ? 'Name' : 'Address'}
+                            {suggestion.type === 'name' ? t('name', 'Name') : t('address', 'Address')}
                           </div>
                         </div>
                       </button>
@@ -428,15 +430,15 @@ export default function PharmacyMap() {
                   ) : (
                     <div className="px-4 py-6 text-center text-gray-500 dark:text-gray-400 animate-fade-in">
                       <MapPin className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                      <p className="text-[12px]">No pharmacies found</p>
-                      <p className="text-[10px] mt-1">Try a different search term</p>
+                      <p className="text-[12px]">{t('no_pharmacies_found', 'No pharmacies found')}</p>
+                      <p className="text-[10px] mt-1">{t('try_different_search', 'Try a different search term')}</p>
                     </div>
                   )}
                   
                   {/* Keyboard navigation hint */}
                   {searchSuggestions.length > 0 && (
                     <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-[12px] text-gray-400 dark:text-gray-500 text-center">
-                      Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
+                      {t('keyboard_navigation_hint', 'Use ↑↓ arrow keys to navigate, Enter to select, Esc to close')}
                     </div>
                   )}
                 </div>
@@ -455,7 +457,7 @@ export default function PharmacyMap() {
 
           {showFilters && (
             <div className=" pt-3">
-              <p className="text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">Distance</p>
+              <p className="text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">{t('distance', 'Distance')}</p>
               <div className="flex gap-2 flex-wrap">
                 {[
                   { value: 'all', label: 'All' },
@@ -511,7 +513,7 @@ export default function PharmacyMap() {
                   <div className="absolute -inset-2 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
                 </div>
                 <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-white px-2 py-1 rounded shadow-md whitespace-nowrap">
-                  You are here
+                  {t('you_are_here', 'You are here')}
                 </span>
               </div>
             )}
@@ -560,9 +562,9 @@ export default function PharmacyMap() {
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Pharmacy Locations</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('pharmacy_locations', 'Pharmacy Locations')}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {sortedPharmacies.length} pharmacies • Sorted by distance
+                    {t('pharmacies_sorted_by_distance', '{count} pharmacies • Sorted by distance').replace('{count}', sortedPharmacies.length)}
                   </p>
                 </div>
               </div>
@@ -573,15 +575,15 @@ export default function PharmacyMap() {
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-black rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Your location</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t('your_location', 'Your location')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Pharmacy</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t('pharmacy', 'Pharmacy')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Selected</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t('selected', 'Selected')}</span>
                 </div>
               </div>
             </div>
@@ -603,7 +605,7 @@ export default function PharmacyMap() {
                   <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
                       <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || 'Calculating...'}</span>
+                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                     </div>
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
                       <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
@@ -619,7 +621,7 @@ export default function PharmacyMap() {
                 </div>
               </div>
               <span className="bg-blue-600 text-white text-xs px-1 py-1 rounded-full font-medium flex-shrink-0 ml-2">
-                Closest
+                {t('closest', 'Closest')}
               </span>
             </div>
 
@@ -629,25 +631,25 @@ export default function PharmacyMap() {
                 className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
               >
                 <Navigation className="h-3 w-3" />
-                <span className="hidden sm:inline">Get Directions</span>
-                <span className="sm:hidden">Get Directions</span>
+                <span className="hidden sm:inline">{t('get_directions', 'Get Directions')}</span>
+                <span className="sm:hidden">{t('get_directions', 'Get Directions')}</span>
               </button>
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
                   className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
-                  title="Call pharmacy"
+                  title={t('call_pharmacy', 'Call pharmacy')}
                 >
                   <Phone className="h-3 w-3" />
-                  <span className="hidden sm:inline">Call</span>
+                  <span className="hidden sm:inline">{t('call', 'Call')}</span>
                 </button>
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
                 className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
               >
-                <span className="hidden sm:inline">View Products</span>
-                <span className="sm:hidden">View Products</span>
+                <span className="hidden sm:inline">{t('view_products', 'View Products')}</span>
+                <span className="sm:hidden">{t('view_products', 'View Products')}</span>
               </button>
             </div>
           </div>
@@ -659,17 +661,17 @@ export default function PharmacyMap() {
             <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               {searchQuery ? (
                 <>
-                  <span>Search Results</span>
+                  <span>{t('search_results', 'Search Results')}</span>
                   <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full animate-pulse-slow">
                     "{searchQuery}"
                   </span>
                 </>
               ) : (
-                'All Pharmacies'
+                t('all_pharmacies', 'All Pharmacies')
               )}
             </h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {sortedPharmacies.length} found
+              {t('pharmacies_found_count', '{count} found').replace('{count}', sortedPharmacies.length)}
             </span>
           </div>
           
@@ -677,17 +679,17 @@ export default function PharmacyMap() {
             <div className="bg-white-10 rounded-lg p-8 text-center">
               <MapPin className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-600 dark:text-gray-400">
-                {searchQuery ? 'No pharmacies found matching your search' : 'No pharmacies found'}
+                {searchQuery ? t('no_pharmacies_found_search', 'No pharmacies found matching your search') : t('no_pharmacies_found_general', 'No pharmacies found')}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                {searchQuery ? 'Try adjusting your search terms' : 'Try adjusting your location or check back later'}
+                {searchQuery ? t('try_adjusting_search', 'Try adjusting your search terms') : t('try_adjusting_location', 'Try adjusting your location or check back later')}
               </p>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
                   className="mt-3 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 px-3 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 >
-                  Clear search
+                  {t('clear_search', 'Clear search')}
                 </button>
               )}
             </div>
@@ -716,7 +718,7 @@ export default function PharmacyMap() {
                         <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{pharmacy.name}</h3>
                         {index === 0 && (
                           <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                            Closest
+                            {t('closest', 'Closest')}
                           </span>
                         )}
                       </div>
@@ -725,7 +727,7 @@ export default function PharmacyMap() {
                       <div className="flex items-center gap-3 text-sm">
                         <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                           <Clock className="h-3 w-3 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || 'Calculating...'}</span>
+                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                         </div>
                         <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -741,7 +743,7 @@ export default function PharmacyMap() {
                       handleGetDirections(pharmacy);
                     }}
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full flex-shrink-0 ml-2"
-                    title="Get directions"
+                    title={t('get_directions', 'Get directions')}
                   >
                     <Navigation className="h-4 w-4" />
                   </button>

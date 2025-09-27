@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { listenProducts } from '@/lib/db';
 import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
@@ -17,11 +18,12 @@ import ProductAvatar from '@/components/ProductAvatar';
 
 // Fixed Header Component
 const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
+  const { t } = useTranslation();
   return createPortal(
     <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
         <div className="flex items-center justify-between">
-          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">Pharmacy<br/>Profile</h1>
+          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">{t('pharmacy_profile', 'Pharmacy\nProfile').replace('\\n', '\n')}</h1>
           <div className="flex items-center gap-3">
             {/* Inline search bar for small+ screens */}
             <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
@@ -69,6 +71,7 @@ const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSet
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
+  const { t } = useTranslation();
   const [inventory, setInventory] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
@@ -603,7 +606,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 onClick={async () => { await logout(); window.location.href = '/auth/landing'; }}
                 className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 dark:text-red-400 px-3 py-1 inline-flex text-[12px] items-center gap-2"
               >
-                <LogOut className="h-4 w-4"/> Log Out
+                <LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}
               </button>
             </div>
           </div>
@@ -635,7 +638,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 className="px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light flex items-center gap-1 shadow hover:bg-sky-700"
                 onClick={downloadReport}
               >
-                <Download className="h-4 w-4" /> Download report
+                <Download className="h-4 w-4" /> {t('download_report', 'Download report')}
               </button>
             </div>
           </div>
@@ -646,13 +649,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
               onClick={() => setShowAdd(true)}
             >
-              + Add Product
+              + {t('add_product', 'Add Product')}
             </button>
             <button
               className="flex-1 rounded-full border border-sky-600 dark:border-gray-600 dark:border-gray-600 text-sky-600 dark:text-sky-400 text-[13px] font-light py-2 hover:bg-[#E3F3FF] dark:hover:bg-gray-700"
               onClick={() => setShowBulk(true)}
             >
-              Bulk Upload
+              {t('bulk_upload', 'Bulk Upload')}
             </button>
           </div>
 
@@ -691,8 +694,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             </div>
 
             <div className="w-full flex justify-end mt-3">
-              <button onClick={downloadInventoryCsv} className="mr-2 px-4 py-2 rounded-full border border-sky-600 dark:border-gray-600 dark:border-gray-600 text-sky-600 dark:text-sky-400 text-[13px] font-light hover:bg-[#E3F3FF] dark:hover:bg-gray-700">Download CSV</button>
-              <button onClick={downloadInventoryXlsx} className="px-4 py-2 rounded-full bg-sky-600 text-white text-[13px] font-light hover:bg-sky-700">Download Excel</button>
+              <button onClick={downloadInventoryCsv} className="mr-2 px-4 py-2 rounded-full border border-sky-600 dark:border-gray-600 dark:border-gray-600 text-sky-600 dark:text-sky-400 text-[13px] font-light hover:bg-[#E3F3FF] dark:hover:bg-gray-700">{t('download_csv', 'Download CSV')}</button>
+              <button onClick={downloadInventoryXlsx} className="px-4 py-2 rounded-full bg-sky-600 text-white text-[13px] font-light hover:bg-sky-700">{t('download_excel', 'Download Excel')}</button>
             </div>
           </div>
         </section>

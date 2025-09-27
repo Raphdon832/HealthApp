@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, se
 import { db } from '@/lib/firebase';
 import { addToCart, addToWishlist, removeFromWishlist, isInWishlist } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
@@ -13,6 +14,7 @@ import { calculatePharmacyETA } from '@/lib/eta';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords } = useUserLocation();
   
@@ -229,20 +231,20 @@ export default function ProductDetail({ product, pharmacy }) {
     } else if (navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Shareable link copied to clipboard!');
+        alert(t('shareable_link_copied', 'Shareable link copied to clipboard!'));
       } catch {
-        window.prompt('Copy this link:', shareUrl);
+        window.prompt(t('copy_this_link', 'Copy this link:'), shareUrl);
       }
       setShowShareOptions(false);
     } else {
-      window.prompt('Copy this link:', shareUrl);
+      window.prompt(t('copy_this_link', 'Copy this link:'), shareUrl);
       setShowShareOptions(false);
     }
   }
 
   const handleWishlistToggle = async () => {
     if (!user) {
-      alert('Please sign in to add items to your wishlist');
+      alert(t('please_sign_in_wishlist', 'Please sign in to add items to your wishlist'));
       return;
     }
 
@@ -266,7 +268,7 @@ export default function ProductDetail({ product, pharmacy }) {
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
-      alert('Failed to update wishlist. Please try again.');
+      alert(t('failed_update_wishlist', 'Failed to update wishlist. Please try again.'));
     } finally {
       setWishlistLoading(false);
     }
@@ -390,21 +392,21 @@ export default function ProductDetail({ product, pharmacy }) {
                     <button
                       onClick={async () => {
                         if (!user) return alert('Please sign in');
-                        if (!product.id) return alert('Product unavailable. Please try again.');
-                        try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
+                        if (!product.id) return alert(t('product_unavailable', 'Product unavailable. Please try again.'));
+                        try { await addToCart(user.uid, product.id, 1); } catch { alert(t('failed_add_to_cart', 'Failed to add to cart.')); }
                       }}
                       className="w-full h-10 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
-                      aria-label="Add to Cart"
+                      aria-label={t('add_to_cart', 'Add to Cart')}
                     >
-                      Add to Cart
+                      {t('add_to_cart', 'Add to Cart')}
                     </button>
 
                     <a
                       href={`tel:${pharmacy?.phone || ''}`}
                       className="w-full h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
-                      aria-label="Call to order"
+                      aria-label={t('call_to_order', 'Call to Order')}
                     >
-                      <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> Call to Order
+                      <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> {t('call_to_order', 'Call to Order')}
                     </a>
                   </div>
                 </div>
@@ -450,7 +452,7 @@ export default function ProductDetail({ product, pharmacy }) {
                         className="text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-2 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 lg:hidden hover:scale-105 active:scale-95"
                         aria-label="Get directions"
                       >
-                        <DirectionsIcon className="h-4 w-4 inline-block mr-1" /> Get Directions
+                        <DirectionsIcon className="h-4 w-4 inline-block mr-1" /> {t('get_directions', 'Get Directions')}
                       </button>
                     )}
                   </div>
@@ -459,10 +461,10 @@ export default function ProductDetail({ product, pharmacy }) {
                   <div className="mb-3 flex items-center gap-2 text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.5s' }}>
                     <Clock className="h-4 w-4" /> 
                     {etaInfo 
-                      ? `${etaInfo.formatted} to ${pharmacy?.name}` 
+                      ? t('eta_to_pharmacy', '{time} to {pharmacy}').replace('{time}', etaInfo.formatted).replace('{pharmacy}', pharmacy?.name) 
                       : userCoords 
-                        ? 'Calculating ETA...' 
-                        : 'Fetching location...'
+                        ? t('calculating_eta', 'Calculating ETA...') 
+                        : t('fetching_location', 'Fetching location...')
                     }
                   </div>
 
@@ -485,7 +487,7 @@ export default function ProductDetail({ product, pharmacy }) {
                   <div className="mt-2 animate-fade-in" style={{ animationDelay: '0.7s' }}>
                     {/* Desktop: show label then value underneath */}
                     <div className="hidden lg:block">
-                      <div className="text-[15px] tracking-tight text-black font-poppins font-medium">Category</div>
+                      <div className="text-[15px] tracking-tight text-black font-poppins font-medium">{t('category', 'Category')}</div>
                       <div className="mt-0.5 mb-5">
                         <button
                           type="button"
@@ -516,7 +518,7 @@ export default function ProductDetail({ product, pharmacy }) {
                <div className="mt-4 border-b"></div>
                   {/* Product description */}
                   <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">Product Description</div>
+                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">{t('product_description', 'Product Description')}</div>
                     <p className="mt-2 text-zinc-600 dark:text-zinc-300 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
                   </div>
               <div className="mt-8 border-b"></div>
@@ -604,19 +606,19 @@ export default function ProductDetail({ product, pharmacy }) {
                     {reviews.length > visibleReviews && (
                       <div className="flex justify-start">
                         <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setVisibleReviews(v => v + 3); setExpandedReviews(true); }}>
-                          See more
+                          {t('see_more', 'See more')}
                         </button>
                       </div>
                     )}
                     <div className="mt-4 border-b"></div>
                     {/* Review Form */}
                     <form className="p-4 mt-6 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
-                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700 dark:text-zinc-300">Leave a Review</div>
+                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700 dark:text-zinc-300">{t('leave_a_review', 'Leave a Review')}</div>
                       <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
-                        <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
-                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review... (optional)" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
+                        <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder={t('your_name', 'Your Name')} className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
+                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder={t('your_review_optional', 'Your review... (optional)')} className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
                       <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 dark:border-gray-600 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
-                        {submitting ? 'Submitting…' : 'Submit Review'}
+                        {submitting ? t('submitting', 'Submitting…') : t('submit_review', 'Submit Review')}
                       </button>
                     </form>
                   </div>
@@ -634,19 +636,19 @@ export default function ProductDetail({ product, pharmacy }) {
     <div className="flex flex-row gap-3 justify-center">
       <button
         onClick={async () => {
-          if (!user) return alert('Please sign in');
-          if (!product.id) return alert('Product unavailable. Please try again.');
-          try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
+          if (!user) return alert(t('please_sign_in', 'Please sign in'));
+          if (!product.id) return alert(t('product_unavailable', 'Product unavailable. Please try again.'));
+          try { await addToCart(user.uid, product.id, 1); } catch { alert(t('failed_add_to_cart', 'Failed to add to cart.')); }
         }}
         className="flex-1 max-w-[140px] h-10 rounded-full bg-sky-600 text-white text-[13px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
       >
-        Add to Cart
+        {t('add_to_cart', 'Add to Cart')}
       </button>
       <a
         href={`tel:${pharmacy?.phone || ''}`}
         className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
       >
-        <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> Call to Order
+        <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> {t('call_to_order', 'Call to Order')}
       </a>
     </div>
   </div>
@@ -656,14 +658,14 @@ export default function ProductDetail({ product, pharmacy }) {
           <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
             <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto animate-bounce-in shadow-xl">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-lg font-medium animate-text-reveal">Products in "{product.category || 'General'}"</div>
-                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors duration-200 hover:scale-110 active:scale-95">Close</button>
+                <div className="text-lg font-medium animate-text-reveal">{t('products_in_category', 'Products in "{category}"').replace('{category}', product.category || 'General')}</div>
+                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors duration-200 hover:scale-110 active:scale-95">{t('close', 'Close')}</button>
               </div>
 
               {loadingCategoryProducts ? (
-                <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 animate-pulse">Loading…</div>
+                <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 animate-pulse">{t('loading', 'Loading…')}</div>
               ) : categoryProducts.length === 0 ? (
-                <div className="p-4 text-zinc-500 dark:text-zinc-400 animate-fade-in">No products found.</div>
+                <div className="p-4 text-zinc-500 dark:text-zinc-400 animate-fade-in">{t('no_products_found', 'No products found.')}</div>
               ) : (
                 <div className="space-y-2">
                   {categoryProducts.map((p, index) => (
@@ -690,7 +692,7 @@ export default function ProductDetail({ product, pharmacy }) {
         {showShareOptions && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
             <div className="bg-white rounded-2xl p-6 w-[90vw] max-w-xs shadow-xl animate-bounce-in flex flex-col gap-4">
-              <div className="font-poppins font-medium text-[16px] mb-2 text-center">Share Product</div>
+              <div className="font-poppins font-medium text-[16px] mb-2 text-center">{t('share_product', 'Share Product')}</div>
               <button
                 className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 dark:border-gray-600 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleShareProduct}

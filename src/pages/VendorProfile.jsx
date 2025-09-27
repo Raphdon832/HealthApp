@@ -6,6 +6,7 @@ import { getDoc, doc } from 'firebase/firestore';
 import { listenProducts, getOrCreateThread, addVendorBookmark, removeVendorBookmark, isVendorBookmarked } from '@/lib/db'; // ⬅︎ use new helper
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ProductAvatar from '@/components/ProductAvatar';
@@ -15,6 +16,7 @@ import { calculatePharmacyETA } from '@/lib/eta';
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
   const { userCoords } = useUserLocation();
+  const { t } = useTranslation();
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [showAll, setShowAll] = useState(false);
@@ -132,7 +134,7 @@ export default function VendorProfile() {
     }
     // only customers can initiate
     if (profile?.role !== 'customer') {
-      alert('Only customers can start a chat with a pharmacy.');
+      alert(t('customers_only_chat', 'Only customers can start a chat with a pharmacy.'));
       return;
     }
     try {
@@ -141,7 +143,7 @@ export default function VendorProfile() {
       navigate(`/chat/${id}`);
     } catch (err) {
       console.error(err);
-      alert('Could not start chat thread.');
+      alert(t('could_not_start_chat', 'Could not start chat thread.'));
     }
   };
 
@@ -151,18 +153,18 @@ export default function VendorProfile() {
     const doc = new jsPDF();
     let y = 10;
     doc.setFontSize(18);
-    doc.text('Pharmacy Report', 14, y);
+    doc.text(t('pharmacy_report', 'Pharmacy Report'), 14, y);
     y += 10;
     doc.setFontSize(12);
     // Vendor Info Table
     autoTable(doc, {
       startY: y,
-      head: [['Field', 'Value']],
+      head: [[t('field', 'Field'), t('value', 'Value')]],
       body: [
-        ['Pharmacy', vendor.name || ''],
-        ['Email', vendor.email || ''],
-        ['Address', vendor.address || ''],
-        ['Phone', vendor.phone || ''],
+        [t('pharmacy', 'Pharmacy'), vendor.name || ''],
+        [t('email', 'Email'), vendor.email || ''],
+        [t('address', 'Address'), vendor.address || ''],
+        [t('phone', 'Phone'), vendor.phone || ''],
       ],
       theme: 'grid',
       headStyles: { fillColor: [30, 144, 255] },
@@ -175,7 +177,7 @@ export default function VendorProfile() {
     if (products.length > 0) {
       autoTable(doc, {
         startY: y,
-        head: [['Product Name', 'Category', 'Stock', 'SKU', 'Price']],
+        head: [[t('product_name', 'Product Name'), t('category', 'Category'), t('stock', 'Stock'), t('sku', 'SKU'), t('price', 'Price')]],
         body: products.map((p) => [
           p.name,
           p.category,
@@ -202,7 +204,7 @@ export default function VendorProfile() {
     if (orders.length > 0) {
       autoTable(doc, {
         startY: y,
-        head: [['Order ID', 'Customer', 'Status', 'Date', 'Products']],
+        head: [[t('order_id', 'Order ID'), t('customer', 'Customer'), t('status', 'Status'), t('date', 'Date'), t('products', 'Products')]],
         body: orders.map((order) => [
           order.id || '',
           order.customerName || '',
@@ -275,9 +277,9 @@ export default function VendorProfile() {
           onClick={() => navigate(-1)}
           className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white border border-zinc-300 dark:border-gray-600 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
         >
-          <ArrowLeft className="h-3 w-3 mr-0" /> Back
+          <ArrowLeft className="h-3 w-3 mr-0" /> {t('back', 'Back')}
         </button>
-        <div className="text-[18px] font-light font-poppins leading-none">Vendor Profile</div>
+        <div className="text-[18px] font-light font-poppins leading-none">{t('vendor_profile', 'Vendor Profile')}</div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleBookmarkToggle}
@@ -293,7 +295,7 @@ export default function VendorProfile() {
           <button
             onClick={() => setShowSearch(true)}
             className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
-            aria-label="Search products"
+            aria-label={t('search_products', 'Search products')}
           >
             <Search className="w-5 h-5 text-sky-600" />
           </button>
@@ -312,9 +314,9 @@ export default function VendorProfile() {
             onClick={() => navigate(-1)}
             className="w-[72px] h-[25px] font-poppins font-extralight tracking-tight text-[14px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white mr-1 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
           >
-            <ArrowLeft className="h-3 w-3 mr-0" /> Back
+            <ArrowLeft className="h-3 w-3 mr-0" /> {t('back', 'Back')}
           </button>
-          <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal text-gray-900 dark:text-white">Vendor&nbsp;Profile</div>
+          <div className="-ml-1 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-text-reveal text-gray-900 dark:text-white">{t('vendor_profile', 'Vendor Profile')}</div>
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={handleBookmarkToggle}
@@ -339,8 +341,8 @@ export default function VendorProfile() {
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
             <div className={`border border-zinc-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:dark:bg-gray-800/90 md:backdrop-blur-sm md:z-20' : ''} animate-slide-down-fade`}>
               <div>
-                <div className="text-[18px] font-poppins font-medium text-gray-900 dark:text-white">Products by<br/>{vendor?.name || 'Vendor'}</div>
-                <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `of ${products.length}` : ''} items</div>
+                <div className="text-[18px] font-poppins font-medium text-gray-900 dark:text-white">{t('products_by', 'Products by')}<br/>{vendor?.name || t('vendor', 'Vendor')}</div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `${t('of', 'of')} ${products.length}` : ''} {t('items', 'items')}</div>
               </div>
               <div>
                 {filteredProducts.length > 3 && !showAll && (
@@ -348,7 +350,7 @@ export default function VendorProfile() {
                     className="text-sky-600 dark:text-sky-400 text-[12px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(true)}
                   >
-                    See more
+                    {t('see_more', 'See more')}
                   </button>
                 )}
                 {filteredProducts.length > 3 && showAll && (
@@ -356,7 +358,7 @@ export default function VendorProfile() {
                     className="text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-3 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={() => setShowAll(false)}
                   >
-                    See less
+                    {t('see_less', 'See less')}
                   </button>
                 )}
               </div>
@@ -376,8 +378,8 @@ export default function VendorProfile() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-poppins font-medium text-[15px] tracking-tight mb-1 truncate text-gray-900 dark:text-white" title={p.name}>{p.name}</div>
-                      <div className="text-zinc-500 dark:text-zinc-400 text-[12px] font-poppins font-light truncate" title={`${p.category} • Stock: ${p.stock} • SKU: ${p.sku}`}>
-                        {p.category} • Stock: {p.stock} • SKU: {p.sku}
+                      <div className="text-zinc-500 dark:text-zinc-400 text-[12px] font-poppins font-light truncate" title={`${p.category} • ${t('stock', 'Stock')}: ${p.stock} • ${t('sku', 'SKU')}: ${p.sku}`}>
+                        {p.category} • {t('stock', 'Stock')}: {p.stock} • {t('sku', 'SKU')}: {p.sku}
                       </div>
                     </div>
                     <div className="text-[15px] font-poppins font-medium text-sky-600 ml-3 flex-shrink-0 animate-pulse-slow">₦{Number(p.price).toLocaleString()}</div>
@@ -385,7 +387,7 @@ export default function VendorProfile() {
                 ))}
                 {filteredProducts.length === 0 && (
                   <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light animate-fade-in">
-                    {searchTerm ? 'No products found matching your search.' : 'No products yet.'}
+                    {searchTerm ? t('no_products_found_search', 'No products found matching your search.') : t('no_products_yet', 'No products yet.')}
                   </div>
                 )}
 
@@ -408,10 +410,10 @@ export default function VendorProfile() {
                <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <Clock className="h-3 w-3" /> 
                 {etaInfo 
-                  ? `${etaInfo.formatted} to ${vendor?.name || 'vendor'}` 
+                  ? t('eta_to_pharmacy', '{time} to {pharmacy}').replace('{time}', etaInfo.formatted).replace('{pharmacy}', vendor?.name || t('vendor', 'vendor'))
                   : userCoords 
-                    ? 'Calculating ETA...' 
-                    : 'Fetching location...'
+                    ? t('calculating_eta', 'Calculating ETA...') 
+                    : t('fetching_location', 'Fetching location...')
                 }
               </div>
               <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -425,7 +427,7 @@ export default function VendorProfile() {
                 onClick={handleMessageVendor}
                 className="w-full rounded-full bg-sky-600 text-white h-[37px] text-[12px] font-poppins font-light flex items-center justify-center gap-2 btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
               >
-                <MessageCircle className="h-4 w-4" /> Message Vendor
+                <MessageCircle className="h-4 w-4" /> {t('message_vendor', 'Message Vendor')}
               </button>
             </div>
           </aside>
@@ -438,7 +440,7 @@ export default function VendorProfile() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[200]">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-poppins font-medium text-gray-900 dark:text-white">Search Products</h3>
+              <h3 className="text-lg font-poppins font-medium text-gray-900 dark:text-white">{t('search_products', 'Search Products')}</h3>
               <button
                 onClick={() => {
                   setShowSearch(false);
@@ -453,7 +455,7 @@ export default function VendorProfile() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by name, category, or SKU..."
+                placeholder={t('search_by_name_category_sku', 'Search by name, category, or SKU...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
@@ -517,7 +519,7 @@ export default function VendorProfile() {
                 }}
                 className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-700 transition-colors font-poppins font-medium"
               >
-                View Results ({filteredProducts.length})
+                {t('view_results', 'View Results')} ({filteredProducts.length})
               </button>
               <button
                 onClick={() => {
@@ -527,7 +529,7 @@ export default function VendorProfile() {
                 }}
                 className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 transition-colors font-poppins"
               >
-                Clear
+                {t('clear', 'Clear')}
               </button>
             </div>
           </div>

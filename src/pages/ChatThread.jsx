@@ -20,6 +20,7 @@ import { createPrescription } from '@/lib/db';
 import { Menu } from '@headlessui/react';
 import Modal from '@/components/Modal';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useTranslation } from '@/lib/language';
 
 // Lazy load heavy components
 const CreatePrescriptionModal = React.lazy(() => import('@/components/CreatePrescriptionModal'));
@@ -41,13 +42,13 @@ const ChatBgUrl = '/ChatBg.svg';
  */
 
 // Helper to format date separators like WhatsApp
-function getDateLabel(date) {
+function getDateLabel(date, t) {
   const now = new Date();
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = (today - d) / (1000 * 60 * 60 * 24);
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Yesterday';
+  if (diff === 0) return t('today', 'Today');
+  if (diff === 1) return t('yesterday', 'Yesterday');
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
@@ -57,7 +58,7 @@ function isProductPreviewMessage(m) {
 }
 
 // Message status indicator component - memoized to prevent unnecessary re-renders
-const MessageStatus = React.memo(({ message, isMine }) => {
+const MessageStatus = React.memo(({ message, isMine, t }) => {
   if (!isMine) return null; // Only show status for sent messages
   
   const status = message.status || 'sent';
@@ -68,7 +69,7 @@ const MessageStatus = React.memo(({ message, isMine }) => {
       <Check 
         className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
         strokeWidth={2}
-        title="Sent"
+        title={t('sent', 'Sent')}
       />
     );
   }
@@ -78,7 +79,7 @@ const MessageStatus = React.memo(({ message, isMine }) => {
       <CheckCheck 
         className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
         strokeWidth={2}
-        title="Delivered"
+        title={t('delivered', 'Delivered')}
       />
     );
   }
@@ -88,7 +89,7 @@ const MessageStatus = React.memo(({ message, isMine }) => {
       <CheckCheck 
         className="w-3 h-3 text-green-500 ml-1" 
         strokeWidth={2}
-        title="Read"
+        title={t('read', 'Read')}
       />
     );
   }
@@ -97,9 +98,9 @@ const MessageStatus = React.memo(({ message, isMine }) => {
 });
 
 // Enhanced MessageStatus that respects read receipts setting
-const ConditionalMessageStatus = React.memo(({ message, isMine, showReadReceipts }) => {
+const ConditionalMessageStatus = React.memo(({ message, isMine, showReadReceipts, t }) => {
   if (!isMine || !showReadReceipts) return null;
-  return <MessageStatus message={message} isMine={isMine} />;
+  return <MessageStatus message={message} isMine={isMine} t={t} />;
 });
 
 MessageStatus.displayName = 'MessageStatus';
@@ -118,6 +119,7 @@ MessageSkeleton.displayName = 'MessageSkeleton';
 export default function ChatThread() {
   const { user, profile } = useAuth();
   const { getSetting } = useSettings();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -204,7 +206,7 @@ export default function ChatThread() {
           // fallback: fetch from pharmacies
           const pSnap = await getDoc(doc(db, 'pharmacies', vId));
           const pdata = pSnap.exists() ? pSnap.data() : {};
-          setOtherName(pdata.name || 'Pharmacy');
+          setOtherName(pdata.name || t('pharmacy', 'Pharmacy'));
           setOtherSubline(pdata.address || pdata.email || '');
         }
         // Always fetch pharmacy phone for call button
@@ -222,7 +224,7 @@ export default function ChatThread() {
           // fallback: fetch from users
           const uSnap = await getDoc(doc(db, 'users', cId));
           const u = uSnap.exists() ? uSnap.data() : {};
-          setOtherName(u.displayName || 'Customer');
+          setOtherName(u.displayName || t('customer', 'Customer'));
           setOtherSubline(u.email || '');
         }
       }
@@ -391,14 +393,14 @@ export default function ChatThread() {
     });
     setShowPrescriptionModal(false);
     // Optionally, send a chat message
-    await sendChatMessage(threadId, { senderId: user.uid, to: cId, text: 'A new prescription has been created.' });
+    await sendChatMessage(threadId, { senderId: user.uid, to: cId, text: t('prescription_created', 'A new prescription has been created.') });
   };
 
   // Prefill message input if product info is present (runs when product params change)
   useEffect(() => {
     if (productName && productId) {
       const priceText = productPrice ? productPrice : '';
-      setText(`I want to know more about this drug ${productName}${priceText ? ', ' + priceText : ''}.`);
+      setText(t('drug_inquiry', `I want to know more about this drug {productName}{priceText}.`, { productName, priceText: priceText ? ', ' + priceText : '' }));
     } else if (prefillMsg) {
       setText(prefillMsg);
     }
@@ -485,17 +487,17 @@ export default function ChatThread() {
                 href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
                 className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 dark:text-sky-400 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50 dark:hover:bg-sky-900/20' : 'opacity-40 cursor-not-allowed'}`}
                 style={{ minWidth: 32 }}
-                title={pharmacyPhone ? `Call ${otherName}` : 'No phone number'}
+                title={pharmacyPhone ? t('call_pharmacy_title', `Call {pharmacy}`, { pharmacy: otherName }) : t('no_phone_number', 'No phone number')}
                 tabIndex={pharmacyPhone ? 0 : -1}
                 aria-disabled={!pharmacyPhone}
               >
-                <CallIcon className="h-3 w-3 mr-1" /> Call
+                <CallIcon className="h-3 w-3 mr-1" /> {t('call', 'Call')}
               </a>
             )}
             {/* Dropdown for pharmacy actions */}
             {profile?.role === 'pharmacy' && threadId && (
               <Menu as="div" className="relative inline-block text-left ml-2">
-                <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">Actions ▾</Menu.Button>
+                <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">{t('actions', 'Actions')} ▾</Menu.Button>
                 <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white dark:bg-gray-800 border border-sky-200 dark:border-gray-600 divide-y divide-gray-100 dark:divide-gray-700 rounded-[5px] shadow-lg focus:outline-none z-50">
                   <div className="py-1">
                     <Menu.Item>
@@ -504,7 +506,7 @@ export default function ChatThread() {
                           className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
                           onClick={() => setShowPrescriptionModal(true)}
                         >
-                          Create Prescription
+                          {t('create_prescription', 'Create Prescription')}
                         </button>
                       )}
                     </Menu.Item>
@@ -514,7 +516,7 @@ export default function ChatThread() {
                           className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
                           onClick={() => setShowPrescriptionHistory(true)}
                         >
-                          View Prescription History
+                          {t('view_prescription_history', 'View Prescription History')}
                         </button>
                       )}
                     </Menu.Item>
@@ -540,7 +542,7 @@ export default function ChatThread() {
                   onClick={() => setVisibleMessageCount(prev => Math.min(prev + 50, messages.length))}
                   className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1 rounded-full transition-colors"
                 >
-                  Load {Math.min(50, messages.length - visibleMessageCount)} more messages
+                  {t('load_more_messages', 'Load {count} more messages', { count: Math.min(50, messages.length - visibleMessageCount) })}
                 </button>
               </div>
             )}
@@ -563,7 +565,7 @@ export default function ChatThread() {
               <div className="flex justify-center items-center py-12">
                 <div className="text-gray-400 dark:text-gray-500 text-sm text-center">
                   <div className="text-lg mb-2">💬</div>
-                  Start your conversation
+                  {t('start_conversation', 'Start your conversation')}
                 </div>
               </div>
             ) : (
@@ -571,10 +573,10 @@ export default function ChatThread() {
                 let lastDate = null;
                 return visibleMessages.map((m) => {
                   const isMine = m.senderId === user?.uid;
-                  const t = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
+                  const timestamp = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
                   let showDate = false;
-                  if (t) {
-                    const dayStr = t.toDateString();
+                  if (timestamp) {
+                    const dayStr = timestamp.toDateString();
                     if (lastDate !== dayStr) {
                       showDate = true;
                       lastDate = dayStr;
@@ -582,10 +584,10 @@ export default function ChatThread() {
                   }
                   return (
                     <React.Fragment key={m.id}>
-                      {showDate && t && (
+                      {showDate && timestamp && (
                         <div className="flex justify-center my-6 mb-4">
                           <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-[10px] font-medium px-2.5 py-1 rounded-lg">
-                            {getDateLabel(t)}
+                            {getDateLabel(timestamp, t)}
                           </span>
                         </div>
                       )}
@@ -607,8 +609,8 @@ export default function ChatThread() {
                           </React.Suspense>
                         </div>
                         <div className={`flex items-center text-[10px] text-gray-400 dark:text-gray-500 mt-1 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
-                          <span>{t ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-                          <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} />
+                          <span>{timestamp ? timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                          <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} t={t} />
                         </div>
                       </div>
                     </React.Fragment>
@@ -633,13 +635,13 @@ export default function ChatThread() {
           >
             <div className="w-full">
               <form className="mx-4 sm:mx-5 flex items-center gap-3 py-3" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
-                <label className="flex items-center cursor-not-allowed opacity-40" title="Attachments coming soon">
+                <label className="flex items-center cursor-not-allowed opacity-40" title={t('attachments_coming_soon', 'Attachments coming soon')}>
                   <Paperclip className="h-5 w-5 text-gray-400" />
                 </label>
                 <input
                   value={text}
                   onChange={e => setText(e.target.value)}
-                  placeholder="Message"
+                  placeholder={t('message_placeholder', 'Message')}
                   className="flex-1 min-w-0 outline-none px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-full placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-[14px] focus:border-blue-400 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
                   style={{ fontSize: 14 }}
                 />
