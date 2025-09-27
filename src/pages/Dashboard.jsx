@@ -16,10 +16,12 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import Fab from '@/components/Fab'; // ✅ use the portal-based FAB
+import { useTranslation } from '@/lib/language';
 
 export default function Dashboard() {
   const [bestSelling, setBestSelling] = useState([]);
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [revenueData, setRevenueData] = useState([]);
@@ -59,7 +61,9 @@ export default function Dashboard() {
       }}
     >
       <h1 className="mt-8 text-[25px] font-light text-black dark:text-white leading-none animate-slideInLeft mb-4">
-        My<br />Dashboard
+        {t('my_dashboard', 'My Dashboard').split(' ').map((word, index) => (
+          <span key={index}>{word}{index === 0 ? <br /> : ''}</span>
+        ))}
       </h1>
       
       {/* Tab Navigation */}
@@ -72,7 +76,7 @@ export default function Dashboard() {
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
           }`}
         >
-          Overview
+          {t('overview', 'Overview')}
         </button>
         <button
           onClick={() => {
@@ -87,7 +91,7 @@ export default function Dashboard() {
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
           }`}
         >
-          Reviews
+          {t('reviews', 'Reviews')}
           {unreadReviewsCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
               {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
@@ -308,7 +312,9 @@ export default function Dashboard() {
         {/* Desktop Header - Non-sticky, inside container */}
         <header className="hidden sm:block pb-2 pt-4">
           <h1 className="text-[25px] font-light text-black dark:text-white leading-none animate-slideInLeft mb-4">
-            My<br />Dashboard
+            {t('my_dashboard', 'My Dashboard').split(' ').map((word, index) => (
+              <span key={index}>{word}{index === 0 ? <br /> : ''}</span>
+            ))}
           </h1>
           
           {/* Tab Navigation */}
@@ -321,7 +327,7 @@ export default function Dashboard() {
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
-              Overview
+              {t('overview', 'Overview')}
             </button>
             <button
               onClick={() => {
@@ -336,7 +342,7 @@ export default function Dashboard() {
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
-              Reviews
+              {t('reviews', 'Reviews')}
               {unreadReviewsCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
                   {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
