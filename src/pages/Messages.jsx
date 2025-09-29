@@ -1,16 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
-import ChatThread from './ChatThread';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
+// Fixed Header Component
+const FixedHeader = ({ title, t }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="w-full mt-8 max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <h1 className="text-[25px] font-light leading-none text-gray-900 dark:text-white whitespace-pre-line">{t('my_conversations', 'My\nConversations')}</h1>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 export default function Messages() {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [threads, setThreads] = useState([]);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,66 +39,37 @@ export default function Messages() {
     );
   }, [user?.uid, profile?.role]);
 
-  // If URL has ?chat=<vendorId>, auto-open that thread when threads load
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const wantVendor = params.get('chat');
-    if (!wantVendor || !threads.length || selected) return;
-
-    // Try to find the thread for that vendorId
-    const match =
-      threads.find(t => t.vendorId === wantVendor)
-      || threads.find(t => (t.id || '').split('__')[0] === wantVendor);
-
-    if (match) {
-      setSelected(match);
-      // optional: mark as read now
-      if (user?.uid) markThreadRead(match.id, user.uid).catch(console.error);
-    }
-  }, [location.search, threads, selected, user?.uid]);
-
   const openThread = async (t) => {
-    setSelected(t);
-    try { await markThreadRead(t.id, user.uid); } catch (e) { console.error(e); }
+    try { 
+      await markThreadRead(t.id, user.uid); 
+    } catch (e) { 
+      console.error(e); 
+    }
 
-    // Put ?chat=<vendorId> in the URL so App hides BottomNav
-    const vendorId =
-      t.vendorId
-      || (t.id && t.id.includes('__') ? t.id.split('__')[0] : '');
-    if (vendorId) {
-      navigate(`/messages?chat=${encodeURIComponent(vendorId)}`, { replace: false });
+    // Navigate to the thread page based on user role
+    if (profile?.role === 'customer') {
+      // For customers, we can either go to the existing thread or start a new chat
+      const vendorId = t.vendorId || (t.id && t.id.includes('__') ? t.id.split('__')[0] : '');
+      if (vendorId) {
+        navigate(`/chat/${vendorId}`);
+      } else {
+        navigate(`/thread/${t.id}`);
+      }
+    } else {
+      // For vendors, always go to the specific thread
+      navigate(`/thread/${t.id}`);
     }
   };
-
-  const closeThread = () => {
-    setSelected(null);
-    // Remove the ?chat= param so BottomNav shows again
-    navigate('/messages', { replace: true });
-  };
-
-  if (selected) {
-    // Customer: pass vendorId to allow create/get.
-    // Vendor: pass threadId so it never tries to create.
-    const props =
-      profile?.role === 'customer'
-        ? { vendorId: selected.vendorId }
-        : { threadId: selected.id, vendorId: selected.vendorId }; // vendorId helps populate header
-    return (
-      <div className="bg-white min-h-screen">
-        <ChatThread {...props} onClose={closeThread} onBackRoute="/messages" />
-      </div>
-    );
-  }
 
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
+        <div className="text-xl font-poppins font-light mb-6">{t('please_sign_in_continue', 'Please sign in to continue')}</div>
         <button
           className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
           onClick={() => navigate('/auth/landing')}
         >
-          Sign In / Sign Up
+          {t('sign_in_sign_up', 'Sign In / Sign Up')}
         </button>
       </div>
     );
@@ -103,50 +87,49 @@ export default function Messages() {
   });
 
   return (
-    <div className="min-h-screen pt-10 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
-      <div className="sticky top-0 z-10 bg-[#ffffff1d] pt-2 pb-2 backdrop-blur-md">
-        <div className="text-[25px] font-light leading-none">My<br/>Conversations</div>
-      </div>
+    <>
+      <FixedHeader title="My Conversations" t={t} />
+      <div className="min-h-screen pt-24 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
+        <div className="mt-14 flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 pb-2">
+          <Search className="h-4 w-4 text-zinc-400"/>
+          <input
+            placeholder={t('search_chats', 'Search chats')}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full outline-none placeholder:text-zinc-400 bg-transparent placeholder:text-sm"
+          />
+        </div>
 
-      <div className="mt-4 flex items-center gap-3 border-b border-zinc-300 pb-2">
-        <Search className="h-4 w-4 text-zinc-400"/>
-        <input
-          placeholder="Search chats"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full outline-none placeholder:text-zinc-400 bg-transparent placeholder:text-sm"
-        />
-      </div>
-
-      <div className="mt-6 space-y-4 w-full">
-        {filtered.map((t, index) => (
+      <div className="mt-12 space-y-4 w-full">
+        {filtered.map((thread, index) => (
           <button
-            key={t.id}
-            onClick={() => openThread(t)}
-            className="w-full rounded-[10px] border border-gray-300 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
+            key={thread.id}
+            onClick={() => openThread(thread)}
+            className="w-full rounded-[10px] border border-gray-300 dark:border-gray-600 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
-              <span className="text-zinc-500 text-xs font-semibold">{(displayName(t) || 'U')[0]}</span>
+              <span className="text-zinc-500 text-xs font-semibold">{(displayName(thread) || 'U')[0]}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm truncate">{displayName(t)}</div>
-              <div className="text-zinc-500 text-[10px] truncate">{t.lastMessage || 'No messages yet.'}</div>
+              <div className="text-sm truncate">{displayName(thread)}</div>
+              <div className="text-zinc-500 text-[10px] truncate">{thread.lastMessage || t('no_messages_yet', 'No messages yet.')}</div>
             </div>
             <div className="flex flex-col items-end justify-between h-full min-w-[48px]">
-              {myUnread(t) > 0 && (
+              {myUnread(thread) > 0 && (
                 <span className="bg-sky-500 text-white text-[10px] font-semibold rounded-full px-2 py-0.5 mb-1">
-                  {myUnread(t)}
+                  {myUnread(thread)}
                 </span>
               )}
               <span className="text-zinc-400 text-[10px]">
-                {lastTime(t)?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ''}
+                {lastTime(thread)?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ''}
               </span>
             </div>
           </button>
         ))}
-        {filtered.length === 0 && <div className="text-zinc-500">No conversations yet.</div>}
+        {filtered.length === 0 && <div className="text-zinc-500">{t('no_conversations_yet', 'No conversations yet.')}</div>}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

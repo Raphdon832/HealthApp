@@ -12,8 +12,10 @@ import {
 } from 'react-router-dom';
 import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
 import { listenUserThreads } from '@/lib/db';
-import { useSwipeable } from 'react-swipeable';
 import PageTransitionWrapper from '@/components/PageTransitionWrapper';
+import InteractiveSwipeWrapper from '@/components/InteractiveSwipeWrapper';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
+import useApplySettings from '@/hooks/useApplySettings';
 
 import BottomNav from '@/components/BottomNav';
 import Home from '@/pages/Home';
@@ -24,6 +26,7 @@ import Cart from '@/pages/Cart';
 import Orders from '@/pages/Orders';
 import ProfileCustomer from '@/pages/ProfileCustomer';
 import ProfilePharmacy from '@/pages/ProfilePharmacy';
+import Settings from '@/pages/Settings';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { RequireAuth } from '@/components/Protected';
 import { db } from '@/lib/firebase';
@@ -44,6 +47,8 @@ import PharmacySignIn from "@/pages/auth/PharmacySignIn";
 import VerifyEmail from "@/pages/VerifyEmail";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 
+import AddProduct from '@/pages/AddProduct';
+
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
 import ProductPreview from '@/pages/ProductPreview';
@@ -57,6 +62,7 @@ function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { getSetting } = useSettings();
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -150,33 +156,10 @@ function AppLayout() {
     navigate('/orders');
   };
 
-  // Device detection: only enable swipe nav on mobile/tablet
+  // Device detection and swipe setting check
   const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
-
-  // Page order for swipe navigation
-  const customerPages = ['/', '/orders', '/messages', '/cart', '/profile'];
-  const pharmacyPages = ['/dashboard', '/orders', '/messages', '/profile'];
-  const pageOrder = profile?.role === 'pharmacy' ? pharmacyPages : customerPages;
-  const currentIndex = pageOrder.indexOf(tab);
-
-  // Swipe handler
-  const handleSwiped = (dir) => {
-    if (!isMobileOrTablet || currentIndex === -1) return;
-    if (dir === 'Left' && currentIndex < pageOrder.length - 1) {
-      navigate(pageOrder[currentIndex + 1], { state: { slide: 'left' } });
-    } else if (dir === 'Right' && currentIndex > 0) {
-      navigate(pageOrder[currentIndex - 1], { state: { slide: 'right' } });
-    }
-  };
-
-  // Animation direction
-  const slideDirection = location.state?.slide || 'none';
-
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleSwiped('Left'),
-    onSwipedRight: () => handleSwiped('Right'),
-    trackMouse: true,
-  });
+  const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
+  const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
 
   return (
     <div
@@ -185,12 +168,8 @@ function AppLayout() {
       }`}
     >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        {isMobileOrTablet ? (
-          <div {...swipeHandlers}>
-            <PageTransitionWrapper direction={slideDirection}>
-              <Outlet />
-            </PageTransitionWrapper>
-          </div>
+        {shouldShowSwipeWrapper ? (
+          <InteractiveSwipeWrapper />
         ) : (
           <Outlet />
         )}
@@ -275,11 +254,6 @@ function ProfileRouter() {
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
 
-function ChatThreadRoute(props) {
-  const { vendorId } = useParams();
-  return <ChatThread vendorId={vendorId} {...props} />;
-}
-
 function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -320,12 +294,20 @@ function Shell() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
 
-        {/* Optional full-page chat route (also no BottomNav) */}
+        {/* Chat page routes - no BottomNav */}
         <Route
           path="/chat/:vendorId"
           element={
             <RequireAuth>
-              <ChatThreadRoute scrollTo={scrollTo} onBackRoute="/messages" />
+              <ChatThread />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/thread/:threadId"
+          element={
+            <RequireAuth>
+              <ChatThread />
             </RequireAuth>
           }
         />
@@ -353,6 +335,14 @@ function Shell() {
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
+        <Route 
+          path="/add-product" 
+          element={
+            <RequireAuth>
+              <AddProduct />
+            </RequireAuth>
+          } 
+        />
         <Route
           path="/messages"
           element={
@@ -389,6 +379,14 @@ function Shell() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <Settings />
+            </RequireAuth>
+          }
+        />
       </Route>
 
       {/* Public product preview route (no auth required) */}
@@ -403,6 +401,9 @@ function Shell() {
 }
 
 export default function App() {
+  // Apply global settings
+  useApplySettings();
+  
   return (
     <AuthProvider>
       <NotificationManager />

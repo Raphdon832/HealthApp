@@ -1,8 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: 'class', // Enable dark mode with class strategy
   theme: {
     extend: {
+      colors: {
+        primary: {
+          bg: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          tertiary: 'var(--bg-tertiary)',
+        },
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+        },
+        border: 'var(--border-color)',
+        accent: {
+          DEFAULT: 'var(--accent-color)',
+          hover: 'var(--accent-hover)',
+        },
+      },
       fontFamily: {
         sans: ['Poppins', 'ui-sans-serif', 'system-ui']
       },

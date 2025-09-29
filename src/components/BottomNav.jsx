@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import HomeIcon from '../icons/react/HomeIcon';
 import OrdersIcon from '../icons/react/OrdersIcon';
 import MessagesIcon from '../icons/react/MessagesIcon';
@@ -6,23 +6,76 @@ import CartIcon from '../icons/react/CartIcon';
 import ProfileIcon from '../icons/react/ProfileIcon';
 import DashboardIcon from '../icons/react/DashboardIcon';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 
 export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const isPharmacy = profile && profile.role === 'pharmacy';
+  const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ left: 0, opacity: 0 });
+  const navRef = useRef(null);
+  const buttonRefs = useRef({});
+  
   const items = [
     isPharmacy
-      ? { key: '/', label: 'Dashboard', icon: DashboardIcon }
-      : { key: '/', label: 'Home', icon: HomeIcon },
-    { key: '/orders', label: 'Orders', icon: OrdersIcon },
-    { key: '/messages', label: 'Messages', icon: MessagesIcon },
+      ? { key: '/', label: t('dashboard', 'Dashboard'), icon: DashboardIcon }
+      : { key: '/', label: t('home', 'Home'), icon: HomeIcon },
+    { key: '/orders', label: t('orders', 'Orders'), icon: OrdersIcon },
+    { key: '/messages', label: t('messages', 'Messages'), icon: MessagesIcon },
     // Only show Cart if not pharmacy
-    ...(!isPharmacy ? [{ key: '/cart', label: 'Cart', icon: CartIcon }] : []),
-    { key: '/profile', label: 'Profile', icon: ProfileIcon },
+    ...(!isPharmacy ? [{ key: '/cart', label: t('cart', 'Cart'), icon: CartIcon }] : []),
+    { key: '/profile', label: t('profile', 'Profile'), icon: ProfileIcon },
   ];
+
+  // Calculate position of active indicator
+  const updateActiveIndicator = () => {
+    const activeIndex = items.findIndex(item => item.key === tab);
+    const activeButton = buttonRefs.current[tab];
+    const navContainer = navRef.current;
+    
+    if (activeButton && navContainer && activeIndex !== -1) {
+      const navRect = navContainer.getBoundingClientRect();
+      const buttonRect = activeButton.getBoundingClientRect();
+      
+      // Calculate the center position of the active button relative to nav container
+      const left = buttonRect.left - navRect.left + (buttonRect.width / 2) - 20; // 20px = half indicator width
+      
+      setActiveIndicatorStyle({
+        left: `${left}px`,
+        opacity: 1,
+      });
+    } else {
+      setActiveIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+    }
+  };
 
   // Clamp large unread counts for badge display and make it a string
   const displayUnread = unreadMessages > 99 ? '99+' : String(unreadMessages || '');
+
+  // Update indicator position when tab changes or items change
+  useEffect(() => {
+    // Use requestAnimationFrame for immediate, smooth updates
+    requestAnimationFrame(() => {
+      updateActiveIndicator();
+    });
+  }, [tab, items]);
+
+  // Handle window resize with throttling
+  useEffect(() => {
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        requestAnimationFrame(updateActiveIndicator);
+      }, 100);
+    };
+    
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, []);
 
   // Dev debug: log props and profile to help trace why badge may not be showing.
   useEffect(() => {
@@ -37,43 +90,74 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
 
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50" aria-hidden={false}>
+    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50 px-3 sm:px-4" aria-hidden={false}>
       <nav
+        ref={navRef}
         role="navigation"
         aria-label="Bottom navigation"
-        className="liquid-bottom-nav mx-auto max-w-md px-6 py-3"
+        className="liquid-bottom-nav max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 bg-white/95 dark:bg-gray-900/40 backdrop-blur-md border border-sky-300 dark:border-sky-300 relative"
+        style={{
+          // Ensure consistent rendering across mobile browsers
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          KhtmlUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          userSelect: 'none',
+          // Force hardware acceleration for smooth performance
+          WebkitTransform: 'translateZ(0)',
+          transform: 'translateZ(0)',
+        }}
       >
+        {/* Animated active indicator */}
+        <div
+          className="absolute bottom-[5.8rem] w-10 h-2 bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
+          style={{
+            left: activeIndicatorStyle.left,
+            opacity: activeIndicatorStyle.opacity,
+            transition: 'left 0.25s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.15s ease-out',
+            transform: `scale(${activeIndicatorStyle.opacity})`,
+            boxShadow: '0 2px 8px rgba(56, 165, 255, 0.4), 0 0 16px rgba(56, 165, 255, 0.2)',
+          }}
+        />
+        
         {/* Use gap-based layout with fixed-size cells so icons are spaced evenly and not cramped */}
         <div className="flex items-center justify-center gap-[-1] px-2">
-          {items.map((it) => {
+          {items.map((it, index) => {
             const isActive = tab === it.key;
             const IconComponent = it.icon;
-            const iconProps = { color: isActive ? '#36A5FF' : 'black' };
+            // Make icon color theme-aware - active stays blue, inactive follows theme
+            const iconProps = { 
+              color: isActive 
+                ? '#36A5FF' 
+                : document.documentElement.classList.contains('dark') 
+                  ? '#ffffff' 
+                  : '#6b7280'
+            };
             const isCart = it.key === '/cart';
             const isMessages = it.key === '/messages';
             const isOrders = it.key === '/orders';
             return (
               <div key={it.key} className="flex-none">
                 <button
+                  ref={el => buttonRefs.current[it.key] = el}
                   onClick={() => setTab(it.key)}
                   aria-label={it.label}
                   aria-pressed={isActive}
-                  className={`relative flex flex-col items-center text-xs min-w-[64px] md:min-w-[72px] px-3 py-2 focus:outline-none transition-all duration-200 ${
-                    isActive ? 'text-sky-600 transform scale-105' : 'text-zinc-500 hover:text-zinc-700'
+                  className={`relative flex flex-col items-center text-xs min-w-[56px] sm:min-w-[64px] md:min-w-[72px] px-1 sm:px-2 py-3 focus:outline-none transition-all duration-150 ease-out will-change-transform ${
+                    isActive 
+                      ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
                 >
-                  {/* Faint blue round background for active icons with smooth transition */}
-                  <div 
-                    className={`absolute top-1 w-12 h-9 bg-sky-400 rounded-[10px] transition-all duration-300 ${
-                      isActive ? 'opacity-10 scale-100' : 'opacity-0 scale-90'
-                    }`} 
-                  />
-                  
-                  <div className="relative z-10 transition-transform duration-200 hover:scale-110">
-                    <IconComponent {...iconProps} className="h-6 w-6 mb-1" />
+                  <div className="relative z-10 transition-transform duration-150 ease-out will-change-transform hover:scale-110">
+                    <IconComponent {...iconProps} className={`h-7 w-7 sm:h-7 sm:w-7 mb-2 sm:mb-2 transition-all duration-150 ease-out ${
+                      isActive ? 'drop-shadow-lg' : ''
+                    }`} />
                   </div>
+                  
                   {isCart && cartCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
+                    <span className="absolute -top-0.5 -right-0.5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                       {cartCount}
                     </span>
                   )}
@@ -90,17 +174,20 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                     (() => {
                       try {
                         return (
-                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-5 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
+                          <span role="status" aria-live="polite" aria-atomic="true" className="absolute top-0 right-2 z-50 bg-sky-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 font-bold border-2 border-white shadow animate-bounceIn transition-all duration-200 hover:scale-110">
                             {displayUnread}
                           </span>
                         );
                       } catch (err) {
                         console.error('[BottomNav] Error rendering messages badge', err, { unreadMessages });
-                        
+                        return null;
                       }
                     })()
                   )}
-                  <span className="font-medium truncate max-w-[72px] block text-center">{it.label}</span>
+                  
+                  <span className={`truncate max-w-[56px] sm:max-w-[72px] block text-center text-[10px] sm:text-[12px] transition-all duration-150 ease-out ${
+                    isActive ? 'font-bold' : 'font-normal'
+                  }`}>{it.label}</span>
                 </button>
               </div>
             );

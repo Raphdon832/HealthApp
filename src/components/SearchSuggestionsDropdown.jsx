@@ -43,7 +43,7 @@ export default function SearchSuggestionsDropdown({
       onClick={() => onSuggestionClick(suggestion)}
       className={`w-full text-left px-4 py-3 focus:outline-none transition-colors duration-200 border-b border-gray-100 last:border-b-0 animate-fadeInUp ${
         index === selectedIndex 
-          ? 'bg-blue-100 border-blue-200' 
+          ? 'bg-blue-100 border-blue-200 dark:border-gray-600' 
           : 'hover:bg-blue-50 focus:bg-blue-50'
       }`}
       style={{ animationDelay: `${index * 0.05}s` }}

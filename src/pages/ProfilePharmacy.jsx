@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { listenProducts } from '@/lib/db';
-import AddProductModal from '@/components/AddProductModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
-import { LogOut, Download, Trash, MoreVertical } from 'lucide-react';
+import { LogOut, Download, Trash, MoreVertical, Settings } from 'lucide-react';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -13,12 +14,65 @@ import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
-import NotificationSettings from '@/components/NotificationSettings';
+
+// Fixed Header Component
+const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
+  const { t } = useTranslation();
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">{t('pharmacy_profile', 'Pharmacy\nProfile').replace('\\n', '\n')}</h1>
+          <div className="flex items-center gap-3">
+            {/* Inline search bar for small+ screens */}
+            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
+              <input
+                value={searchValue}
+                onChange={onSearchChange}
+                onKeyDown={e => { if (e.key === 'Enter') onSearchSubmit(); }}
+                placeholder="Search products, orders, customers..."
+                className="flex-1 text-sm font-light outline-none truncate"
+                aria-label="Search products or orders"
+              />
+              <button
+                onClick={onSearchSubmit}
+                aria-label="Search"
+                className="ml-2 rounded-full p-2 text-sky-600"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Compact icon for very small screens */}
+            <button
+              onClick={onSearchSubmit}
+              aria-label="Open search"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
+            >
+              <Search className="h-5 w-5 text-sky-600 mt-8" />
+            </button>
+            
+            {/* Settings button */}
+            <button
+              onClick={onSettingsClick}
+              aria-label="Open settings"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50 transition-all duration-200"
+            >
+              <Settings className="h-5 w-5 text-sky-600 mt-8" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
+  const { t } = useTranslation();
   const [inventory, setInventory] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
+
   const [showBulk, setShowBulk] = useState(false);
   const [productsSold, setProductsSold] = useState(0);
   const [activeChats, setActiveChats] = useState(0);
@@ -412,8 +466,8 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   function SuperuserDashboard({ user }) {
     if (!user || user.role !== 'superuser') return null;
     return (
-      <div className="mt-8 rounded-3xl border bg-yellow-50 border-yellow-400 p-4 flex flex-col items-start relative">
-        <div className="text-[20px] font-bold text-yellow-700 mb-2">Superuser Dashboard</div>
+      <div className="mt-8 rounded-3xl border bg-yellow-50 dark:bg-gray-700 border-yellow-400 dark:border-gray-600 p-4 flex flex-col items-start relative">
+        <div className="text-[20px] font-bold text-yellow-700 dark:text-yellow-400 mb-2">Superuser Dashboard</div>
         <ul className="space-y-2 text-[15px] text-yellow-900">
           <li>Manage all users (view, edit, suspend, delete)</li>
           <li>Product oversight (add, edit, remove, approve/reject)</li>
@@ -431,68 +485,40 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   }
 
   return (
-    <div className="pt-10 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
-      {/* Superuser Dashboard */}
-      <SuperuserDashboard user={user} />
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md pb-2 pt-4 -mx-4 sm:-mx-5 md:-mx-8 lg:-mx-12 xl:-mx-0 px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 transition-all duration-200">
-        <div className="w-full flex items-center justify-between">
-          <div className="text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none animate-slideInLeft">Pharmacy<br/>Profile</div>
-          <div className="flex items-center gap-3 animate-slideInRight">
-            {/* Inline search bar for small+ screens */}
-            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px] input-interactive">
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { performSearch(); setShowSearch(true); } }}
-                placeholder="Search products, orders, customers..."
-                className="flex-1 text-sm font-light outline-none truncate"
-                aria-label="Search products or orders"
-              />
-              <button
-                onClick={() => { performSearch(); setShowSearch(true); }}
-                aria-label="Search"
-                className="ml-2 rounded-full p-2 text-sky-600"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Compact icon for very small screens */}
-            <button
-              onClick={() => setShowSearch(true)}
-              aria-label="Open search"
-              className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
-            >
-              <Search className="h-5 w-5 text-sky-600" />
-            </button>
-          </div>
-        </div>
-      </div>
+    <>
+      <FixedHeader 
+        title="Pharmacy Profile"
+        searchValue={searchQuery}
+        onSearchChange={e => setSearchQuery(e.target.value)}
+        onSearchSubmit={() => { performSearch(); setShowSearch(true); }}
+        onSettingsClick={() => navigate('/settings')}
+      />
+      <div className="pt-28 pb-28 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 min-h-screen flex flex-col animate-fadeInUp">
+        {/* Superuser Dashboard */}
+        <SuperuserDashboard user={user} />
 
       {/* Search modal */}
       {showSearch && (
         <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] max-h-[80vh] overflow-hidden">
+          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-gray-600 max-h-[80vh] overflow-hidden">
             <div className="mb-3">
               <div className="flex items-center gap-3 w-full">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center bg-[#F0FAFF] border border-[#9ED3FF] rounded-full px-3 py-2 w-full overflow-hidden">
-                    <Search className="h-4 w-4 text-sky-600 mr-2 flex-shrink-0" />
+                  <div className="flex items-center bg-[#F0FAFF] dark:bg-gray-700 border border-[#9ED3FF] dark:border-gray-600 rounded-full px-3 py-2 w-full overflow-hidden">
+                    <Search className="h-4 w-4 text-sky-600 dark:text-sky-400 mr-2 flex-shrink-0" />
                     <input
                       autoFocus
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
                       placeholder="Search products, orders, customers..."
-                      className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
+                      className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate dark:text-white dark:placeholder:text-gray-400"
                       aria-label="Search query"
                     />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] px-3 py-2 text-sm bg-white w-36">
+                  <select value={searchScope} onChange={e => setSearchScope(e.target.value)} className="rounded-full border border-[#9ED3FF] dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white w-36">
                     <option value="products">Products</option>
                     <option value="orders">Orders</option>
                     <option value="all">All</option>
@@ -509,14 +535,14 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
-                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] bg-white hover:bg-[#E3F3FF] transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <li key={idx} className="p-2 rounded-2xl border border-[#9ED3FF] dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-3 justify-between animate-fadeInUp card-interactive hover:shadow-md" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex-shrink-0">
                           {r.type === 'product' ? (
                             <ProductAvatar name={r.item?.name} image={r.item?.image} category={r.item?.category} size={48} className="rounded-lg" />
                           ) : (
-                            <div className="h-12 w-12 rounded-lg bg-[#fff7ed] flex items-center justify-center border border-[#ffd7a8] animate-pulse-gentle">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500">
+                            <div className="h-12 w-12 rounded-lg bg-[#fff7ed] dark:bg-gray-600 flex items-center justify-center border border-[#ffd7a8] dark:border-gray-500 animate-pulse-gentle">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-orange-500 dark:text-orange-400">
                                 <path d="M3 7h18M3 12h18M3 17h18" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
                               </svg>
                             </div>
@@ -547,18 +573,18 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       <div className="mt-8 w-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* LEFT: Profile detail card */}
         <aside className="min-w-0 lg:pr-2">
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
             <div className="mb-2">
               {user?.photoURL ? (
-                <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] shadow" />
+                <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] dark:border-gray-500 shadow" />
               ) : (
-                <div className="h-16 w-16 rounded-full bg-[#E3F3FF] flex items-center justify-center border border-[#9ED3FF] shadow">
-                  <span className="text-sky-600 text-2xl font-light">{(pharmacyProfile.displayName && pharmacyProfile.displayName.charAt ? pharmacyProfile.displayName.charAt(0) : 'P')}</span>
+                <div className="h-16 w-16 rounded-full bg-[#E3F3FF] dark:bg-gray-600 flex items-center justify-center border border-[#9ED3FF] dark:border-gray-500 shadow">
+                  <span className="text-sky-600 dark:text-sky-400 text-2xl font-light">{(pharmacyProfile.displayName && pharmacyProfile.displayName.charAt ? pharmacyProfile.displayName.charAt(0) : 'P')}</span>
                 </div>
               )}
             </div>
-            <div className="text-3xl font-light font-poppins text-sky-600 mb-1 tracking-tight truncate w-full">{pharmacyProfile.displayName || 'Pharmacy'}</div>
-            <div className="w-full border-b mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
+            <div className="text-3xl font-light font-poppins text-sky-600 dark:text-sky-400 mb-1 tracking-tight truncate w-full">{pharmacyProfile.displayName || 'Pharmacy'}</div>
+            <div className="w-full border-b dark:border-gray-600 mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
             <div className="text-[13px] text-zinc-500 font-light mb-1 truncate w-full">{pharmacyProfile.email || user?.email}</div>
             {pharmacyProfile.address && (
               <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center truncate w-full"><MapPin className="h-4 w-4 mr-1 flex-shrink-0" /><span className="truncate">{pharmacyProfile.address}</span></div>
@@ -577,9 +603,9 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             <div className="w-full mt-4 hidden lg:flex justify-start">
               <button
                 onClick={async () => { await logout(); window.location.href = '/auth/landing'; }}
-                className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"
+                className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 dark:text-red-400 px-3 py-1 inline-flex text-[12px] items-center gap-2"
               >
-                <LogOut className="h-4 w-4"/> Log Out
+                <LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}
               </button>
             </div>
           </div>
@@ -588,22 +614,22 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         {/* RIGHT: Storefront preview, controls and product list (scrollable on desktop) */}
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
           {/* Storefront Preview Section */}
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 flex flex-col items-start relative overflow-hidden">
-            <div className="text-[18px] font-light font-poppins text-black mb-2 tracking-tight">Storefront Preview</div>
-            <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Inventory</span>
-              <span className="text-[12px] text-sky-600 font-medium">{inventory.length}</span>
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative overflow-hidden">
+            <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('storefront_preview', 'Storefront Preview')}</div>
+            <div className="w-full flex items-center justify-between pb-2 border-b dark:border-gray-600" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+              <span className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">{t('inventory', 'Inventory')}</span>
+              <span className="text-[12px] text-sky-600 dark:text-sky-400 font-medium">{inventory.length}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Products Sold</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('products_sold', 'Products Sold')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{productsSold}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Active Chats</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('active_chats', 'Active Chats')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{activeChats}</span>
             </div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-              <span className="text-[12px] text-zinc-500 font-light">Reviews</span>
+              <span className="text-[12px] text-zinc-500 font-light">{t('reviews', 'Reviews')}</span>
               <span className="text-[12px] text-sky-600 font-medium">{reviews}</span>
             </div>
             <div className="w-full flex justify-end mt-4">
@@ -611,7 +637,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 className="px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light flex items-center gap-1 shadow hover:bg-sky-700"
                 onClick={downloadReport}
               >
-                <Download className="h-4 w-4" /> Download report
+                <Download className="h-4 w-4" /> {t('download_report', 'Download report')}
               </button>
             </div>
           </div>
@@ -620,27 +646,27 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           <div className="flex gap-2 w-full">
             <button
               className="flex-1 rounded-full bg-sky-600 text-white text-[13px] font-light py-2 shadow hover:bg-sky-700"
-              onClick={() => setShowAdd(true)}
+              onClick={() => navigate(`/add-product?pharmacyId=${profile?.uid || user?.uid}`)}
             >
-              + Add Product
+              + {t('add_product', 'Add Product')}
             </button>
             <button
-              className="flex-1 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light py-2 hover:bg-[#E3F3FF]"
+              className="flex-1 rounded-full border border-sky-600 dark:border-gray-600 dark:border-gray-600 text-sky-600 dark:text-sky-400 text-[13px] font-light py-2 hover:bg-[#E3F3FF] dark:hover:bg-gray-700"
               onClick={() => setShowBulk(true)}
             >
-              Bulk Upload
+              {t('bulk_upload', 'Bulk Upload')}
             </button>
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] border-[#36A5FF] p-4 relative overflow-hidden">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-[17px] font-light font-poppins text-black tracking-tight">Products</div>
+              <div className="text-[17px] font-light font-poppins text-black dark:text-white tracking-tight">{t('products', 'Products')}</div>
               {inventory.length > 3 && (
                 <button
                   className="text-sky-600 text-[13px] font-light px-3 py-1 rounded-full hover:bg-[#E3F3FF]"
                   onClick={() => setShowAllProducts(v => !v)}
                 >
-                  {showAllProducts ? 'See less' : 'See more'}
+                  {showAllProducts ? t('see_less', 'See less') : t('see_more', 'See more')}
                 </button>
               )}
             </div>
@@ -649,64 +675,64 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               {(showAllProducts ? inventory : inventory.slice(0,3)).map(p => (
                 <button
                   key={p.id}
-                  className="w-full text-left rounded-2xl border border-[#9ED3FF] p-3 flex items-center gap-3 bg-white hover:bg-[#E3F3FF] transition shadow-sm min-w-0 overflow-hidden"
+                  className="w-full text-left rounded-2xl border border-[#9ED3FF] dark:border-gray-600 p-3 flex items-center gap-3 bg-white dark:bg-gray-700 hover:bg-[#E3F3FF] dark:hover:bg-gray-600 transition shadow-sm min-w-0 overflow-hidden"
                   onClick={() => setEditingProduct(p)}
                   type="button"
                 >
                   <div className="flex-shrink-0">
-                    <ProductAvatar name={p.name} image={p.image} category={p.category} size={30} className="border border-[#9ED3FF]" roundedClass="rounded-xl" />
+                    <ProductAvatar name={p.name} image={p.image} category={p.category} size={30} className="border border-[#9ED3FF] dark:border-gray-500" roundedClass="rounded-xl" />
                    </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-[15px] text-black truncate">{p.name}</div>
-                    <div className="text-zinc-500 text-[12px] font-light truncate">{p.category} • Stock: {p.stock} • SKU: {p.sku}</div>
+                    <div className="font-semibold text-[15px] text-black dark:text-white truncate">{p.name}</div>
+                    <div className="text-zinc-500 dark:text-zinc-400 text-[12px] font-light truncate">{p.category} • Stock: {p.stock} • SKU: {p.sku}</div>
                   </div>
-                  <div className="text-[15px] font-semibold text-sky-600 ml-3 flex-shrink-0 whitespace-nowrap">₦{Number(p.price).toLocaleString()}</div>
+                  <div className="text-[15px] font-semibold text-sky-600 dark:text-sky-400 ml-3 flex-shrink-0 whitespace-nowrap">₦{Number(p.price).toLocaleString()}</div>
                 </button>
               ))}
-              {inventory.length===0 && <div className="text-zinc-500">No products yet. Use the buttons above to add or bulk‑upload.</div>}
+              {inventory.length===0 && <div className="text-zinc-500">{t('no_products_yet', 'No products yet. Use the buttons above to add or bulk‑upload.')}</div>}
             </div>
 
             <div className="w-full flex justify-end mt-3">
-              <button onClick={downloadInventoryCsv} className="mr-2 px-4 py-2 rounded-full border border-sky-600 text-sky-600 text-[13px] font-light hover:bg-[#E3F3FF]">Download CSV</button>
-              <button onClick={downloadInventoryXlsx} className="px-4 py-2 rounded-full bg-sky-600 text-white text-[13px] font-light hover:bg-sky-700">Download Excel</button>
+              <button onClick={downloadInventoryCsv} className="mr-2 px-4 py-2 rounded-full border border-sky-600 dark:border-gray-600 dark:border-gray-600 text-sky-600 dark:text-sky-400 text-[13px] font-light hover:bg-[#E3F3FF] dark:hover:bg-gray-700">{t('download_csv', 'Download CSV')}</button>
+              <button onClick={downloadInventoryXlsx} className="px-4 py-2 rounded-full bg-sky-600 text-white text-[13px] font-light hover:bg-sky-700">{t('download_excel', 'Download Excel')}</button>
             </div>
           </div>
         </section>
       </div>
 
-      {showAdd && <AddProductModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowAdd(false)} />}
+
       {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowBulk(false)} />}
 
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] relative overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 w-[90vw] max-w-sm shadow-xl border border-[#9ED3FF] dark:border-gray-600 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 relative">
-              <div className="text-lg font-medium font-poppins text-black">Edit Product</div>
+              <div className="text-lg font-medium font-poppins text-black dark:text-white">{t('edit_product', 'Edit Product')}</div>
               <div className="relative">
-                <button className="rounded-full border border-zinc-300 text-zinc-500 py-2 flex items-center justify-center ml-2" style={{width:'36px',height:'36px'}} onClick={e => {e.stopPropagation(); setShowAdvanced(v=>!v);}}><MoreVertical className="h-4 w-4"/></button>
+                <button className="rounded-full border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-zinc-500 dark:text-zinc-400 py-2 flex items-center justify-center ml-2" style={{width:'36px',height:'36px'}} onClick={e => {e.stopPropagation(); setShowAdvanced(v=>!v);}}><MoreVertical className="h-4 w-4"/></button>
                 {showAdvanced && (
-                  <div className="absolute right-0 top-full mt-2 bg-white border border-[#9ED3FF] rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <button className="flex items-center gap-2 text-red-600 text-[13px] font-light px-2 py-1 hover:bg-red-50 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> Delete</button>
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 border border-[#9ED3FF] dark:border-gray-600 rounded-xl shadow p-2 z-10 overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <button className="flex items-center gap-2 text-red-600 dark:text-red-400 text-[13px] font-light px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" onClick={()=>{setShowDeleteConfirm(true); setShowAdvanced(false);}}><Trash className="h-4 w-4"/> {t('delete', 'Delete')}</button>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="space-y-3" onClick={()=>showAdvanced && setShowAdvanced(false)}>
-              <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editName} onChange={e=>setEditName(e.target.value)} placeholder="Name" />
-              <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editCategory} onChange={e=>setEditCategory(e.target.value)} placeholder="Category" />
-              <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder="Stock" type="number" />
-              <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editSKU} onChange={e=>setEditSKU(e.target.value)} placeholder="SKU" />
-              <input className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder="Price" type="number" />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editName} onChange={e=>setEditName(e.target.value)} placeholder={t('name', 'Name')} />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editCategory} onChange={e=>setEditCategory(e.target.value)} placeholder={t('category', 'Category')} />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editStock} onChange={e=>setEditStock(e.target.value)} placeholder={t('stock', 'Stock')} type="number" />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editSKU} onChange={e=>setEditSKU(e.target.value)} placeholder="SKU" />
+              <input className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400" value={editPrice} onChange={e=>setEditPrice(e.target.value)} placeholder={t('price', 'Price')} type="number" />
 
               {/* Image field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] text-zinc-500 font-light">Product Image</label>
+                <label className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">{t('product_image', 'Product Image')}</label>
                 <input
-                  className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none"
+                  className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-2 outline-none dark:bg-transparent dark:text-white dark:placeholder:text-gray-400"
                   value={editImage}
                   onChange={e => { setEditImage(e.target.value); setEditImageFile(null); }}
-                  placeholder="Image URL (or choose file below)"
+                  placeholder={t('image_url_placeholder', 'Image URL (or choose file below)')}
                   type="text"
                 />
                 <input
@@ -732,29 +758,29 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
               {/* Description field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] text-zinc-500 font-light">Product Description</label>
+                <label className="text-[12px] text-zinc-500 font-light">{t('product_description', 'Product Description')}</label>
                 <textarea
                   className="w-full border rounded p-2 text-sm"
                   rows={4}
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
-                  placeholder="Enter product description"
+                  placeholder={t('enter_product_description', 'Enter product description')}
                 />
               </div>
             </div>
 
             <div className="flex gap-2 mt-6 items-center">
-              <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>Save</button>
-              <button className="flex-1 rounded-full border border-zinc-300 text-zinc-500 text-[12px] font-light py-2" onClick={()=>setEditingProduct(null)}>Cancel</button>
+              <button className="flex-1 rounded-full bg-sky-600 text-white text-[12px] font-light py-2 shadow hover:bg-sky-700" onClick={handleSaveProduct}>{t('save', 'Save')}</button>
+              <button className="flex-1 rounded-full border border-zinc-300 dark:border-gray-600 text-zinc-500 text-[12px] font-light py-2" onClick={()=>setEditingProduct(null)}>{t('cancel', 'Cancel')}</button>
             </div>
 
             {showDeleteConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-3xl" onClick={()=>setShowDeleteConfirm(false)}>
-                <div className="bg-white rounded-2xl p-5 shadow-xl border border-[#9ED3FF] text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
-                  <div className="text-[15px] font-light mb-4">Are you sure you want to delete this item?</div>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-xl border border-[#9ED3FF] dark:border-gray-600 text-center overflow-hidden" onClick={e=>e.stopPropagation()}>
+                  <div className="text-[15px] font-light mb-4 dark:text-white">{t('confirm_delete_product', 'Are you sure you want to delete this item?')}</div>
                   <div className="flex gap-2 justify-center">
-                    <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>Yes, Delete</button>
-                    <button className="rounded-full border border-zinc-300 text-zinc-500 text-[12px] font-light px-4 py-2" onClick={()=>setShowDeleteConfirm(false)}>Cancel</button>
+                    <button className="rounded-full bg-red-600 text-white text-[12px] font-light px-4 py-2" onClick={handleDeleteProduct}>{t('yes_delete', 'Yes, Delete')}</button>
+                    <button className="rounded-full border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-zinc-500 dark:text-zinc-400 text-[12px] font-light px-4 py-2" onClick={()=>setShowDeleteConfirm(false)}>{t('cancel', 'Cancel')}</button>
                   </div>
                 </div>
               </div>
@@ -763,21 +789,18 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </div>
       )}
 
-      <div className="mt-6">
-        <NotificationSettings />
-      </div>
-
       <div className="mt-6 lg:hidden">
          <button
            onClick={async () => {
              await logout();
              window.location.href = '/auth/landing';
            }}
-           className="rounded-full border border-red-300 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"
+           className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 dark:text-red-400 px-3 py-1 inline-flex text-[12px] items-center gap-2"
          >
-           <LogOut className="h-4 w-4"/> Log Out
+           <LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}
          </button>
        </div>
-    </div>
+      </div>
+    </>
   );
 }

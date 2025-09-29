@@ -36,7 +36,7 @@ export default function OrderNotificationModal({ order, isOpen, onClose, onViewO
       <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ${
         isVisible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'
       }`}>
-        <div className="bg-white rounded-2xl shadow-2xl border border-blue-200 mx-4 overflow-hidden card-interactive hover:shadow-3xl transition-all duration-300" style={{ width: '393px' }}>
+        <div className="bg-white rounded-2xl shadow-2xl border border-blue-200 dark:border-gray-600 mx-4 overflow-hidden card-interactive hover:shadow-3xl transition-all duration-300" style={{ width: '393px' }}>
           {/* Header with animation */}
           <div className="bg-gradient-to-r from-sky-300 to-sky-600 px-6 py-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-white/10 animate-pulse"></div>

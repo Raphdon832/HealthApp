@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { sendVerification } from './email';
 
@@ -43,10 +43,123 @@ export function AuthProvider({ children }) {
     return { user, verificationSent: true };
   };
 
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    
+    // Configure the provider for better UX
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    try {
+      console.log('Attempting Google sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-in successful:', result.user.email);
+      return result;
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      
+      // Handle specific Firebase Auth errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (error.code === 'auth/internal-error') {
+        throw new Error('Google sign-in is not properly configured. Please contact support.');
+      } else if (error.code === 'auth/configuration-not-found') {
+        throw new Error('Google sign-in configuration missing. Please contact support.');
+      }
+      
+      // Re-throw the original error for debugging
+      throw error;
+    }
+  };
+
+  const signUpWithGoogle = async (userLocation) => {
+    const provider = new GoogleAuthProvider();
+    
+    // Configure the provider for better UX
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    try {
+      console.log('Attempting Google registration/sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      const { user } = result;
+      console.log('Google auth successful for:', user.email);
+      
+      // Check if this is a new user by looking for existing profile
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        console.log('Creating new customer profile for:', user.email);
+        // Completely new user - create profile with location-based address
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || 'Google User',
+          role: 'customer',
+          address: userLocation?.address || 'Location not available',
+          lat: userLocation?.latitude,
+          lon: userLocation?.longitude,
+          createdAt: new Date().toISOString(),
+          authMethod: 'google'
+        };
+        
+        await setDoc(userRef, userData);
+        console.log('New customer profile created successfully');
+        
+        // No need to send verification for Google users
+        return { user, verificationSent: false, isNewUser: true };
+      } else {
+        console.log('Existing user found:', user.email);
+        // Existing user - check if they're a customer
+        const existingData = userSnap.data();
+        
+        if (existingData.role !== 'customer') {
+          // User exists but is not a customer - this shouldn't happen in customer registration
+          throw new Error('This email is associated with a pharmacy account. Please use pharmacy sign-in instead.');
+        }
+        
+        // Existing customer - just sign them in
+        return { user, verificationSent: false, isNewUser: false, existingCustomer: true };
+      }
+    } catch (error) {
+      console.error('Google registration/sign-in error:', error);
+      
+      // Handle specific Firebase Auth errors
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        // This means the email exists with a different sign-in method (email/password)
+        throw new Error('An account with this email already exists. Please sign in with your email and password instead, or use the "Sign In with Google" option.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (error.code === 'auth/internal-error') {
+        throw new Error('Google sign-in is not properly configured. Please contact support.');
+      } else if (error.code === 'auth/configuration-not-found') {
+        throw new Error('Google sign-in configuration missing. Please contact support.');
+      }
+      
+      // Re-throw the original error for debugging
+      throw error;
+    }
+  };
+
   const logout = () => signOut(auth);
 
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, logout }}>
+    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signUpWithGoogle, logout }}>
       {children}
     </AuthCtx.Provider>
   );

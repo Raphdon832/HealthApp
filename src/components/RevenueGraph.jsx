@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/language';
 
 const getYearOptions = (data) => {
   const years = Array.from(new Set(data.map(d => {
@@ -17,6 +18,7 @@ const getMonthOptions = (data, year) => {
 };
 
 export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }) {
+  const { t } = useTranslation();
   const [hoveredBar, setHoveredBar] = useState(null);
   const [animatedHeights, setAnimatedHeights] = useState([]);
 
@@ -35,19 +37,19 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
   const totalRevenue = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] rounded-2xl border border-sky-500 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
+    <div className="bg-gradient-to-br from-[#F7F7F7] to-[#F0F8FF] dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-sky-500 dark:border-gray-600 p-6 mt-8 overflow-hidden min-w-0 relative" role="region" aria-label="Revenue">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100/30 dark:from-sky-800/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/20 dark:from-blue-800/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
 
       {/* Header Section */}
       <div className="flex items-center justify-between mb-4 min-w-0 relative z-0">
         <div>
-          <h2 className="text-black font-light text-xl tracking-tight mb-1">Revenue Analytics</h2>
+          <h2 className="text-black dark:text-white font-light text-xl tracking-tight mb-1">{t('revenue_analytics', 'Revenue Analytics')}</h2>
           <div className="flex items-center gap-3">
-            <div className="text-2xl font-semibold text-sky-700">₦{totalRevenue.toLocaleString()}</div>
-            <div className="px-2 py-1 bg-sky-100 rounded-full text-xs text-sky-700 font-medium">
-              Total
+            <div className="text-2xl font-semibold text-sky-700 dark:text-sky-400">₦{totalRevenue.toLocaleString()}</div>
+            <div className="px-2 py-1 bg-sky-100 dark:bg-sky-800 rounded-full text-xs text-sky-700 dark:text-sky-300 font-medium">
+              {t('total', 'Total')}
             </div>
           </div>
         </div>
@@ -59,8 +61,8 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
             value={filter.type}
             onChange={e => onFilterChange({ ...filter, type: e.target.value })}
           >
-            <option value="month">📊 By Month</option>
-            <option value="year">📈 By Year</option>
+            <option value="month">📊 {t('by_month', 'By Month')}</option>
+            <option value="year">📈 {t('by_year', 'By Year')}</option>
           </select>
         </div>
       </div>
@@ -90,7 +92,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
               value={filter.month || monthOptions[0] || ''}
               onChange={e => onFilterChange({ ...filter, month: e.target.value })}
             >
-              {monthOptions.map(m => <option key={m} value={m}>Month {m}</option>)}
+              {monthOptions.map(m => <option key={m} value={m}>{t('month_number', 'Month {number}', { number: m })}</option>)}
             </select>
           </>
         )}
@@ -111,8 +113,8 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
             <div className="w-full h-full flex items-center justify-center">
               <div className="text-center">
                 <div className="text-4xl mb-2">📊</div>
-                <div className="text-zinc-400 text-sm">No revenue data available</div>
-                <div className="text-xs text-zinc-400 mt-1">Start making sales to see your revenue analytics</div>
+                <div className="text-zinc-400 text-sm">{t('no_revenue_data', 'No revenue data available')}</div>
+                <div className="text-xs text-zinc-400 mt-1">{t('start_selling_revenue', 'Start making sales to see your revenue analytics')}</div>
               </div>
             </div>
           ) : (
@@ -206,7 +208,7 @@ export default function RevenueGraph({ data, filter, onFilterChange, topPeriod }
             </div>
             <div>
               <div className="text-sm font-medium text-sky-700">
-                Best Performing {filter.type === 'month' ? 'Month' : 'Year'}
+                {t('best_performing_period', 'Best Performing {period}', { period: filter.type === 'month' ? t('month_label', 'Month') : t('year_label', 'Year') })}
               </div>
               <div className="text-lg font-semibold text-sky-800">
                 {topPeriod.label} • ₦{topPeriod.value.toLocaleString()}

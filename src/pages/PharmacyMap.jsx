@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Phone, Navigation, Search } from 'lucide-react';
 import { getAllPharmacies } from '@/lib/db';
@@ -6,11 +7,13 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA, getDistance } from '@/lib/eta';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import FilterIcon from '@/icons/react/FilterIcon';
 
 export default function PharmacyMap() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { userCoords, location, isLoading: locationLoading } = useUserLocation();
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -253,7 +256,7 @@ export default function PharmacyMap() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-[25px] font-light">Nearby Pharmacies</h1>
+            <h1 className="text-[25px] font-light text-gray-900 dark:text-white">{t('nearby_pharmacies', 'Nearby Pharmacies')}</h1>
           </div>
           <LoadingSkeleton lines={8} className="space-y-4 justify-center" />
         </div>
@@ -261,22 +264,54 @@ export default function PharmacyMap() {
     );
   }
 
+  // Fixed Header Component (Mobile Only)
+  const FixedHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div className="flex-1 text-left">
+          <div className="text-[18px] font-light tracking-tight">{t('nearby_pharmacies', 'Nearby Pharmacies')}</div>
+          <div className="text-[12px] text-gray-400">
+            {userCoords ? t('pharmacies_found_near_you', '{count} found near you').replace('{count}', sortedPharmacies.length) : t('loading_location', 'Loading location...')}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            aria-label={t('filter_pharmacies', 'Filter pharmacies')}
+          >
+            <FilterIcon className="w-5 h-5 text-sky-600" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-50 mx-auto px-4 py-4 sticky top-0 z-50">
+    <>
+      {createPortal(<FixedHeader />, document.body)}
+      <div className="min-h-screen bg-gray dark:bg-gray-900 pt-24 md:pt-0">
+        {/* Header */}
+                {/* Header */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-50 dark:border-gray-700 mx-auto px-4 py-4 sticky top-0 z-50 hidden md:block">
         <div className="max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-white" />
             </button>
             <div>
-              <h1 className="text-[20px] font-light tracking-tight">Nearby Pharmacies</h1>
-              <p className="text-[12px] text-gray-400">
-                {userCoords ? `${sortedPharmacies.length} pharmacies found near you` : 'Loading location...'}
+              <h1 className="text-[20px] font-light tracking-tight text-gray-900 dark:text-white">{t('nearby_pharmacies', 'Nearby Pharmacies')}</h1>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500">
+                {userCoords ? t('pharmacies_found_near_you_detailed', '{count} pharmacies found near you').replace('{count}', sortedPharmacies.length) : t('loading_location', 'Loading location...')}
               </p>
             </div>
           </div>
@@ -285,27 +320,27 @@ export default function PharmacyMap() {
 
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Current Location with improved status */}
-        <div className="bg-gray rounded-lg p-4 mb-4 border border-sky-300">
+        <div className="bg-gray dark:bg-transparent rounded-lg p-4 mb-4 border border-sky-300 dark:border-gray-600 dark:border-gray-600">
           <div className="flex items-center gap-3">
             {userCoords ? (
               <>
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Your Location</p>
-                  <p className="text-xs text-gray-600 truncate">{location}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('your_location', 'Your Location')}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{location}</p>
                 </div>
               </>
             ) : (
               <>
                 <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {locationLoading ? 'Getting your location...' : 'Location access needed'}
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {locationLoading ? t('getting_your_location', 'Getting your location...') : t('location_access_needed', 'Location access needed')}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {locationLoading 
-                      ? 'Please allow location access for accurate ETAs' 
-                      : 'Enable location services to see nearby pharmacies'
+                      ? t('allow_location_access_etas', 'Please allow location access for accurate ETAs') 
+                      : t('enable_location_services', 'Enable location services to see nearby pharmacies')
                     }
                   </p>
                 </div>
@@ -315,47 +350,47 @@ export default function PharmacyMap() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-gray rounded-lg p-4 border mb-4 border-sky-300">
+        <div className="dark:bg-transparent rounded-lg p-4 border mb-4 border-sky-300 dark:border-gray-600 dark:border-gray-600">
           <div className="flex gap-2">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative bg-transparent">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search pharmacies..."
+                placeholder={t('search_pharmacies', 'Search pharmacies...')}
                 value={searchQuery}
                 onChange={(e) => handleSearchInputChange(e.target.value)}
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 border-b bg-transparent border-gray-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 autoComplete="off"
               />
               
               {/* Search Suggestions Dropdown */}
               {showSuggestions && searchQuery.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-fade-in">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-fade-in">
                   {searchSuggestions.length > 0 ? (
                     searchSuggestions.map((suggestion, index) => (
                       <button
                         key={suggestion.id}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className={`w-full text-left px-4 py-3 focus:outline-none transition-colors duration-200 border-b border-gray-100 last:border-b-0 animate-fadeInUp ${
+                        className={`w-full text-left px-4 py-3 focus:outline-none transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0 animate-fadeInUp ${
                           index === selectedSuggestionIndex 
-                            ? 'bg-blue-100 border-blue-200' 
-                            : 'hover:bg-blue-50 focus:bg-blue-50'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-gray-600 dark:border-gray-600' 
+                            : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-50 dark:focus:bg-blue-900/20'
                         }`}
                         style={{ animationDelay: `${index * 0.05}s` }}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
-                            index === selectedSuggestionIndex ? 'bg-blue-200' : 'bg-blue-100'
+                            index === selectedSuggestionIndex ? 'bg-blue-200 dark:bg-blue-800' : 'bg-blue-100 dark:bg-blue-900'
                           }`}>
                             <MapPin className={`h-4 w-4 ${
-                              index === selectedSuggestionIndex ? 'text-blue-700' : 'text-blue-600'
+                              index === selectedSuggestionIndex ? 'text-blue-700 dark:text-blue-300' : 'text-blue-600 dark:text-blue-400'
                             }`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-gray-900 truncate">
+                            <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
                               {suggestion.type === 'name' ? (
                                 <span>
                                   {suggestion.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
@@ -370,12 +405,12 @@ export default function PharmacyMap() {
                                 suggestion.name
                               )}
                             </div>
-                            <div className="text-xs text-gray-500 truncate mt-1">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                               {suggestion.type === 'address' ? (
                                 <span>
                                   {suggestion.address.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
                                     part.toLowerCase() === searchQuery.toLowerCase() ? (
-                                      <span key={i} className="bg-yellow-200 px-1 rounded">{part}</span>
+                                      <span key={i} className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">{part}</span>
                                     ) : (
                                       part
                                     )
@@ -386,24 +421,24 @@ export default function PharmacyMap() {
                               )}
                             </div>
                           </div>
-                          <div className="text-xs text-blue-600 font-medium flex-shrink-0">
-                            {suggestion.type === 'name' ? 'Name' : 'Address'}
+                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
+                            {suggestion.type === 'name' ? t('name', 'Name') : t('address', 'Address')}
                           </div>
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-6 text-center text-gray-500 animate-fade-in">
-                      <MapPin className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-[12px]">No pharmacies found</p>
-                      <p className="text-[10px] mt-1">Try a different search term</p>
+                    <div className="px-4 py-6 text-center text-gray-500 dark:text-gray-400 animate-fade-in">
+                      <MapPin className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                      <p className="text-[12px]">{t('no_pharmacies_found', 'No pharmacies found')}</p>
+                      <p className="text-[10px] mt-1">{t('try_different_search', 'Try a different search term')}</p>
                     </div>
                   )}
                   
                   {/* Keyboard navigation hint */}
                   {searchSuggestions.length > 0 && (
-                    <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-[12px] text-gray-400 text-center">
-                      Use ↑↓ arrow keys to navigate, Enter to select, Esc to close
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-[12px] text-gray-400 dark:text-gray-500 text-center">
+                      {t('keyboard_navigation_hint', 'Use ↑↓ arrow keys to navigate, Enter to select, Esc to close')}
                     </div>
                   )}
                 </div>
@@ -412,7 +447,7 @@ export default function PharmacyMap() {
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                showFilters ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-700'
+                showFilters ? 'bg-blue-500 text-white border-blue-500 dark:border-gray-600' : 'text-gray-700 dark:text-gray-300'
               }`}
             >
               <FilterIcon className="h-4 w-4" />
@@ -422,7 +457,7 @@ export default function PharmacyMap() {
 
           {showFilters && (
             <div className=" pt-3">
-              <p className="text-[14px] font-medium text-gray-700 mb-2">Distance</p>
+              <p className="text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">{t('distance', 'Distance')}</p>
               <div className="flex gap-2 flex-wrap">
                 {[
                   { value: 'all', label: 'All' },
@@ -436,7 +471,7 @@ export default function PharmacyMap() {
                     className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
                       distanceFilter === filter.value
                         ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {filter.label}
@@ -448,7 +483,7 @@ export default function PharmacyMap() {
         </div>
 
         {/* Enhanced Map Visualization */}
-        <div className="bg-white rounded-lg mb-4 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-transparent rounded-lg mb-4 shadow-sm overflow-hidden">
           <div className="h-80 bg-gradient-to-br from-green-50 via-blue-50 to-indigo-100 relative">
             {/* Map grid pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -478,7 +513,7 @@ export default function PharmacyMap() {
                   <div className="absolute -inset-2 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
                 </div>
                 <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-white px-2 py-1 rounded shadow-md whitespace-nowrap">
-                  You are here
+                  {t('you_are_here', 'You are here')}
                 </span>
               </div>
             )}
@@ -523,32 +558,32 @@ export default function PharmacyMap() {
             })}
             
             {/* Map title overlay */}
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
+            <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
+                <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Pharmacy Locations</p>
-                  <p className="text-xs text-gray-600">
-                    {sortedPharmacies.length} pharmacies • Sorted by distance
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('pharmacy_locations', 'Pharmacy Locations')}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {t('pharmacies_sorted_by_distance', '{count} pharmacies • Sorted by distance').replace('{count}', sortedPharmacies.length)}
                   </p>
                 </div>
               </div>
             </div>
             
             {/* Legend */}
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
+            <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-black rounded-full border border-white"></div>
-                  <span className="text-gray-700">Your location</span>
+                  <div className="w-3 h-3 bg-black rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
+                  <span className="text-gray-700 dark:text-gray-300">{t('your_location', 'Your location')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full border border-white"></div>
-                  <span className="text-gray-700">Pharmacy</span>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
+                  <span className="text-gray-700 dark:text-gray-300">{t('pharmacy', 'Pharmacy')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full border border-white"></div>
-                  <span className="text-gray-700">Selected</span>
+                  <div className="w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-300 dark:border-gray-600"></div>
+                  <span className="text-gray-700 dark:text-gray-300">{t('selected', 'Selected')}</span>
                 </div>
               </div>
             </div>
@@ -557,20 +592,20 @@ export default function PharmacyMap() {
 
         {/* Enhanced Selected Pharmacy Details */}
         {selectedPharmacy && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4 shadow-sm border border-blue-200">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 mb-4 shadow-sm border border-blue-200 dark:border-gray-600 dark:border-gray-600">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-start gap-2 flex-1 min-w-0">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg flex-shrink-0">
                   {sortedPharmacies.findIndex(p => p.id === selectedPharmacy.id) + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 text-base truncate">{selectedPharmacy.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{selectedPharmacy.name}</h3>
                   <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
                   <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
                       <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || 'Calculating...'}</span>
+                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                     </div>
                     <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
                       <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
@@ -585,8 +620,8 @@ export default function PharmacyMap() {
                   </div>
                 </div>
               </div>
-              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2">
-                Closest
+              <span className="bg-blue-600 text-white text-xs px-1 py-1 rounded-full font-medium flex-shrink-0 ml-2">
+                {t('closest', 'Closest')}
               </span>
             </div>
 
@@ -596,25 +631,25 @@ export default function PharmacyMap() {
                 className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
               >
                 <Navigation className="h-3 w-3" />
-                <span className="hidden sm:inline">Get Directions</span>
-                <span className="sm:hidden">Get Directions</span>
+                <span className="hidden sm:inline">{t('get_directions', 'Get Directions')}</span>
+                <span className="sm:hidden">{t('get_directions', 'Get Directions')}</span>
               </button>
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
                   className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
-                  title="Call pharmacy"
+                  title={t('call_pharmacy', 'Call pharmacy')}
                 >
                   <Phone className="h-3 w-3" />
-                  <span className="hidden sm:inline">Call</span>
+                  <span className="hidden sm:inline">{t('call', 'Call')}</span>
                 </button>
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 btn-interactive"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
               >
-                <span className="hidden sm:inline">View Products</span>
-                <span className="sm:hidden">View Products</span>
+                <span className="hidden sm:inline">{t('view_products', 'View Products')}</span>
+                <span className="sm:hidden">{t('view_products', 'View Products')}</span>
               </button>
             </div>
           </div>
@@ -623,38 +658,38 @@ export default function PharmacyMap() {
         {/* Pharmacy List */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-[18px] font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-[18px] font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               {searchQuery ? (
                 <>
-                  <span>Search Results</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full animate-pulse-slow">
+                  <span>{t('search_results', 'Search Results')}</span>
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full animate-pulse-slow">
                     "{searchQuery}"
                   </span>
                 </>
               ) : (
-                'All Pharmacies'
+                t('all_pharmacies', 'All Pharmacies')
               )}
             </h2>
-            <span className="text-sm text-gray-500">
-              {sortedPharmacies.length} found
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {t('pharmacies_found_count', '{count} found').replace('{count}', sortedPharmacies.length)}
             </span>
           </div>
           
           {sortedPharmacies.length === 0 ? (
             <div className="bg-white-10 rounded-lg p-8 text-center">
-              <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600">
-                {searchQuery ? 'No pharmacies found matching your search' : 'No pharmacies found'}
+              <MapPin className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-600 dark:text-gray-400">
+                {searchQuery ? t('no_pharmacies_found_search', 'No pharmacies found matching your search') : t('no_pharmacies_found_general', 'No pharmacies found')}
               </p>
-              <p className="text-sm text-gray-500">
-                {searchQuery ? 'Try adjusting your search terms' : 'Try adjusting your location or check back later'}
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                {searchQuery ? t('try_adjusting_search', 'Try adjusting your search terms') : t('try_adjusting_location', 'Try adjusting your location or check back later')}
               </p>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 px-3 py-1 rounded-full hover:bg-blue-50"
+                  className="mt-3 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 px-3 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 >
-                  Clear search
+                  {t('clear_search', 'Clear search')}
                 </button>
               )}
             </div>
@@ -663,38 +698,38 @@ export default function PharmacyMap() {
               <div
                 key={pharmacy.id || index}
                 id={`pharmacy-${pharmacy.id}`}
-                className={`bg-white rounded-lg p-3 border cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
+                className={`bg-white dark:bg-transparent rounded-lg p-3 border border-gray-200 dark:border-gray-600 dark:border-gray-600 cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
-                    ? 'border-blue-300 bg-blue-50 shadow-blue-100 scale-102'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                    ? 'border-blue-300 dark:border-gray-600 bg-blue-50 dark:bg-blue-900/30 shadow-blue-100 scale-102'
+                    : 'border-gray-200 dark:border-gray-600 dark:border-gray-600 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 hover:shadow-md'
                 }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handlePharmacySelect(pharmacy)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0 ${
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm flex-shrink-0 ${
                       selectedPharmacy?.id === pharmacy.id ? 'bg-blue-500' : 'bg-gray-400'
                     }`}>
                       {index + 1}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 text-sm truncate">{pharmacy.name}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{pharmacy.name}</h3>
                         {index === 0 && (
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                            Closest
+                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                            {t('closest', 'Closest')}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 mb-2 truncate">{pharmacy.address}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{pharmacy.address}</p>
                       
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1 text-blue-600">
+                      <div className="flex items-center gap-3 text-sm">
+                        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                           <Clock className="h-3 w-3 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || 'Calculating...'}</span>
+                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-green-600">
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
                           <span className="font-medium whitespace-nowrap">{pharmacy.distance?.toFixed(1) || '0'} km</span>
                         </div>
@@ -707,8 +742,8 @@ export default function PharmacyMap() {
                       e.stopPropagation();
                       handleGetDirections(pharmacy);
                     }}
-                    className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 hover:bg-blue-50 rounded-full flex-shrink-0 ml-2"
-                    title="Get directions"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full flex-shrink-0 ml-2"
+                    title={t('get_directions', 'Get directions')}
                   >
                     <Navigation className="h-4 w-4" />
                   </button>
@@ -745,5 +780,6 @@ export default function PharmacyMap() {
         )}
       </div>
     </div>
+    </>
   );
 }

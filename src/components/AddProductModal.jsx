@@ -74,13 +74,13 @@ export default function AddProductModal({ pharmacyId, onClose }) {
 
         <div className="space-y-3">
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <select
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none bg-white focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none bg-white focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
           >
@@ -94,7 +94,7 @@ export default function AddProductModal({ pharmacyId, onClose }) {
           </select>
 
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="Stock"
             type="number"
             value={form.stock}
@@ -102,14 +102,14 @@ export default function AddProductModal({ pharmacyId, onClose }) {
           />
 
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="SKU"
             value={form.sku}
             onChange={(e) => setForm({ ...form, sku: e.target.value })}
           />
 
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="Price"
             type="number"
             value={form.price}
@@ -117,7 +117,7 @@ export default function AddProductModal({ pharmacyId, onClose }) {
           />
 
           <input
-            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
             placeholder="Tags (comma separated, e.g. pain relief, children)"
             value={form.tags || ''}
             onChange={(e) => setForm({ ...form, tags: e.target.value })}
@@ -128,11 +128,11 @@ export default function AddProductModal({ pharmacyId, onClose }) {
             <input
               type="file"
               accept="image/*"
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-2 outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
               placeholder="Or paste image link here"
               value={form.image}
               onChange={(e) => setForm({ ...form, image: e.target.value })}
@@ -146,7 +146,7 @@ export default function AddProductModal({ pharmacyId, onClose }) {
             placeholder="Description"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full border border-[#9ED3FF] rounded-xl p-3 text-[13px] font-light outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+            className="w-full border border-[#9ED3FF] rounded-xl p-3 text-[13px] font-light outline-none focus:border-sky-500 dark:border-gray-600 transition-colors duration-200 hover:border-sky-400"
           />
         </div>
 

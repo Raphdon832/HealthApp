@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import ClockIcon from '@/icons/react/ClockIcon';
 import SearchIcon from '@/icons/react/SearchIcon';
 import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
@@ -11,6 +12,58 @@ import { db } from '@/lib/firebase';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { findClosestPharmacyWithETA } from '@/lib/eta';
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from '@/lib/language';
+
+// Fixed Header Component - matching exact styling from original
+const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharmacy, vendors, userCoords, t }) => {
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 z-[100] w-full bg-white dark:bg-gray-900 border-b dark:border-gray-700 flex-shrink-0 px-2">
+      <div className="w-full mx-auto pt-8 pb-4">
+        <div className="pt-4 pb-2 w-full">
+          <div className="w-full mx-auto px-0">
+            <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
+              <div className="flex flex-col justify-center">
+                <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins text-gray-900 dark:text-white">
+                  {t('hello', 'Hello')}{user ? `, ${user.displayName?.split(' ')[0] || t('friend', 'Friend')}` : ''}
+                </div>
+                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
+                  {location}
+                </span>
+              </div>
+              {profile?.role === 'customer' ? (
+                <button
+                  onClick={() => navigate('/pharmacy-map')}
+                  className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
+                >
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
+                    <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 animate-pulse" />
+                  </div>
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
+                    {etaInfo && closestPharmacy
+                      ? `${etaInfo.formatted} ${t('to', 'to')} ${vendors[closestPharmacy.vendorId]?.name || t('nearest_pharmacy', 'nearest pharmacy')}`
+                      : userCoords ? t('calculating_eta', 'Calculating ETA...') : t('fetching_location', 'Fetching location...')}
+                  </span>
+                </button>
+              ) : (
+                <div className="flex flex-col justify-center items-end">
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
+                  </div>
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-800">
+                    {profile?.role === 'pharmacy' ? t('your_pharmacy_location', 'Your pharmacy location') : t('location_services', 'Location services')}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="w-full" />
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -22,6 +75,7 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   // Use shared location hook
@@ -51,14 +105,36 @@ export default function Home() {
 
   // Filtered products by search and category
   const filtered = useMemo(() => {
-    // If server results are available and query active, prefer server-side results (more complete & scalable).
+    // Start with all products or server results
+    let baseProducts = products;
     const ql = q.trim().toLowerCase();
+    
+    // If server results are available and query active, prefer server-side results (more complete & scalable).
     if (ql && serverResults?.products && Array.isArray(serverResults.products)) {
-      return serverResults.products;
+      baseProducts = serverResults.products;
     }
 
-    if (!ql) return products;
-    return products.filter((p) => {
+    // Apply category filter first
+    let filteredByCategory = baseProducts;
+    if (selectedCategory && selectedCategory !== 'All') {
+      filteredByCategory = baseProducts.filter((p) => {
+        const productCategory = p.category || '';
+        // Handle different category name variations
+        if (selectedCategory === 'Over-the-counter') {
+          return productCategory.toLowerCase().includes('over');
+        }
+        if (selectedCategory === 'Controlled') {
+          return productCategory.toLowerCase().includes('control');
+        }
+        return productCategory === selectedCategory;
+      });
+    }
+
+    // If no search query, return category-filtered results
+    if (!ql) return filteredByCategory;
+
+    // Apply search filter on top of category filter
+    return filteredByCategory.filter((p) => {
       const name = (p.name || '').toLowerCase();
       const category = (p.category || '').toLowerCase();
       const tags = Array.isArray(p.tags) ? p.tags.join(' ').toLowerCase() : '';
@@ -262,6 +338,26 @@ export default function Home() {
   useEffect(() => setPopularPage(1), [popularProducts.length]);
   useEffect(() => setAllNewPage(1), [allNewArrivals.length]);
 
+  // Helper function to translate info card text if it contains translation keys
+  const translateCardText = (text) => {
+    if (!text) return text;
+    
+    // Check if the text looks like a translation key (starts with t: or is surrounded by curly braces)
+    if (text.startsWith('t:')) {
+      const key = text.substring(2);
+      return t(key, text);
+    }
+    
+    // Check for {key} pattern
+    const keyMatch = text.match(/^\{(.+)\}$/);
+    if (keyMatch) {
+      return t(keyMatch[1], text);
+    }
+    
+    // Return original text if no translation pattern found
+    return text;
+  };
+
   // Normalize and classify links from info cards so clicks open the intended target
   const normalizeHref = (link) => {
     if (!link) return '';
@@ -379,55 +475,23 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full px-0 pb-28">
-      <div className="sticky top-0 z-30 w-full bg-white border-b flex-shrink-0 px-2">
-        <div className="w-full mx-auto pt-8 pb-4">
-          <div className="pt-4 pb-2 w-full">
-            <div className="w-full mx-auto px-0">
-              <div className="flex justify-between items-center w-full h-[14px] md:h-[14px] lg:h-[20px]">
-                <div className="flex flex-col justify-center">
-                  <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins">
-                    Hello{user ? `, ${user.displayName?.split(' ')[0] || 'Friend'}` : ''}
-                  </div>
-                  <span className="text-zinc-500 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
-                    {location}
-                  </span>
-                </div>
-                {profile?.role === 'customer' ? (
-                  <button
-                    onClick={() => navigate('/pharmacy-map')}
-                    className="flex flex-col justify-center items-end hover:bg-blue-50 transition-colors rounded-lg p-2 -m-2 group"
-                  >
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
-                      <ChevronRight className="h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
-                      {etaInfo && closestPharmacy
-                        ? `${etaInfo.formatted} to ${vendors[closestPharmacy.vendorId]?.name || 'nearest pharmacy'}`
-                        : userCoords ? 'Calculating ETA...' : 'Fetching location...'}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="flex flex-col justify-center items-end">
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-3 w-3 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5" />
-                    </div>
-                    <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 text-gray-600">
-                      {profile?.role === 'pharmacy' ? 'Your pharmacy location' : 'Location services'}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="w-full" />
-            </div>
-          </div>
-        </div>
-      </div>
+    <>
+      <FixedHeader 
+        user={user}
+        profile={profile}
+        location={location}
+        navigate={navigate}
+        etaInfo={etaInfo}
+        closestPharmacy={closestPharmacy}
+        vendors={vendors}
+        userCoords={userCoords}
+        t={t}
+      />
+      <div className="min-h-screen w-full px-0 pb-20 pt-32 bg-white dark:bg-gray-900">
 
-      <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pt-1 pb-28 px-0">
-        <div className="mt-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
-          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400" />
+      <div className="flex-1 overflow-y-auto w-full mx-auto flex flex-col pb-28 px-0">
+        <div className="flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 dark:border-zinc-600 pb-2">
+          <SearchIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-zinc-400 dark:text-zinc-500" />
           <input
             value={q}
             onChange={(e) => { 
@@ -474,14 +538,14 @@ export default function Home() {
                 setSelectedSuggestionIndex(-1);
               }, 200);
             }}
-            placeholder="Search drugs, pharmacies"
-            className="w-full outline-none placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] placeholder:font-light"
+            placeholder={t('search_placeholder', 'Search drugs, pharmacies')}
+            className="w-full outline-none bg-transparent text-gray-900 dark:text-white placeholder:text-[12px] md:placeholder:text-[14px] lg:placeholder:text-[16px] placeholder:text-[#888888] dark:placeholder:text-[#aaaaaa] placeholder:font-light"
           />
         </div>
 
         {/* Search suggestions: show matching pharmacies/places */}
         {showSearchSuggestions && q.trim().length > 0 && pharmacyMatches.length > 0 && (
-          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white rounded-lg shadow-lg divide-y max-h-56 overflow-auto animate-fade-in">
+          <div className="mt-2 left-0 right-0 md:left-6 md:right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg divide-y dark:divide-gray-700 max-h-56 overflow-auto animate-fade-in">
             {pharmacyMatches.map((ph, index) => (
               <button
                 key={ph.id || ph.vendorId || ph.name}
@@ -581,8 +645,8 @@ export default function Home() {
                   key={cat}
                   className={`flex items-center px-4 py-2 md:px-6 md:py-2.5 lg:px-8 lg:py-3 rounded-full text-[9px] md:text-[12px] lg:text-[14px] font-poppins font-light whitespace-nowrap border transition-all duration-200 btn-interactive animate-fadeInUp ${
                     isSelected 
-                      ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-md scale-105' 
-                      : 'bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm'
+                      ? 'bg-sky-100 dark:bg-sky-900 border-sky-400 dark:border-gray-600 dark:border-sky-500 text-sky-700 dark:text-sky-300 shadow-md scale-105' 
+                      : 'bg-zinc-100 dark:bg-gray-700 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-gray-600 hover:bg-sky-50 dark:hover:bg-sky-800 hover:border-sky-300 dark:border-gray-600 dark:hover:border-sky-500 hover:shadow-sm'
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => setSelectedCategory(cat)}
@@ -592,7 +656,7 @@ export default function Home() {
                       <img
                         src={`/${encodeURIComponent(icon)}`}
                         alt={`${cat} icon`}
-                        className={`h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0 transition-transform duration-200 ${
+                        className={`h-4 w-4 md:h-5 md:w-5 mr-2 object-contain flex-shrink-0 transition-transform duration-200 dark:invert dark:brightness-0 dark:contrast-100 ${
                           isSelected ? 'scale-110' : ''
                         }`}
                       />
@@ -669,10 +733,12 @@ export default function Home() {
                     <div className="relative z-10 h-full flex items-center">
                       <div className="px-4 md:px-6 py-5 min-w-0 max-w-[65%] md:max-w-[60%] lg:max-w-[60%]">
                         <div style={{ color: headerColor, fontSize: headerFontSize + 'px', lineHeight: 1, fontWeight: 300, letterSpacing: '-0.02em' }}>
-                          {card.header || '—'}
+                          {translateCardText(card.header) || '—'}
                         </div>
                         {card.preview && (
-                          <div style={{ marginTop: 8, color: previewColor, fontSize: previewFontSize + 'px', lineHeight: 1.2 }}>{card.preview}</div>
+                          <div style={{ marginTop: 8, color: previewColor, fontSize: previewFontSize + 'px', lineHeight: 1.2 }}>
+                            {translateCardText(card.preview)}
+                          </div>
                         )}
                         {card.link && card.linkText && (
                           (() => {
@@ -691,7 +757,7 @@ export default function Home() {
                                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                                 style={{ display: 'inline-block', marginTop: 12, textDecoration: 'underline', color: linkColor, fontSize: linkFontSize + 'px', fontWeight: 500 }}
                               >
-                                {card.linkText}
+                                {translateCardText(card.linkText)}
                               </a>
                             );
                           })()
@@ -707,9 +773,9 @@ export default function Home() {
 
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">New Arrivals</div>
+            <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">{t('new_arrivals', 'New Arrivals')}</div>
             <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600" onClick={() => setShowNewArrivalsModal(true)}>
-              view all
+              {t('view_all', 'view all')}
             </button>
           </div>
           <div
@@ -738,7 +804,7 @@ export default function Home() {
                   <ProductCard
                     product={p}
                     onOpen={() => handleProductOpen(p.id)}
-                    onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                    onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert(t('please_sign_in', 'Please sign in')))}
                     cardWidth="110px"
                     cardHeight="128px"
                     nameSize="11px"
@@ -751,7 +817,7 @@ export default function Home() {
                     addSize="9px"
                   />
                   <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                    New
+                    {t('new', 'New')}
                   </span>
                 </div>
               ))}
@@ -765,18 +831,18 @@ export default function Home() {
               <button
                 className="absolute top-2 right-2 text-zinc-500 hover:text-zinc-800 text-xl font-bold"
                 onClick={() => setShowNewArrivalsModal(false)}
-                aria-label="Close"
+                aria-label={t('close', 'Close')}
               >
                 &times;
               </button>
-              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">All New Products</div>
+              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">{t('all_new_products', 'All New Products')}</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
                 {allNewVisible.map((p) => (
                    <div className="relative flex flex-col items-center" key={p.id || p.sku}>
                      <ProductCard
                        product={p}
                        onOpen={() => handleProductOpen(p.id)}
-                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert('Please sign in'))}
+                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert(t(t('please_sign_in', 'please_sign_in', 'Please sign in'))))}
                        cardWidth="110px"
                        cardHeight="128px"
                        nameSize="11px"
@@ -789,7 +855,7 @@ export default function Home() {
                        addSize="9px"
                      />
                      <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                       New
+                       {t('new', 'New')}
                      </span>
                    </div>
                 ))}
@@ -800,9 +866,9 @@ export default function Home() {
                   <button
                     className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
                     onClick={() => setAllNewPage((p) => Math.min(allNewTotalPages, p + 1))}
-                    aria-label="Load more new arrivals"
+                    aria-label={t('load_more', 'Load more') + ' ' + t('new_arrivals', 'new arrivals')}
                   >
-                    Load more
+                    {t('load_more', 'Load more')}
                   </button>
                 </div>
               )}
@@ -811,7 +877,7 @@ export default function Home() {
         )}
 
         <div className="mt-10">
-          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">Popular Products</div>
+          <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">{t('popular_products', 'Popular Products')}</div>
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
             {popularVisible.map((p) => (
                <div className="flex justify-center relative" key={(p.id || p.sku) + '-wrapper'}>
@@ -844,14 +910,15 @@ export default function Home() {
               <button
                 className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
                 onClick={() => setPopularPage((p) => Math.min(popularTotalPages, p + 1))}
-                aria-label="Load more popular products"
+                aria-label={t('load_more', 'Load more') + ' ' + t('popular_products', 'popular products')}
               >
-                Load more
+                {t('load_more', 'Load more')}
               </button>
             </div>
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -25,7 +25,7 @@ export default function ForgotPassword() {
   return (
     <AuthLayout>
       <BackButton to="/auth/landing" />
-      <div className="w-full max-w-md text-center bg-white rounded-2xl  p-8">
+      <div className="w-full max-w-md text-center bg-white dark:bg-gray-800 rounded-2xl  p-8">
         {/* Illustration above heading */}
         <img
           src="/ForgotPasswordIllustration.png"
@@ -43,7 +43,7 @@ export default function ForgotPassword() {
           <form onSubmit={handleSubmit} className="space-y-4 text-left">
             <input
               type="email"
-              className="w-full border-b border-zinc-300 text-[12px] mt-2 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+              className="w-full border-b border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-[12px] mt-2 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400 dark:border-gray-600"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

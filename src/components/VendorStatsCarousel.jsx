@@ -10,7 +10,7 @@ export default function VendorStatsCarousel({ cards }) {
         {cards.map((card, idx) => (
           <div
             key={idx}
-            className="min-w-[120px] max-w-[150px] h-[80px] bg-[#F7F7F7] rounded-xl border border-sky-500 p-3 flex flex-col items-start justify-center shadow-sm"
+            className="min-w-[120px] max-w-[150px] h-[80px] bg-[#F7F7F7] dark:bg-gray-800 rounded-xl border border-sky-500 dark:border-gray-600 p-3 flex flex-col items-start justify-center shadow-sm"
           >
             {card}
           </div>

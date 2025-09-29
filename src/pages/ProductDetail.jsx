@@ -1,9 +1,11 @@
 import { MapPin, Clock, Phone, ArrowLeft, Star, Share2, Heart, ThumbsUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, setDoc, deleteDoc, doc as firestoreDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { addToCart } from '@/lib/db';
+import { addToCart, addToWishlist, removeFromWishlist, isInWishlist } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/language';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
@@ -12,6 +14,7 @@ import { calculatePharmacyETA } from '@/lib/eta';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords } = useUserLocation();
   
@@ -22,6 +25,8 @@ export default function ProductDetail({ product, pharmacy }) {
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
   const [etaInfo, setEtaInfo] = useState(null);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const [isWishlist, setIsWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   // Calculate ETA when user location or pharmacy changes
   useEffect(() => {
@@ -32,6 +37,23 @@ export default function ProductDetail({ product, pharmacy }) {
       setEtaInfo(null);
     }
   }, [pharmacy, userCoords]);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (user && product) {
+        try {
+          const inWishlist = await isInWishlist(user.uid, product.id);
+          setIsWishlist(inWishlist);
+        } catch (error) {
+          console.error('Error checking wishlist status:', error);
+        }
+      }
+    };
+    
+    checkWishlistStatus();
+  }, [user, product]);
+
   const [categoryProducts, setCategoryProducts] = useState([]);
   const [loadingCategoryProducts, setLoadingCategoryProducts] = useState(false);
 
@@ -209,16 +231,48 @@ export default function ProductDetail({ product, pharmacy }) {
     } else if (navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Shareable link copied to clipboard!');
+        alert(t('shareable_link_copied', 'Shareable link copied to clipboard!'));
       } catch {
-        window.prompt('Copy this link:', shareUrl);
+        window.prompt(t('copy_this_link', 'Copy this link:'), shareUrl);
       }
       setShowShareOptions(false);
     } else {
-      window.prompt('Copy this link:', shareUrl);
+      window.prompt(t('copy_this_link', 'Copy this link:'), shareUrl);
       setShowShareOptions(false);
     }
   }
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      alert(t('please_sign_in_wishlist', 'Please sign in to add items to your wishlist'));
+      return;
+    }
+
+    if (wishlistLoading) return;
+    
+    setWishlistLoading(true);
+    try {
+      if (isWishlist) {
+        await removeFromWishlist(user.uid, product.id);
+        setIsWishlist(false);
+      } else {
+        await addToWishlist(user.uid, product.id, {
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          category: product.category,
+          pharmacyId: pharmacy?.id,
+          pharmacyName: pharmacy?.name
+        });
+        setIsWishlist(true);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      alert(t('failed_update_wishlist', 'Failed to update wishlist. Please try again.'));
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   function handleMessageVendor() {
     // Pass product info and prefill message to chat thread
@@ -233,30 +287,84 @@ export default function ProductDetail({ product, pharmacy }) {
     setShowShareOptions(false);
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Page container */}
-      <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
-        {/* Sticky back button + share icon */}
-        <div className="pt-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md pb-2 animate-slide-down-fade flex items-center justify-between">
+  // Fixed Header Component (Mobile Only)
+  const FixedHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[100] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 dark:border-gray-600 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> {t('back', 'Back')}
+        </button>
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate(-1)}
-            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white border border-zinc-300 hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+            type="button"
+            className={`p-2 rounded-full border border-zinc-200 bg-white hover:scale-110 active:scale-95 transition-all duration-200 ${
+              isWishlist ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-red-50'
+            } ${wishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            onClick={handleWishlistToggle}
+            disabled={wishlistLoading}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            <Heart className={`w-5 h-5 transition-colors ${
+              isWishlist ? 'text-red-500 fill-current' : 'text-red-400'
+            }`} />
           </button>
           <button
             type="button"
-            className="ml-2 p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
+            className="p-2 rounded-full border border-zinc-200 bg-white hover:bg-sky-50 hover:scale-110 active:scale-95 transition-all duration-200"
             aria-label="Share product"
             onClick={() => setShowShareOptions(true)}
           >
             <Share2 className="w-5 h-5 text-sky-600" />
           </button>
         </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {createPortal(<FixedHeader />, document.body)}
+      <div className="min-h-screen bg-white dark:bg-gray-900 pt-24 md:pt-0">
+        {/* Page container */}
+        <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
+          {/* Sticky back button + share icon */}
+          <div className="pt-6 sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-[70px] h-[24px] font-poppins font-extralight tracking-tight text-[12px] flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-600 dark:border-gray-600 text-gray-900 dark:text-white hover:scale-105 hover:shadow-md transition-all duration-200 active:scale-95"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" /> {t('back', 'Back')}
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isWishlist ? 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30' : 'hover:bg-red-50 dark:hover:bg-red-900/20'
+              } ${wishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={isWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              onClick={handleWishlistToggle}
+              disabled={wishlistLoading}
+            >
+              <Heart className={`w-5 h-5 transition-colors ${
+                isWishlist ? 'text-red-500 fill-current' : 'text-red-400'
+              }`} />
+            </button>
+            <button
+              type="button"
+              className="p-2 rounded-full border border-zinc-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:scale-110 active:scale-95 transition-all duration-200"
+              aria-label="Share product"
+              onClick={() => setShowShareOptions(true)}
+            >
+              <Share2 className="w-5 h-5 text-sky-600" />
+            </button>
+          </div>
+        </div>
 
         {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
-        <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 animate-fade-in-up">
+        <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 dark:md:border-gray-700 animate-fade-in-up">
           <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
 
             {/* CENTRAL CONTENT: two-column on desktop, stacked on mobile */}
@@ -274,7 +382,7 @@ export default function ProductDetail({ product, pharmacy }) {
                       className="max-h-[160px] lg:max-h-[360px] w-full object-contain hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 rounded-md text-3xl font-semibold text-zinc-800 animate-bounce-gentle">
+                    <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 dark:bg-gray-700 rounded-md text-3xl font-semibold text-zinc-800 dark:text-zinc-200 animate-bounce-gentle">
                       <ProductAvatar name={product.name} image={product.image} category={product.category} size={48} lg:size={80} roundedClass="rounded-md" />
                     </div>
                   )}
@@ -284,21 +392,21 @@ export default function ProductDetail({ product, pharmacy }) {
                     <button
                       onClick={async () => {
                         if (!user) return alert('Please sign in');
-                        if (!product.id) return alert('Product unavailable. Please try again.');
-                        try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
+                        if (!product.id) return alert(t('product_unavailable', 'Product unavailable. Please try again.'));
+                        try { await addToCart(user.uid, product.id, 1); } catch { alert(t('failed_add_to_cart', 'Failed to add to cart.')); }
                       }}
                       className="w-full h-10 rounded-full bg-sky-600 text-white text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
-                      aria-label="Add to Cart"
+                      aria-label={t('add_to_cart', 'Add to Cart')}
                     >
-                      Add to Cart
+                      {t('add_to_cart', 'Add to Cart')}
                     </button>
 
                     <a
                       href={`tel:${pharmacy?.phone || ''}`}
-                      className="w-full h-10 rounded-full border border-zinc-400 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
-                      aria-label="Call to order"
+                      className="w-full h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[14px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                      aria-label={t('call_to_order', 'Call to Order')}
                     >
-                      <Phone className="h-4 w-4" /> Call to Order
+                      <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> {t('call_to_order', 'Call to Order')}
                     </a>
                   </div>
                 </div>
@@ -307,29 +415,29 @@ export default function ProductDetail({ product, pharmacy }) {
                 <div className="flex flex-col animate-fade-in-right">
                   {/* Name + Price row (mobile): price shown on mobile here and hidden on lg */}
                   <div className="mb-3 flex items-start justify-between animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    <h1 className="text-[18px] lg:text-[22px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal">
+                    <h1 className="text-[18px] lg:text-[20px] font-poppins font-medium tracking-tight leading-tight min-w-0 animate-text-reveal text-gray-900 dark:text-white">
                       {product.name}
                     </h1>
-                    <div className="text-[18px] text-sky-600 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
+                    <div className="text-[18px] text-sky-600 dark:text-sky-400 font-poppins font-semibold lg:hidden animate-pulse-slow">₦{price.toLocaleString()}</div>
                   </div>
 
                   {/* Price for lg screens (desktop): hidden on mobile */}
                   <div className="mb-4 hidden lg:block animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <div className="text-[20px] text-sky-600 font-poppins font-semibold animate-pulse-slow">₦{price.toLocaleString()}</div>
+                    <div className="text-[20px] text-sky-600 dark:text-sky-400 font-poppins font-semibold animate-pulse-slow">₦{price.toLocaleString()}</div>
                   </div>
 
                   {/* Pharmacy name (always under the product name on mobile) */}
                   <div className="mb-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <button
                       onClick={() => navigate(`/vendor/${pharmacy?.id || product.pharmacyId}`)}
-                      className="text-sky-600 underline font-poppins text-[15px] font-light hover:text-sky-700 transition-colors duration-200 hover:scale-105"
+                      className="text-sky-600 dark:text-sky-400 underline font-poppins text-[15px] font-light hover:text-sky-700 dark:hover:text-sky-300 transition-colors duration-200 hover:scale-105"
                     >
                       {pharmacy?.name}
                     </button>
                   </div>
 
                   {/* Address row: address on left, Get Directions on right (mobile). On lg the Get Directions is the separate block below. */}
-                  <div className="mb-1 flex items-center justify-between gap-2 text-zinc-600 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <div className="mb-1 flex items-center justify-between gap-2 text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <MapPin className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{pharmacy?.address}</span>
@@ -341,22 +449,22 @@ export default function ProductDetail({ product, pharmacy }) {
                           const query = encodeURIComponent(pharmacy.address);
                           window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                         }}
-                        className="text-sky-600 text-[13px] font-poppins font-light px-2 py-1 rounded-full hover:bg-sky-50 transition-all duration-200 lg:hidden hover:scale-105 active:scale-95"
+                        className="text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-2 py-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 lg:hidden hover:scale-105 active:scale-95"
                         aria-label="Get directions"
                       >
-                        <DirectionsIcon className="h-4 w-4 inline-block mr-1" /> Get Directions
+                        <DirectionsIcon className="h-4 w-4 inline-block mr-1" /> {t('get_directions', 'Get Directions')}
                       </button>
                     )}
                   </div>
 
                   {/* ETA below the address (mobile and desktop) */}
-                  <div className="mb-3 flex items-center gap-2 text-zinc-600 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                  <div className="mb-3 flex items-center gap-2 text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light animate-fade-in" style={{ animationDelay: '0.5s' }}>
                     <Clock className="h-4 w-4" /> 
                     {etaInfo 
-                      ? `${etaInfo.formatted} to ${pharmacy?.name}` 
+                      ? t('eta_to_pharmacy', '{time} to {pharmacy}').replace('{time}', etaInfo.formatted).replace('{pharmacy}', pharmacy?.name) 
                       : userCoords 
-                        ? 'Calculating ETA...' 
-                        : 'Fetching location...'
+                        ? t('calculating_eta', 'Calculating ETA...') 
+                        : t('fetching_location', 'Fetching location...')
                     }
                   </div>
 
@@ -364,13 +472,13 @@ export default function ProductDetail({ product, pharmacy }) {
                   {pharmacy?.address && (
                     <div className="mb-4 hidden lg:block animate-fade-in" style={{ animationDelay: '0.6s' }}>
                       <button
-                        className="flex items-center gap-2 text-sky-600 text-[13px] font-poppins font-light px-3 py-2 rounded-full hover:bg-sky-50 transition-all duration-200 hover:scale-105 active:scale-95"
+                        className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-[13px] font-poppins font-light px-3 py-2 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 hover:scale-105 active:scale-95"
                         onClick={() => {
                           const query = encodeURIComponent(pharmacy.address);
                           window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                         }}
                       >
-                        <DirectionsIcon className="h-4 w-4 text-sky-600" /> Get Directions
+                        <DirectionsIcon className="h-4 w-4 text-sky-600 dark:text-sky-400" /> Get Directions
                       </button>
                     </div>
                   )}
@@ -379,7 +487,7 @@ export default function ProductDetail({ product, pharmacy }) {
                   <div className="mt-2 animate-fade-in" style={{ animationDelay: '0.7s' }}>
                     {/* Desktop: show label then value underneath */}
                     <div className="hidden lg:block">
-                      <div className="text-[15px] tracking-tight text-black font-poppins font-medium">Category</div>
+                      <div className="text-[15px] tracking-tight text-black font-poppins font-medium">{t('category', 'Category')}</div>
                       <div className="mt-0.5 mb-5">
                         <button
                           type="button"
@@ -394,7 +502,7 @@ export default function ProductDetail({ product, pharmacy }) {
                     {/* Mobile/tablet: label left, value right on same line */}
                     <div className="block lg:hidden">
                       <div className="flex items-center justify-between">
-                        <div className="text-[15px] text-black font-poppins font-medium mb-2">Category</div>
+                        <div className="text-[15px] text-black font-poppins font-medium mb-2">{t('category', 'Category')}</div>
                         <div>
                           <button
                             type="button"
@@ -410,29 +518,29 @@ export default function ProductDetail({ product, pharmacy }) {
                <div className="mt-4 border-b"></div>
                   {/* Product description */}
                   <div className="mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Product Description</div>
-                    <p className="mt-2 text-zinc-600 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
+                    <div className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">{t('product_description', 'Product Description')}</div>
+                    <p className="mt-2 text-zinc-600 dark:text-zinc-300 leading-6 font-poppins text-[14px] font-light">{product.description}</p>
                   </div>
               <div className="mt-8 border-b"></div>
                   {/* Reviews/Comments Section */}
                   <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800">Customer Reviews</span>
+                        <span className="text-[15px] font-poppins font-medium tracking-tighter text-zinc-800 dark:text-white">{t('customer_reviews', 'Customer Reviews')}</span>
                         <span className="text-sky-400 font-semibold text-[13px]">{reviews.length}</span>
                       </div>
                       {expandedReviews && (
                         <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setExpandedReviews(false); setVisibleReviews(3); }}>
-                          See less
+                          {t('see_less', 'See less')}
                         </button>
                       )}
                     </div>
                     {/* Reviews List */}
                     <div className="space-y-4 mb-6">
                       {loadingReviews ? (
-                        <div className="p-4 text-center text-zinc-400 animate-pulse">Loading reviews…</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-pulse">{t('loading_reviews', 'Loading reviews…')}</div>
                       ) : reviews.length === 0 ? (
-                        <div className="p-4 text-center text-zinc-400 animate-fade-in text-[12px]">No reviews yet. Be the first to review!</div>
+                        <div className="p-4 text-center text-zinc-400 dark:text-zinc-500 animate-fade-in text-[12px]">{t('no_reviews_yet', 'No reviews yet. Be the first to review!')}</div>
                       ) : (
                         reviews.slice(0, visibleReviews).map((review, idx) => {
                           let dateStr = '';
@@ -441,10 +549,10 @@ export default function ProductDetail({ product, pharmacy }) {
                             dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                           }
                           return (
-                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 animate-slide-up transition-all duration-200">
+                            <div key={review.id || idx} className="p-4 rounded-xl border border-sky-100 dark:border-gray-600 animate-slide-up transition-all duration-200">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-poppins font-semibold text-[14px] text-zinc-700">{review.name}</span>
+                                  <span className="font-poppins font-semibold text-[14px] text-zinc-700 dark:text-zinc-200">{review.name}</span>
                                   <span className="flex gap-0.5 text-amber-400 text-[13px]">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
                                 </div>
                                 <div className="flex flex-col items-center justify-center h-full">
@@ -465,9 +573,29 @@ export default function ProductDetail({ product, pharmacy }) {
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-zinc-600 text-[13px] font-poppins font-light">{review.comment}</div>
+                              <div className="text-zinc-600 dark:text-zinc-300 text-[13px] font-poppins font-light">{review.comment}</div>
                               {dateStr && (
-                                <div className="text-[11px] text-zinc-400 mt-1">{dateStr}</div>
+                                <div className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">{dateStr}</div>
+                              )}
+                              
+                              {/* Pharmacy Response */}
+                              {review.pharmacyResponse && (
+                                <div className="mt-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-700 border border-sky-100 dark:border-gray-600 dark:border-gray-600 rounded-lg shadow-sm">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-2 h-2 bg-sky-500 dark:bg-sky-400 rounded-full"></div>
+                                    <span className="font-poppins font-semibold text-[13px] text-sky-700 dark:text-white">
+                                      {t('pharmacy_response', '{pharmacyName} Response', { pharmacyName: pharmacy?.name || 'Pharmacy' })}
+                                    </span>
+                                    {(review.pharmacyResponse.respondedAt || review.responseDate) && (
+                                      <span className="text-[10px] text-sky-500 dark:text-zinc-300 ml-auto">
+                                        {new Date((review.pharmacyResponse.respondedAt?.seconds || review.responseDate?.seconds || review.responseDate) * 1000).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-zinc-700 dark:text-white text-[13px] font-poppins leading-relaxed pl-4">
+                                    "{typeof review.pharmacyResponse === 'string' ? review.pharmacyResponse : review.pharmacyResponse.message || review.pharmacyResponse}"
+                                  </div>
+                                </div>
                               )}
                             </div>
                           );
@@ -478,19 +606,19 @@ export default function ProductDetail({ product, pharmacy }) {
                     {reviews.length > visibleReviews && (
                       <div className="flex justify-start">
                         <button className="text-sky-400 text-[13px] font-poppins underline" onClick={() => { setVisibleReviews(v => v + 3); setExpandedReviews(true); }}>
-                          See more
+                          {t('see_more', 'See more')}
                         </button>
                       </div>
                     )}
                     <div className="mt-4 border-b"></div>
                     {/* Review Form */}
                     <form className="p-4 mt-6 rounded-xl border border-zinc-100 bg-white shadow-sm animate-bounce-in" style={{ animationDelay: '1.0s' }} onSubmit={handleReviewSubmit}>
-                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700">Leave a Review</div>
+                      <div className="mb-2 font-poppins text-[14px] font-medium text-zinc-700 dark:text-zinc-300">{t('leave_a_review', 'Leave a Review')}</div>
                       <StarRating value={Number(reviewForm.rating)} onChange={r => setReviewForm(f => ({ ...f, rating: r }))} disabled={submitting} />
-                        <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder="Your Name" className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
-                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder="Your review... (optional)" className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
-                      <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
-                        {submitting ? 'Submitting…' : 'Submit Review'}
+                        <input type="text" name="name" value={reviewForm.name} onChange={handleReviewChange} placeholder={t('your_name', 'Your Name')} className="w-full mb-2 px-3 py-2 rounded-lg border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-20" />
+                      <textarea name="comment" value={reviewForm.comment} onChange={handleReviewChange} placeholder={t('your_review_optional', 'Your review... (optional)')} className="w-full mb-2 px-3 py-2 rounded-lg border border-zinc-200 font-poppins text-[13px] focus:ring-2 focus:ring-sky-200 transition-all duration-200" rows={3} />
+                      <button type="submit" disabled={submitting || (!reviewForm.rating && !reviewForm.comment)} className="w-full h-10 rounded-full border border-sky-500 dark:border-gray-600 text-black text-[14px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200">
+                        {submitting ? t('submitting', 'Submitting…') : t('submit_review', 'Submit Review')}
                       </button>
                     </form>
                   </div>
@@ -503,24 +631,24 @@ export default function ProductDetail({ product, pharmacy }) {
         </div>
 
         {/* Mobile fixed bottom CTA: visible on small screens, hidden on lg+ */}
-<div className="fixed left-0 right-0 bottom-28 z-30 lg:hidden animate-slide-up-fade">
+<div className="fixed left-0 right-0 bottom-[8rem] z-30 lg:hidden animate-slide-up-fade">
   <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
     <div className="flex flex-row gap-3 justify-center">
       <button
         onClick={async () => {
-          if (!user) return alert('Please sign in');
-          if (!product.id) return alert('Product unavailable. Please try again.');
-          try { await addToCart(user.uid, product.id, 1); } catch { alert('Failed to add to cart.'); }
+          if (!user) return alert(t('please_sign_in', 'Please sign in'));
+          if (!product.id) return alert(t('product_unavailable', 'Product unavailable. Please try again.'));
+          try { await addToCart(user.uid, product.id, 1); } catch { alert(t('failed_add_to_cart', 'Failed to add to cart.')); }
         }}
         className="flex-1 max-w-[140px] h-10 rounded-full bg-sky-600 text-white text-[13px] font-poppins font-light shadow-sm btn-interactive hover:bg-sky-700 hover:scale-105 active:scale-95 transition-all duration-200"
       >
-        Add to Cart
+        {t('add_to_cart', 'Add to Cart')}
       </button>
       <a
         href={`tel:${pharmacy?.phone || ''}`}
-        className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 bg-white btn-interactive hover:border-zinc-500 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="flex-1 max-w-[140px] h-10 rounded-full border border-zinc-400 dark:border-gray-600 text-[13px] font-poppins font-light flex items-center justify-center gap-2 text-zinc-800 dark:text-white bg-white dark:bg-gray-800 btn-interactive hover:border-zinc-500 dark:hover:border-gray-500 hover:scale-105 active:scale-95 transition-all duration-200"
       >
-        <Phone className="h-4 w-4" /> Call to Order
+        <Phone className="h-4 w-4 text-zinc-800 dark:text-white" /> {t('call_to_order', 'Call to Order')}
       </a>
     </div>
   </div>
@@ -530,14 +658,14 @@ export default function ProductDetail({ product, pharmacy }) {
           <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
             <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto animate-bounce-in shadow-xl">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-lg font-medium animate-text-reveal">Products in "{product.category || 'General'}"</div>
-                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 hover:text-zinc-700 transition-colors duration-200 hover:scale-110 active:scale-95">Close</button>
+                <div className="text-lg font-medium animate-text-reveal">{t('products_in_category', 'Products in "{category}"').replace('{category}', product.category || 'General')}</div>
+                <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors duration-200 hover:scale-110 active:scale-95">{t('close', 'Close')}</button>
               </div>
 
               {loadingCategoryProducts ? (
-                <div className="p-4 text-center text-zinc-500 animate-pulse">Loading…</div>
+                <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 animate-pulse">{t('loading', 'Loading…')}</div>
               ) : categoryProducts.length === 0 ? (
-                <div className="p-4 text-zinc-500 animate-fade-in">No products found.</div>
+                <div className="p-4 text-zinc-500 dark:text-zinc-400 animate-fade-in">{t('no_products_found', 'No products found.')}</div>
               ) : (
                 <div className="space-y-2">
                   {categoryProducts.map((p, index) => (
@@ -564,28 +692,29 @@ export default function ProductDetail({ product, pharmacy }) {
         {showShareOptions && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
             <div className="bg-white rounded-2xl p-6 w-[90vw] max-w-xs shadow-xl animate-bounce-in flex flex-col gap-4">
-              <div className="font-poppins font-medium text-[16px] mb-2 text-center">Share Product</div>
+              <div className="font-poppins font-medium text-[16px] mb-2 text-center">{t('share_product', 'Share Product')}</div>
               <button
-                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 dark:border-gray-600 bg-sky-50 text-sky-700 font-poppins font-medium hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleShareProduct}
               >
-                <Share2 className="w-4 h-4" /> Share Product
+                <Share2 className="w-4 h-4" /> {t('share_product', 'Share Product')}
               </button>
               <button
                 className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleMessageVendor}
               >
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                Message Vendor
+                {t('message_vendor', 'Message Vendor')}
               </button>
               <button
                 className="mt-2 text-zinc-400 hover:text-zinc-700 text-[13px] font-poppins underline"
                 onClick={() => setShowShareOptions(false)}
-              >Cancel</button>
+              >{t('cancel', 'Cancel')}</button>
             </div>
           </div>
         )}
       </div>
     </div>
+    </>
   );
 }

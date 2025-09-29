@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Card } from './ui/card';
 import ProductAvatar from './ProductAvatar';
 
@@ -22,6 +22,7 @@ export default function ProductCard({
 }) {
   const [imgError, setImgError] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [cartPressed, setCartPressed] = useState(false);
 
   const showImage = product?.image && !imgError;
 
@@ -37,7 +38,7 @@ export default function ProductCard({
       style={{ width: cardWidth, height: cardHeight, borderRadius: borderRadius || '10px' }}
     >
       <div
-        className="overflow-hidden flex items-center justify-center bg-white transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-sky-50"
+        className="overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-sky-50 dark:group-hover:from-blue-900/20 dark:group-hover:to-sky-900/20"
         style={{ height: `calc(${cardHeight} * 0.6)`, borderRadius: borderRadius || '3px' }}
       >
         {showImage ? (
@@ -70,7 +71,7 @@ export default function ProductCard({
       </div>
 
       <div
-        className="mt-1 font-poppins transition-colors duration-200 group-hover:text-zinc-800"
+        className="mt-1 font-poppins transition-colors duration-200 group-hover:text-zinc-800 dark:group-hover:text-white"
         style={{ fontSize: nameSize, fontWeight: nameWeight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         title={product.name}
       >
@@ -87,24 +88,37 @@ export default function ProductCard({
       <button
         onClick={(e) => { 
           e.stopPropagation(); 
+          setCartPressed(true);
+          setTimeout(() => setCartPressed(false), 150);
           onAdd(); 
         }}
-        className="absolute bottom-3 right-3 h-7 w-7 flex items-center justify-center border border-solid btn-interactive transition-all duration-200 hover:scale-110 hover:shadow-lg active:scale-95"
+        className={`absolute bottom-3 right-3 h-8 w-8 flex items-center justify-center border border-solid btn-interactive transition-all duration-200 hover:scale-110 hover:shadow-lg ${
+          cartPressed ? 'scale-90 shadow-inner' : 'active:scale-95'
+        }`}
         style={{ 
           borderColor: addColor, 
-          borderRadius: borderRadius || '3px', 
-          background: 'transparent' 
+          borderRadius: borderRadius || '6px', 
+          background: cartPressed ? addColor : 'transparent',
+          boxShadow: cartPressed ? `inset 0 2px 4px rgba(0,0,0,0.2), 0 0 0 2px ${addColor}40` : undefined
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = addColor;
-          e.target.querySelector('svg').style.color = 'white';
+          if (!cartPressed) {
+            e.target.style.backgroundColor = addColor;
+            e.target.querySelector('svg').style.color = 'white';
+          }
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'transparent';
-          e.target.querySelector('svg').style.color = addColor;
+          if (!cartPressed) {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.querySelector('svg').style.color = addColor;
+          }
         }}
       >
-        <Plus color={addColor} size={18} className="transition-colors duration-200"/>
+        <ShoppingCart 
+          color={cartPressed ? 'white' : addColor} 
+          size={16} 
+          className={`transition-all duration-200 ${cartPressed ? 'animate-pulse' : ''}`}
+        />
       </button>
 
       {/* Subtle shine effect on hover */}

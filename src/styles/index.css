@@ -4,7 +4,201 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
+/* CSS Custom Properties for Theming */
+:root {
+  /* Light theme colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+}
+
+/* Dark theme colors */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --border-color: #475569;
+  --accent-color: #60a5fa;
+  --accent-hover: #3b82f6;
+  --success-color: #34d399;
+  --error-color: #f87171;
+  --warning-color: #fbbf24;
+}
+
+/* High contrast theme overrides */
+.high-contrast {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f0f0;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --border-color: #000000;
+  --accent-color: #0066cc;
+}
+
+.dark.high-contrast {
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --border-color: #ffffff;
+  --accent-color: #66b3ff;
+}
+
+/* Font sizing utilities */
+.font-small {
+  font-size: 14px;
+}
+
+.font-medium {
+  font-size: 16px;
+}
+
+.font-large {
+  font-size: 18px;
+}
+
+/* Reduced motion preferences */
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html, body, #root { 
+  height: 100%; 
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Comprehensive dark mode transformations */
+/* Transform all white/light backgrounds to dark */
+.dark .bg-white { background-color: #111827 !important; } /* gray-900 */
+.dark .bg-gray-50 { background-color: #1f2937 !important; } /* gray-800 */
+.dark .bg-gray-100 { background-color: #374151 !important; } /* gray-700 */
+.dark .bg-gray-200 { background-color: #4b5563 !important; } /* gray-600 */
+.dark .bg-gray-300 { background-color: #6b7280 !important; } /* gray-500 */
+
+/* Transform all dark backgrounds to light */
+.dark .bg-black { background-color: #ffffff !important; }
+.dark .bg-gray-900 { background-color: #f3f4f6 !important; } /* gray-100 */
+.dark .bg-gray-800 { background-color: #e5e7eb !important; } /* gray-200 */
+.dark .bg-gray-700 { background-color: #d1d5db !important; } /* gray-300 */
+
+/* Transform text colors */
+.dark .text-black { color: #ffffff !important; }
+.dark .text-gray-900 { color: #f3f4f6 !important; } /* gray-100 */
+.dark .text-gray-800 { color: #e5e7eb !important; } /* gray-200 */
+.dark .text-gray-700 { color: #d1d5db !important; } /* gray-300 */
+.dark .text-gray-600 { color: #9ca3af !important; } /* gray-400 */
+.dark .text-gray-500 { color: #6b7280 !important; } /* Keep neutral gray */
+.dark .text-white { color: #111827 !important; } /* gray-900 */
+
+/* Transform border colors */
+.dark .border-white { border-color: #374151 !important; } /* gray-700 */
+.dark .border-gray-200 { border-color: #374151 !important; } /* gray-700 */
+.dark .border-gray-300 { border-color: #4b5563 !important; } /* gray-600 */
+.dark .border-gray-400 { border-color: #6b7280 !important; } /* gray-500 */
+.dark .border-black { border-color: #d1d5db !important; } /* gray-300 */
+
+/* Transform zinc colors (commonly used) */
+.dark .text-zinc-500 { color: #a1a1aa !important; } /* zinc-400 */
+.dark .text-zinc-600 { color: #d4d4d8 !important; } /* zinc-300 */
+.dark .text-zinc-700 { color: #e4e4e7 !important; } /* zinc-200 */
+.dark .border-zinc-300 { border-color: #52525b !important; } /* zinc-600 */
+
+/* Transform input and form elements */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="search"],
+.dark textarea,
+.dark select {
+  background-color: #37415100 !important; /* gray-700 */
+  border-color: #4b5563 !important; /* gray-600 */
+  color: #f9fafb !important; /* gray-50 */
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="search"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #60a5fa !important; /* blue-400 */
+  box-shadow: 0 0 0 1px #60a5fa !important;
+}
+
+/* Transform hover states */
+.dark .hover\\:bg-gray-50:hover { background-color: #374151 !important; } /* gray-700 */
+.dark .hover\\:bg-gray-100:hover { background-color: #4b5563 !important; } /* gray-600 */
+.dark .hover\\:bg-white:hover { background-color: #111827 !important; } /* gray-900 */
+
+/* Preserve colored elements (blue, green, red, etc.) - they stay the same */
+/* These colors naturally work well in both themes */
+
+/* Global theme application */
+.dark body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark #root {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Font Size Styles */
+.font-small { font-size: 14px; }
+.font-medium { font-size: 16px; }
+.font-large { font-size: 18px; }
+
+/* High Contrast Styles */
+.high-contrast {
+  --bg-primary: #000000 !important;
+  --bg-secondary: #ffffff !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #000000 !important;
+  --border-color: #ffffff !important;
+}
+.high-contrast * {
+  border-color: var(--border-color) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Reduce Motion Styles */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Hide scrollbars globally but allow scrolling */
+html, body {
+  overflow-y: auto !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+}
 
 /* Hide scrollbars globally but allow scrolling */
 html, body {
@@ -67,42 +261,217 @@ input, select, textarea {
   touch-action: manipulation;
 }
 
-/* Liquid glass bottom navigation (Apple-style) */
+/* Apple-style liquid glass bottom navigation */
 .liquid-bottom-nav {
-  border-radius: 40px;
-  border: 1px solid rgba(54, 165, 255, 0.12);
-  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-  box-shadow: 0 10px 30px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border-radius: 70px;
+  
+  /* Enhanced glass morphism border - more subtle and refined */
+  border: 0.5px solid rgba(255,255,255,0.18);
+  
+  /* Multi-layer glass background for depth */
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%),
+    linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%);
+  
+  /* Enhanced shadows for floating glass effect */
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.12),
+    0 2px 8px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -1px 0 rgba(0,0,0,0.05);
+  
+  /* Enhanced backdrop blur with saturation boost */
+  backdrop-filter: blur(24px) saturate(180%) brightness(110%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(110%);
+  
   position: relative;
   overflow: hidden;
-  transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
+  
+  /* Smooth transitions for interactions */
+  transition: 
+    transform 280ms cubic-bezier(0.4, 0.0, 0.2, 1),
+    box-shadow 280ms cubic-bezier(0.4, 0.0, 0.2, 1),
+    backdrop-filter 280ms ease;
+  
+  /* Mobile browser optimizations */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Force hardware acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  
+  /* Ensure consistent rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle glossy sweep */
+/* Hover effect for enhanced glass depth */
+.liquid-bottom-nav:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 40px rgba(0,0,0,0.15),
+    0 4px 12px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.08);
+}
+
+/* Mobile-specific width constraints */
+@media (max-width: 480px) {
+  .liquid-bottom-nav {
+    /* Ensure it never gets too cramped on very small screens */
+    min-width: 280px;
+    /* But also never exceeds 95% of viewport width */
+    max-width: 95vw;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .liquid-bottom-nav {
+    /* Tablet-sized phones get a bit more space */
+    max-width: 90vw;
+  }
+}
+
+/* Dark mode liquid glass navigation */
+.dark .liquid-bottom-nav {
+  /* Refined dark glass border */
+  border: 0.5px solid rgba(255,255,255,0.15);
+  
+  /* Multi-layer dark glass background */
+  background: 
+    linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.9) 100%),
+    linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  
+  /* Enhanced dark mode shadows */
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.4),
+    0 2px 8px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  
+  /* Enhanced backdrop blur for dark mode */
+  backdrop-filter: blur(24px) saturate(160%) brightness(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%) brightness(120%);
+}
+
+/* Dark mode hover effect */
+.dark .liquid-bottom-nav:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 40px rgba(0,0,0,0.5),
+    0 4px 12px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+/* Enhanced glass reflection sweep - Apple-style light refraction */
 .liquid-bottom-nav::before {
   content: '';
   position: absolute;
-  left: -20%;
-  top: -40%;
-  width: 140%;
-  height: 220%;
-  background: linear-gradient(120deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.06) 70%, rgba(255,255,255,0)) ;
-  transform: rotate(-18deg);
-  opacity: 0.6;
+  left: -30%;
+  top: -50%;
+  width: 160%;
+  height: 250%;
+  
+  /* Complex light refraction gradient */
+  background: 
+    radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 30%, transparent 70%),
+    linear-gradient(135deg, 
+      rgba(255,255,255,0.2) 0%, 
+      rgba(255,255,255,0.08) 20%, 
+      rgba(255,255,255,0.03) 40%, 
+      rgba(255,255,255,0.12) 60%, 
+      rgba(255,255,255,0.02) 80%, 
+      transparent 100%
+    );
+  
+  transform: rotate(-25deg);
+  opacity: 0.8;
   mix-blend-mode: overlay;
   pointer-events: none;
-  filter: blur(18px);
+  filter: blur(20px);
+  
+  /* Subtle animation for living glass effect */
+  animation: glassShimmer 8s ease-in-out infinite alternate;
 }
 
-/* Inner soft edge for depth */
+/* Glass shimmer animation */
+@keyframes glassShimmer {
+  0% {
+    opacity: 0.6;
+    transform: rotate(-25deg) translateX(-10px);
+  }
+  100% {
+    opacity: 0.8;
+    transform: rotate(-25deg) translateX(10px);
+  }
+}
+
+/* Dark mode glass reflection */
+.dark .liquid-bottom-nav::before {
+  background: 
+    radial-gradient(ellipse at center, rgba(96,165,250,0.12) 0%, rgba(59,130,246,0.06) 30%, transparent 70%),
+    linear-gradient(135deg, 
+      rgba(255,255,255,0.15) 0%, 
+      rgba(96,165,250,0.08) 20%, 
+      rgba(59,130,246,0.04) 40%, 
+      rgba(255,255,255,0.1) 60%, 
+      rgba(96,165,250,0.02) 80%, 
+      transparent 100%
+    );
+  
+  opacity: 0.7;
+}
+
+/* Multi-layered glass depth system */
 .liquid-bottom-nav::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 40px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -6px 24px rgba(2,6,23,0.08);
+  inset: 0.5px;
+  border-radius: 39px;
+  
+  /* Complex inner glass depth */
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(0,0,0,0.04) 100%),
+    radial-gradient(ellipse at center top, rgba(255,255,255,0.12) 0%, transparent 60%);
+  
+  /* Sophisticated inner shadows for glass thickness */
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    inset 0 -1px 0 rgba(0,0,0,0.1),
+    inset 0 0 20px rgba(255,255,255,0.05),
+    inset 0 2px 4px rgba(255,255,255,0.1);
+  
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Dark mode glass depth */
+.dark .liquid-bottom-nav::after {
+  background: 
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(0,0,0,0.15) 100%),
+    radial-gradient(ellipse at center top, rgba(96,165,250,0.08) 0%, transparent 60%);
+  
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.3),
+    inset 0 0 20px rgba(255,255,255,0.03),
+    inset 0 2px 4px rgba(96,165,250,0.08);
+}
+
+/* Additional glass layer for ultimate depth */
+.liquid-bottom-nav::after::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 38px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -123,5 +492,61 @@ input, select, textarea {
   .liquid-bottom-nav::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Mobile browser-specific optimizations */
+
+/* iOS Safari specific */
+@supports (-webkit-touch-callout: none) {
+  .liquid-bottom-nav {
+    /* Ensure proper rendering in iOS Safari */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    /* Fix for iOS Safari viewport issues */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Android Chrome/WebView specific */
+@media screen and (-webkit-device-pixel-ratio: 1.5),
+       screen and (-webkit-device-pixel-ratio: 2),
+       screen and (-webkit-device-pixel-ratio: 3) {
+  .liquid-bottom-nav {
+    /* Ensure crisp rendering on high DPI Android devices */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Firefox Mobile specific */
+@-moz-document url-prefix() {
+  .liquid-bottom-nav {
+    /* Firefox mobile backdrop filter fallback */
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .dark .liquid-bottom-nav {
+    background: rgba(15, 23, 42, 0.95);
+  }
+}
+
+/* Samsung Internet specific */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  _::-webkit-full-page-media, _:future, :root .liquid-bottom-nav {
+    /* Samsung Internet optimizations */
+    will-change: transform;
+  }
+}
+
+/* Edge Mobile specific */
+@supports (-ms-accelerator: true) {
+  .liquid-bottom-nav {
+    /* Edge mobile backdrop filter fallback */
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  .dark .liquid-bottom-nav {
+    background: rgba(15, 23, 42, 0.95) !important;
   }
 }

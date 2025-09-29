@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/language';
 
 export default function SalesTrends({ data }) {
+  const { t } = useTranslation();
   const [hoveredPoint, setHoveredPoint] = useState(null);
   
   if (!data || data.length === 0) {
     return (
-      <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8 text-zinc-400 text-sm text-center">
-        No sales trend data.
+      <div className="bg-[#F7F7F7] dark:bg-gray-800 rounded-2xl border border-sky-500 dark:border-gray-600 p-5 mt-8 text-zinc-400 dark:text-zinc-500 text-sm text-center">
+        {t('no_sales_trend_data', 'No sales trend data.')}
       </div>
     );
   }
@@ -47,11 +49,11 @@ export default function SalesTrends({ data }) {
   const areaPath = `${pathData} L ${points[points.length - 1].x} ${chartHeight - padding} L ${points[0].x} ${chartHeight - padding} Z`;
 
   return (
-    <div className="bg-[#F7F7F7] rounded-2xl border border-sky-500 p-5 mt-8 relative overflow-hidden">
+    <div className="bg-[#F7F7F7] dark:bg-gray-800 rounded-2xl border border-sky-500 dark:border-gray-600 p-5 mt-8 relative overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-black font-light text-lg tracking-tight">Sales Trends</h2>
-        <div className="text-xs text-zinc-500">Last 6 months</div>
+        <h2 className="text-black dark:text-white font-light text-lg tracking-tight">{t('sales_trends', 'Sales Trends')}</h2>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400">{t('last_6_months', 'Last 6 months')}</div>
       </div>
 
       {/* Chart Container */}
@@ -141,11 +143,11 @@ export default function SalesTrends({ data }) {
               transform: 'translateX(-50%)'
             }}
           >
-            <div className="text-xs font-medium text-gray-700">
+            <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
               {data[hoveredPoint].label}
             </div>
-            <div className="text-sm font-semibold text-sky-600">
-              {data[hoveredPoint].value} orders
+            <div className="text-sm font-semibold text-sky-600 dark:text-sky-400">
+              {t('orders_count', '{count} order{plural}', { count: data[hoveredPoint].value, plural: data[hoveredPoint].value > 1 ? 's' : '' })}
             </div>
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
               <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
@@ -160,7 +162,7 @@ export default function SalesTrends({ data }) {
           <span 
             key={i} 
             className={`text-xs transition-colors duration-200 ${
-              hoveredPoint === i ? 'text-sky-600 font-medium' : 'text-zinc-500'
+              hoveredPoint === i ? 'text-sky-600 dark:text-sky-400 font-medium' : 'text-zinc-500 dark:text-zinc-400'
             }`}
           >
             {d.label}
@@ -169,7 +171,7 @@ export default function SalesTrends({ data }) {
       </div>
 
       {/* Y-axis Labels */}
-      <div className="absolute left-1 top-12 h-24 flex flex-col justify-between text-xs text-zinc-400">
+      <div className="absolute left-1 top-12 h-24 flex flex-col justify-between text-xs text-zinc-400 dark:text-zinc-500">
         <span>{max}</span>
         <span>{Math.round(max * 0.75)}</span>
         <span>{Math.round(max * 0.5)}</span>
