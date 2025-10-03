@@ -1,41 +1,56 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
-import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
-import { db } from '@/lib/firebase';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
+import { ArrowLeft, Check, CheckCheck } from "lucide-react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { useSettings, SETTINGS_KEYS } from "@/lib/settings";
+import { db } from "@/lib/firebase";
 import {
   getOrCreateThread,
   listenThreadMessagesPaginated,
   sendChatMessage,
   markThreadRead,
-  markMessageDelivered
-} from '@/lib/db';
-import { doc, getDoc } from 'firebase/firestore';
-import { Paperclip } from 'lucide-react';
-import SendButtonUrl from '@/icons/SendButton.svg?url';
-import CallIcon from '@/icons/react/CallIcon';
-import notificationSound from '@/assets/message-tone.mp3'; // You need to provide this mp3 file
-import { createPrescription } from '@/lib/db';
-import { Menu } from '@headlessui/react';
-import Modal from '@/components/Modal';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { useTranslation } from '@/lib/language';
+  markMessageDelivered,
+} from "@/lib/db";
+import { doc, getDoc } from "firebase/firestore";
+import { Paperclip } from "lucide-react";
+import SendButtonUrl from "@/icons/SendButton.svg?url";
+import CallIcon from "@/icons/react/CallIcon";
+import notificationSound from "@/assets/message-tone.mp3"; // You need to provide this mp3 file
+import { createPrescription } from "@/lib/db";
+import { Menu } from "@headlessui/react";
+import Modal from "@/components/Modal";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { useTranslation } from "@/lib/language";
+
+/* Prescription */
+import PrescriptionPreview from "@/components/PrescriptionPreview";
 
 // Lazy load heavy components
-const CreatePrescriptionModal = React.lazy(() => import('@/components/CreatePrescriptionModal'));
-const PrescriptionList = React.lazy(() => import('@/components/PrescriptionList'));
-const MessageWithLinks = React.lazy(() => import('@/components/MessageWithLinks'));
+const CreatePrescriptionModal = React.lazy(() =>
+  import("@/components/CreatePrescriptionModal")
+);
+const PrescriptionList = React.lazy(() =>
+  import("@/components/PrescriptionList")
+);
+const MessageWithLinks = React.lazy(() =>
+  import("@/components/MessageWithLinks")
+);
 // Use the SVG placed in the `public/` folder so production (Netlify) serves it at root
-const ChatBgUrl = '/ChatBg.svg';
+const ChatBgUrl = "/ChatBg.svg";
 
 /**
  * ChatThread Page Component
- * 
+ *
  * Routes:
  * - /chat/:vendorId - Customer initiating chat with a pharmacy
  * - /thread/:threadId - Opening an existing chat thread
- * 
+ *
  * URL Parameters:
  * - vendorId: pharmacy ID (for customers starting new chat)
  * - threadId: existing thread ID (for opening existing conversations)
@@ -47,64 +62,70 @@ function getDateLabel(date, t) {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = (today - d) / (1000 * 60 * 60 * 24);
-  if (diff === 0) return t('today', 'Today');
-  if (diff === 1) return t('yesterday', 'Yesterday');
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  if (diff === 0) return t("today", "Today");
+  if (diff === 1) return t("yesterday", "Yesterday");
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 // Helper to detect if a message is a product preview
 function isProductPreviewMessage(m) {
-  return m.type === 'product-preview';
+  return m.type === "product-preview";
 }
 
 // Message status indicator component - memoized to prevent unnecessary re-renders
 const MessageStatus = React.memo(({ message, isMine, t }) => {
   if (!isMine) return null; // Only show status for sent messages
-  
-  const status = message.status || 'sent';
-  const isRead = message.read || status === 'read';
-  
-  if (status === 'sent') {
+
+  const status = message.status || "sent";
+  const isRead = message.read || status === "read";
+
+  if (status === "sent") {
     return (
-      <Check 
-        className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
+      <Check
+        className="w-3 h-3 text-gray-400 ml-1 opacity-80"
         strokeWidth={2}
-        title={t('sent', 'Sent')}
+        title={t("sent", "Sent")}
       />
     );
   }
-  
-  if (status === 'delivered') {
+
+  if (status === "delivered") {
     return (
-      <CheckCheck 
-        className="w-3 h-3 text-gray-400 ml-1 opacity-80" 
+      <CheckCheck
+        className="w-3 h-3 text-gray-400 ml-1 opacity-80"
         strokeWidth={2}
-        title={t('delivered', 'Delivered')}
+        title={t("delivered", "Delivered")}
       />
     );
   }
-  
-  if (status === 'read' || isRead) {
+
+  if (status === "read" || isRead) {
     return (
-      <CheckCheck 
-        className="w-3 h-3 text-green-500 ml-1" 
+      <CheckCheck
+        className="w-3 h-3 text-green-500 ml-1"
         strokeWidth={2}
-        title={t('read', 'Read')}
+        title={t("read", "Read")}
       />
     );
   }
-  
+
   return null;
 });
 
 // Enhanced MessageStatus that respects read receipts setting
-const ConditionalMessageStatus = React.memo(({ message, isMine, showReadReceipts, t }) => {
-  if (!isMine || !showReadReceipts) return null;
-  return <MessageStatus message={message} isMine={isMine} t={t} />;
-});
+const ConditionalMessageStatus = React.memo(
+  ({ message, isMine, showReadReceipts, t }) => {
+    if (!isMine || !showReadReceipts) return null;
+    return <MessageStatus message={message} isMine={isMine} t={t} />;
+  }
+);
 
-MessageStatus.displayName = 'MessageStatus';
-ConditionalMessageStatus.displayName = 'ConditionalMessageStatus';
+MessageStatus.displayName = "MessageStatus";
+ConditionalMessageStatus.displayName = "ConditionalMessageStatus";
 
 // Skeleton component for loading messages
 const MessageSkeleton = React.memo(() => (
@@ -114,7 +135,7 @@ const MessageSkeleton = React.memo(() => (
   </div>
 ));
 
-MessageSkeleton.displayName = 'MessageSkeleton';
+MessageSkeleton.displayName = "MessageSkeleton";
 
 export default function ChatThread() {
   const { user, profile } = useAuth();
@@ -123,20 +144,20 @@ export default function ChatThread() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  
+
   // Get vendorId and threadId from URL parameters
   const vendorIdFromUrl = params.vendorId;
   const threadIdFromUrl = params.threadId;
-  
+
   const [threadId, setThreadId] = useState(threadIdFromUrl || null);
 
   // 🔹 What to show in the sticky header
-  const [otherName, setOtherName] = useState('');
-  const [otherSubline, setOtherSubline] = useState(''); // e.g., address or email
+  const [otherName, setOtherName] = useState("");
+  const [otherSubline, setOtherSubline] = useState(""); // e.g., address or email
 
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
-  const [pharmacyPhone, setPharmacyPhone] = useState('');
+  const [text, setText] = useState("");
+  const [pharmacyPhone, setPharmacyPhone] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [visibleMessageCount, setVisibleMessageCount] = useState(50); // Start with 50 messages
   const bottomRef = useRef(null);
@@ -150,12 +171,12 @@ export default function ChatThread() {
   const [showPrescriptionHistory, setShowPrescriptionHistory] = useState(false);
 
   const queryParams = new URLSearchParams(location.search);
-  const productId = queryParams.get('productId');
-  const productName = queryParams.get('productName');
-  const productImage = queryParams.get('productImage');
-  const vendorName = queryParams.get('vendorName');
-  const productPrice = queryParams.get('productPrice'); // <-- Add this line
-  const prefillMsg = queryParams.get('prefillMsg');
+  const productId = queryParams.get("productId");
+  const productName = queryParams.get("productName");
+  const productImage = queryParams.get("productImage");
+  const vendorName = queryParams.get("vendorName");
+  const productPrice = queryParams.get("productPrice"); // <-- Add this line
+  const prefillMsg = queryParams.get("prefillMsg");
 
   // Resolve thread:
   // - customer + vendorId from URL => create/get thread
@@ -171,16 +192,16 @@ export default function ChatThread() {
       }
 
       // Otherwise, if customer with vendorId, create/get thread
-      if (profile?.role === 'customer' && vendorIdFromUrl) {
-        const id = await getOrCreateThread({ 
-          vendorId: vendorIdFromUrl, 
-          customerId: user.uid, 
-          role: 'customer' 
+      if (profile?.role === "customer" && vendorIdFromUrl) {
+        const id = await getOrCreateThread({
+          vendorId: vendorIdFromUrl,
+          customerId: user.uid,
+          role: "customer",
         });
         setThreadId(id);
-      } else if (profile?.role === 'vendor' && !threadIdFromUrl) {
-        console.warn('Vendor tried to open chat without threadId in URL.');
-        navigate('/messages');
+      } else if (profile?.role === "vendor" && !threadIdFromUrl) {
+        console.warn("Vendor tried to open chat without threadId in URL.");
+        navigate("/messages");
         return;
       }
     })().catch(console.error);
@@ -191,41 +212,41 @@ export default function ChatThread() {
     if (!threadId || !profile?.role) return;
 
     (async () => {
-      const tSnap = await getDoc(doc(db, 'threads', threadId));
+      const tSnap = await getDoc(doc(db, "threads", threadId));
       if (!tSnap.exists()) return;
       const t = tSnap.data();
-      const [vId, cId] = threadId.split('__');
-      if (profile.role === 'customer') {
+      const [vId, cId] = threadId.split("__");
+      if (profile.role === "customer") {
         // show the PHARMACY name to the customer
-        const name = t.vendorName || '';
-        const address = t.vendorAddress || '';
+        const name = t.vendorName || "";
+        const address = t.vendorAddress || "";
         if (name) {
           setOtherName(name);
           setOtherSubline(address);
         } else {
           // fallback: fetch from pharmacies
-          const pSnap = await getDoc(doc(db, 'pharmacies', vId));
+          const pSnap = await getDoc(doc(db, "pharmacies", vId));
           const pdata = pSnap.exists() ? pSnap.data() : {};
-          setOtherName(pdata.name || t('pharmacy', 'Pharmacy'));
-          setOtherSubline(pdata.address || pdata.email || '');
+          setOtherName(pdata.name || t("pharmacy", "Pharmacy"));
+          setOtherSubline(pdata.address || pdata.email || "");
         }
         // Always fetch pharmacy phone for call button
-        const pSnap = await getDoc(doc(db, 'pharmacies', vId));
+        const pSnap = await getDoc(doc(db, "pharmacies", vId));
         const pdata = pSnap.exists() ? pSnap.data() : {};
-        setPharmacyPhone(pdata.phone || '');
+        setPharmacyPhone(pdata.phone || "");
       } else {
         // vendor is chatting with the CUSTOMER
-        const name = t.customerName || '';
-        const sub = t.customerAddress || t.customerEmail || '';
+        const name = t.customerName || "";
+        const sub = t.customerAddress || t.customerEmail || "";
         if (name) {
           setOtherName(name);
           setOtherSubline(sub);
         } else {
           // fallback: fetch from users
-          const uSnap = await getDoc(doc(db, 'users', cId));
+          const uSnap = await getDoc(doc(db, "users", cId));
           const u = uSnap.exists() ? uSnap.data() : {};
-          setOtherName(u.displayName || t('customer', 'Customer'));
-          setOtherSubline(u.email || '');
+          setOtherName(u.displayName || t("customer", "Customer"));
+          setOtherSubline(u.email || "");
         }
       }
     })().catch(console.error);
@@ -234,24 +255,29 @@ export default function ChatThread() {
   // Live messages + mark read - using paginated listener for better performance
   useEffect(() => {
     if (!threadId || !user?.uid) return;
-    
+
     setIsLoading(true);
-    const stop = listenThreadMessagesPaginated(threadId, (newMessages) => {
-      setMessages(newMessages);
-      setIsLoading(false);
-      
-      // Mark incoming messages as delivered (simulate recipient receiving them)
-      newMessages.forEach(async (msg) => {
-        if (msg.senderId !== user.uid && msg.status === 'sent') {
-          try {
-            await markMessageDelivered(threadId, msg.id);
-          } catch (error) {
-            console.error('Error marking message as delivered:', error);
+    const stop = listenThreadMessagesPaginated(
+      threadId,
+      (newMessages) => {
+        setMessages(newMessages);
+        setIsLoading(false);
+
+        // Mark incoming messages as delivered (simulate recipient receiving them)
+        newMessages.forEach(async (msg) => {
+          if (msg.senderId !== user.uid && msg.status === "sent") {
+            try {
+              await markMessageDelivered(threadId, msg.id);
+            } catch (error) {
+              console.error("Error marking message as delivered:", error);
+            }
           }
-        }
-      });
-    }, console.error, 100); // Load latest 100 messages initially
-    
+        });
+      },
+      console.error,
+      100
+    ); // Load latest 100 messages initially
+
     markThreadRead(threadId, user.uid).catch(console.error);
     return stop;
   }, [threadId, user?.uid]);
@@ -261,10 +287,10 @@ export default function ChatThread() {
     if (immediate) {
       bottomRef.current?.scrollIntoView();
     } else {
-      bottomRef.current?.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'end',
-        inline: 'nearest'
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
       });
     }
   }, []);
@@ -281,25 +307,30 @@ export default function ChatThread() {
     let timeoutId = null;
     return (e) => {
       if (timeoutId) return; // Skip if already throttled
-      
+
       timeoutId = setTimeout(() => {
         const container = e.target;
         const scrollTop = container.scrollTop;
-        
+
         // If user scrolls near the top and there are more messages, load more
         if (scrollTop < 200 && visibleMessageCount < messages.length) {
-          setVisibleMessageCount(prev => Math.min(prev + 50, messages.length));
+          setVisibleMessageCount((prev) =>
+            Math.min(prev + 50, messages.length)
+          );
         }
-        
+
         timeoutId = null;
       }, 100); // Throttle to 100ms
     };
   }, [visibleMessageCount, messages.length]);
 
   // Handle scroll to load more messages
-  const handleScroll = useCallback((e) => {
-    throttledHandleScroll(e);
-  }, [throttledHandleScroll]);
+  const handleScroll = useCallback(
+    (e) => {
+      throttledHandleScroll(e);
+    },
+    [throttledHandleScroll]
+  );
 
   // Get visible messages (latest N messages)
   const visibleMessages = useMemo(() => {
@@ -319,8 +350,9 @@ export default function ChatThread() {
         markThreadRead(threadId, user.uid).catch(console.error);
       }
     };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, [threadId, user?.uid]);
 
   // Play tone on new incoming message (not sent by self)
@@ -343,24 +375,28 @@ export default function ChatThread() {
 
   const otherUid = useCallback(() => {
     if (!threadId || !user) return null;
-    const [vId, cId] = threadId.split('__');
+    const [vId, cId] = threadId.split("__");
     return user.uid === vId ? cId : vId;
   }, [threadId, user]);
 
   const onSend = useCallback(async () => {
     const to = otherUid();
     if (!to || !text.trim() || !threadId) return;
-    
+
     // Optimistically clear input immediately for better UX
     const messageText = text.trim();
-    setText('');
-    
+    setText("");
+
     try {
-      await sendChatMessage(threadId, { senderId: user.uid, to, text: messageText });
+      await sendChatMessage(threadId, {
+        senderId: user.uid,
+        to,
+        text: messageText,
+      });
     } catch (error) {
       // Restore text if send fails
       setText(messageText);
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     }
   }, [threadId, text, user?.uid, otherUid]);
 
@@ -368,21 +404,26 @@ export default function ChatThread() {
   useEffect(() => {
     if (!showPrescriptionModal) return;
     let vId = null;
-    if (profile?.role === 'pharmacy') vId = user?.uid;
-    else if (threadId) [vId] = threadId.split('__');
+    if (profile?.role === "pharmacy") vId = user?.uid;
+    else if (threadId) [vId] = threadId.split("__");
     if (!vId) return;
-    const q = query(collection(db, 'products'), where('pharmacyId', '==', vId));
-    const unsub = onSnapshot(q, snap => {
-      setPharmacyProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    const q = query(collection(db, "products"), where("pharmacyId", "==", vId));
+    const unsub = onSnapshot(q, (snap) => {
+      setPharmacyProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => unsub && unsub();
   }, [showPrescriptionModal, profile?.role, user?.uid, threadId]);
 
   // Handle prescription creation
-  const handleCreatePrescription = async ({ drugs, startDate, duration, notes }) => {
+  const handleCreatePrescription = async ({
+    drugs,
+    startDate,
+    duration,
+    notes,
+  }) => {
     if (!threadId || !user) return;
-    const [vId, cId] = threadId.split('__');
-    await createPrescription({
+    const [vId, cId] = threadId.split("__");
+    const { id: prescriptionId } = await createPrescription({
       pharmacyId: vId,
       customerId: cId,
       chatThreadId: threadId,
@@ -393,14 +434,28 @@ export default function ChatThread() {
     });
     setShowPrescriptionModal(false);
     // Optionally, send a chat message
-    await sendChatMessage(threadId, { senderId: user.uid, to: cId, text: t('prescription_created', 'A new prescription has been created.') });
+    await sendChatMessage(
+      threadId,
+      {
+        senderId: user.uid,
+        to: cId,
+        text: t("prescription_created", "A new prescription has been created."),
+      },
+      prescriptionId
+    );
   };
 
   // Prefill message input if product info is present (runs when product params change)
   useEffect(() => {
     if (productName && productId) {
-      const priceText = productPrice ? productPrice : '';
-      setText(t('drug_inquiry', `I want to know more about this drug {productName}{priceText}.`, { productName, priceText: priceText ? ', ' + priceText : '' }));
+      const priceText = productPrice ? productPrice : "";
+      setText(
+        t(
+          "drug_inquiry",
+          `I want to know more about this drug {productName}{priceText}.`,
+          { productName, priceText: priceText ? ", " + priceText : "" }
+        )
+      );
     } else if (prefillMsg) {
       setText(prefillMsg);
     }
@@ -409,45 +464,51 @@ export default function ChatThread() {
 
   return (
     // Make the chat UI cover the full viewport and allow inner scrolling to work
-    <div className="h-screen w-full flex flex-col items-stretch overflow-visible bg-white dark:bg-gray-900" style={{ position: 'relative' }}>
+    <div
+      className="h-screen w-full flex flex-col items-stretch overflow-visible bg-white dark:bg-gray-900"
+      style={{ position: "relative" }}
+    >
       {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
       <div
         aria-hidden
         style={{
-          position: 'fixed',
+          position: "fixed",
           left: 0,
           top: 0,
-          width: '100vw',
-          height: '100vh',
+          width: "100vw",
+          height: "100vh",
           backgroundImage: `url(${ChatBgUrl})`,
-          backgroundRepeat: 'repeat',
-          backgroundPosition: 'center center',
-          backgroundSize: '200px 200px', // Optimized: Smaller tile size for better performance
-          pointerEvents: 'none',
+          backgroundRepeat: "repeat",
+          backgroundPosition: "center center",
+          backgroundSize: "200px 200px", // Optimized: Smaller tile size for better performance
+          pointerEvents: "none",
           zIndex: 0,
           opacity: 0.3, // Optimized: Reduced opacity for subtlety and better text readability
-          willChange: 'transform', // Optimized: GPU acceleration hint
-          backfaceVisibility: 'hidden', // Optimized: Reduce repaints
-          transform: 'translateZ(0)' // Optimized: Force GPU layer
+          willChange: "transform", // Optimized: GPU acceleration hint
+          backfaceVisibility: "hidden", // Optimized: Reduce repaints
+          transform: "translateZ(0)", // Optimized: Force GPU layer
         }}
       />
 
       {/* Main content wrapper sits above the fixed background */}
-      <div style={{ position: 'relative', zIndex: 10 }} className="flex-1 flex flex-col min-h-0">
+      <div
+        style={{ position: "relative", zIndex: 10 }}
+        className="flex-1 flex flex-col min-h-0"
+      >
         {/* Scoped CSS to visually hide scrollbar but keep scrolling functional */}
         <style>{`.hide-scrollbar::-webkit-scrollbar{display:none} .hide-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}`}</style>
-         {/* Audio for message tone (defer load until needed) */}
-         <audio ref={audioRef} src={notificationSound} preload="none" />
+        {/* Audio for message tone (defer load until needed) */}
+        <audio ref={audioRef} src={notificationSound} preload="none" />
         {/* Header (full-bleed background, centered content). Negate parent padding with -mx to reach screen edges */}
         <div
           className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 pt-1 pb-1"
           style={{
-            paddingTop: 'env(safe-area-inset-top, 0)',
+            paddingTop: "env(safe-area-inset-top, 0)",
             // Force the header background to span the full viewport width even when content is centered with max-width
-            width: '100vw',
-            marginLeft: 'calc(50% - 50vw)',
+            width: "100vw",
+            marginLeft: "calc(50% - 50vw)",
             // Respect safe-area on notch devices
-            paddingRight: 'env(safe-area-inset-right, 0)'
+            paddingRight: "env(safe-area-inset-right, 0)",
           }}
         >
           <div className="w-full px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
@@ -457,7 +518,7 @@ export default function ChatThread() {
                   if (window.history.length > 1) {
                     navigate(-1);
                   } else {
-                    navigate('/messages');
+                    navigate("/messages");
                   }
                 }}
                 className="rounded-full border border-gray-200 dark:border-gray-600 dark:border-gray-600 px-3 sm:px-4 py-1 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -465,62 +526,85 @@ export default function ChatThread() {
                 <ArrowLeft className="h-4 w-4" />
               </button>
               {/* Customer: show pharmacy name as link */}
-              {profile?.role === 'customer' ? (
+              {profile?.role === "customer" ? (
                 <button
                   className="min-w-0 font-light text-[15px] sm:text-[17px] truncate text-left hover:underline focus:outline-none text-gray-900 dark:text-white"
                   onClick={() => {
                     if (threadId) {
-                      const [vId] = threadId.split('__');
+                      const [vId] = threadId.split("__");
                       navigate(`/vendor/${vId}`);
                     }
                   }}
                   title={otherName}
                 >
-                  {otherName || '...'}
+                  {otherName || "..."}
                 </button>
               ) : (
                 <div className="min-w-0">
-                  <div className="font-light text-[15px] sm:text-[17px] truncate text-gray-900 dark:text-white">{otherName || '...'}</div>
-                  <div className="text-[9px] text-zinc-500 dark:text-zinc-400 truncate">{otherSubline}</div>
+                  <div className="font-light text-[15px] sm:text-[17px] truncate text-gray-900 dark:text-white">
+                    {otherName || "..."}
+                  </div>
+                  <div className="text-[9px] text-zinc-500 dark:text-zinc-400 truncate">
+                    {otherSubline}
+                  </div>
                 </div>
               )}
             </div>
             {/* Call button for customer */}
-            {profile?.role === 'customer' && (
+            {profile?.role === "customer" && (
               <a
                 href={pharmacyPhone ? `tel:${pharmacyPhone}` : undefined}
-                className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 dark:text-sky-400 px-2 py-1 text-[11px] font-poppins font-light ${pharmacyPhone ? 'hover:bg-sky-50 dark:hover:bg-sky-900/20' : 'opacity-40 cursor-not-allowed'}`}
+                className={`flex items-center justify-center rounded-full border border-sky-500 text-sky-600 dark:text-sky-400 px-2 py-1 text-[11px] font-poppins font-light ${
+                  pharmacyPhone
+                    ? "hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                    : "opacity-40 cursor-not-allowed"
+                }`}
                 style={{ minWidth: 32 }}
-                title={pharmacyPhone ? t('call_pharmacy_title', `Call {pharmacy}`, { pharmacy: otherName }) : t('no_phone_number', 'No phone number')}
+                title={
+                  pharmacyPhone
+                    ? t("call_pharmacy_title", `Call {pharmacy}`, {
+                        pharmacy: otherName,
+                      })
+                    : t("no_phone_number", "No phone number")
+                }
                 tabIndex={pharmacyPhone ? 0 : -1}
                 aria-disabled={!pharmacyPhone}
               >
-                <CallIcon className="h-3 w-3 mr-1" /> {t('call', 'Call')}
+                <CallIcon className="h-3 w-3 mr-1" /> {t("call", "Call")}
               </a>
             )}
             {/* Dropdown for pharmacy actions */}
-            {profile?.role === 'pharmacy' && threadId && (
+            {profile?.role === "pharmacy" && threadId && (
               <Menu as="div" className="relative inline-block text-left ml-2">
-                <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">{t('actions', 'Actions')} ▾</Menu.Button>
+                <Menu.Button className="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-medium">
+                  {t("actions", "Actions")} ▾
+                </Menu.Button>
                 <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white dark:bg-gray-800 border border-sky-200 dark:border-gray-600 divide-y divide-gray-100 dark:divide-gray-700 rounded-[5px] shadow-lg focus:outline-none z-50">
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${
+                            active ? "bg-sky-50" : ""
+                          }`}
                           onClick={() => setShowPrescriptionModal(true)}
                         >
-                          {t('create_prescription', 'Create Prescription')}
+                          {t("create_prescription", "Create Prescription")}
                         </button>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${active ? 'bg-sky-50' : ''}`}
+                          className={`w-full text-left px-4 py-2 text-[12px] font-light ${
+                            active ? "bg-sky-50" : ""
+                          }`}
                           onClick={() => setShowPrescriptionHistory(true)}
                         >
-                          {t('view_prescription_history', 'View Prescription History')}
+                          {t(
+                            "view_prescription_history",
+                            "View Prescription History"
+                          )}
                         </button>
                       )}
                     </Menu.Item>
@@ -533,24 +617,30 @@ export default function ChatThread() {
 
         {/* Messages */}
         <div className="w-full flex-1 flex flex-col min-h-0">
-          <div 
+          <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 min-h-0 hide-scrollbar" 
+            className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28 min-h-0 hide-scrollbar"
             style={{ paddingTop: 12 }}
             onScroll={handleScroll}
           >
             {/* Show load more indicator */}
             {visibleMessageCount < messages.length && (
               <div className="flex justify-center py-4">
-                <button 
-                  onClick={() => setVisibleMessageCount(prev => Math.min(prev + 50, messages.length))}
+                <button
+                  onClick={() =>
+                    setVisibleMessageCount((prev) =>
+                      Math.min(prev + 50, messages.length)
+                    )
+                  }
                   className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1 rounded-full transition-colors"
                 >
-                  {t('load_more_messages', 'Load {count} more messages', { count: Math.min(50, messages.length - visibleMessageCount) })}
+                  {t("load_more_messages", "Load {count} more messages", {
+                    count: Math.min(50, messages.length - visibleMessageCount),
+                  })}
                 </button>
               </div>
             )}
-            
+
             {isLoading ? (
               <div className="space-y-4">
                 {/* Show skeleton messages while loading */}
@@ -569,7 +659,7 @@ export default function ChatThread() {
               <div className="flex justify-center items-center py-12">
                 <div className="text-gray-400 dark:text-gray-500 text-sm text-center">
                   <div className="text-lg mb-2">💬</div>
-                  {t('start_conversation', 'Start your conversation')}
+                  {t("start_conversation", "Start your conversation")}
                 </div>
               </div>
             ) : (
@@ -577,7 +667,9 @@ export default function ChatThread() {
                 let lastDate = null;
                 return visibleMessages.map((m) => {
                   const isMine = m.senderId === user?.uid;
-                  const timestamp = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : null;
+                  const timestamp = m.createdAt?.seconds
+                    ? new Date(m.createdAt.seconds * 1000)
+                    : null;
                   let showDate = false;
                   if (timestamp) {
                     const dayStr = timestamp.toDateString();
@@ -595,26 +687,56 @@ export default function ChatThread() {
                           </span>
                         </div>
                       )}
-                      <div className={`flex flex-col items-${isMine ? 'end' : 'start'} w-full mb-1.5`}>
+                      <div
+                        className={`flex flex-col items-${
+                          isMine ? "end" : "start"
+                        } w-full mb-1.5`}
+                      >
                         <div
                           className={`${
-                            isMine 
-                              ? 'bg-blue-500 text-white ml-8' 
-                              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-600 dark:border-gray-700'
+                            isMine
+                              ? "bg-blue-500 text-white ml-8"
+                              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white mr-8 border border-gray-200 dark:border-gray-600 dark:border-gray-700"
                           } px-2.5 py-1.5 max-w-[75%] sm:max-w-[65%] whitespace-pre-wrap break-words shadow-sm`}
-                          style={{ 
-                            borderRadius: isMine ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
+                          style={{
+                            borderRadius: isMine
+                              ? "10px 10px 2px 10px"
+                              : "10px 10px 10px 2px",
                             fontSize: 13,
-                            lineHeight: 1.2
+                            lineHeight: 1.2,
                           }}
                         >
                           <React.Suspense fallback={<span>{m.text}</span>}>
                             <MessageWithLinks text={m.text} isMine={isMine} />
                           </React.Suspense>
                         </div>
-                        <div className={`flex items-center text-[9px] text-gray-400 dark:text-gray-500 mt-0.5 ${isMine ? 'mr-2 justify-end' : 'ml-2 justify-start'}`}>
-                          <span>{timestamp ? timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-                          <ConditionalMessageStatus message={m} isMine={isMine} showReadReceipts={showReadReceipts} t={t} />
+                        {/* Prescription Preview */}
+                        {m.prescriptionId && (
+                          <div className="mt-1">
+                            <PrescriptionPreview
+                              prescriptionId={m.prescriptionId}
+                            />{" "}
+                          </div>
+                        )}
+                        <div
+                          className={`flex items-center text-[9px] text-gray-400 dark:text-gray-500 mt-0.5 ${
+                            isMine ? "mr-2 justify-end" : "ml-2 justify-start"
+                          }`}
+                        >
+                          <span>
+                            {timestamp
+                              ? timestamp.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : ""}
+                          </span>
+                          <ConditionalMessageStatus
+                            message={m}
+                            isMine={isMine}
+                            showReadReceipts={showReadReceipts}
+                            t={t}
+                          />
                         </div>
                       </div>
                     </React.Fragment>
@@ -629,32 +751,44 @@ export default function ChatThread() {
           <div
             className="w-full sticky bottom-0 z-20 bg-white/85 dark:bg-gray-900/85 backdrop-blur"
             style={{
-              paddingBottom: 'env(safe-area-inset-bottom, 0)',
+              paddingBottom: "env(safe-area-inset-bottom, 0)",
               // Make the composer background truly full-bleed across the viewport
-              width: '100vw',
-              marginLeft: 'calc(50% - 50vw)',
-              paddingLeft: 'env(safe-area-inset-left, 0)',
-              paddingRight: 'env(safe-area-inset-right, 0)'
+              width: "100vw",
+              marginLeft: "calc(50% - 50vw)",
+              paddingLeft: "env(safe-area-inset-left, 0)",
+              paddingRight: "env(safe-area-inset-right, 0)",
             }}
           >
             <div className="w-full">
-              <form className="mx-4 sm:mx-5 flex items-center gap-3 py-3" onSubmit={(e) => { e.preventDefault(); onSend(); }}>
-                <label className="flex items-center cursor-not-allowed opacity-40" title={t('attachments_coming_soon', 'Attachments coming soon')}>
+              <form
+                className="mx-4 sm:mx-5 flex items-center gap-3 py-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  onSend();
+                }}
+              >
+                <label
+                  className="flex items-center cursor-not-allowed opacity-40"
+                  title={t(
+                    "attachments_coming_soon",
+                    "Attachments coming soon"
+                  )}
+                >
                   <Paperclip className="h-5 w-5 text-gray-400" />
                 </label>
                 <input
                   value={text}
-                  onChange={e => setText(e.target.value)}
-                  placeholder={t('message_placeholder', 'Message')}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={t("message_placeholder", "Message")}
                   className="flex-1 min-w-0 outline-none px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-full placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-[14px] focus:border-blue-400 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
                   style={{ fontSize: 14 }}
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
-                    text.trim() 
-                      ? 'bg-blue-500 hover:bg-blue-600 active:scale-95' 
-                      : 'bg-gray-300 cursor-not-allowed'
+                    text.trim()
+                      ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
+                      : "bg-gray-300 cursor-not-allowed"
                   }`}
                   disabled={!text.trim()}
                 >
@@ -676,9 +810,16 @@ export default function ChatThread() {
           />
         </React.Suspense>
         {/* Prescription History Modal */}
-        <Modal open={showPrescriptionHistory} onClose={() => setShowPrescriptionHistory(false)}>
+        <Modal
+          open={showPrescriptionHistory}
+          onClose={() => setShowPrescriptionHistory(false)}
+        >
           <React.Suspense fallback={null}>
-            <PrescriptionList chatThreadId={threadId} products={pharmacyProducts} userId={user?.uid} />
+            <PrescriptionList
+              chatThreadId={threadId}
+              products={pharmacyProducts}
+              userId={user?.uid}
+            />
           </React.Suspense>
         </Modal>
 

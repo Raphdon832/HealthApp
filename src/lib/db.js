@@ -93,7 +93,11 @@ export const getOrCreateThread = async ({ vendorId, customerId, role }) => {
   return threadId;
 };
 
-export const sendChatMessage = async (threadId, { senderId, to, text }) => {
+export const sendChatMessage = async (
+  threadId,
+  { senderId, to, text },
+  prescriptionId = null
+) => {
   const messagesCol = collection(db, "threads", threadId, "messages");
   const messageRef = await addDoc(messagesCol, {
     senderId,
@@ -104,15 +108,16 @@ export const sendChatMessage = async (threadId, { senderId, to, text }) => {
     status: "sent", // sent, delivered, read
     deliveredAt: null,
     readAt: null,
+    prescriptionId: prescriptionId,
   });
-  
+
   await updateDoc(doc(db, "threads", threadId), {
     lastMessage: text || "…",
     lastBy: senderId,
     lastAt: serverTimestamp(),
     [`unread.${to}`]: increment(1),
   });
-  
+
   // Immediately mark as delivered (in a real app, this would be done when the recipient's client receives it)
   setTimeout(async () => {
     await updateDoc(messageRef, {
@@ -120,7 +125,7 @@ export const sendChatMessage = async (threadId, { senderId, to, text }) => {
       deliveredAt: serverTimestamp(),
     });
   }, 1000);
-  
+
   return messageRef.id;
 };
 
@@ -139,7 +144,7 @@ export const markThreadRead = async (threadId, viewerUid) => {
     const batch = writeBatch(db);
     const readTime = serverTimestamp();
     snap.docs.forEach((d) => {
-      batch.update(d.ref, { 
+      batch.update(d.ref, {
         read: true,
         status: "read",
         readAt: readTime,
@@ -182,7 +187,12 @@ export const listenThreadMessages = (threadId, cb, onErr) => {
 };
 
 /** Paginated messages listener for better performance */
-export const listenThreadMessagesPaginated = (threadId, cb, onErr, messageLimit = 50) => {
+export const listenThreadMessagesPaginated = (
+  threadId,
+  cb,
+  onErr,
+  messageLimit = 50
+) => {
   const q = query(
     collection(db, "threads", threadId, "messages"),
     orderBy("createdAt", "desc"), // Get newest first
@@ -449,7 +459,7 @@ export async function fulfillPrescriptionIfOrdered({ customerId }) {
    WISHLIST FUNCTIONS
 ----------------------------------*/
 export const addToWishlist = async (userId, productId, productData) => {
-  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  const wishlistRef = doc(db, "wishlists", `${userId}_${productId}`);
   await setDoc(wishlistRef, {
     userId,
     productId,
@@ -459,41 +469,46 @@ export const addToWishlist = async (userId, productId, productData) => {
 };
 
 export const removeFromWishlist = async (userId, productId) => {
-  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  const wishlistRef = doc(db, "wishlists", `${userId}_${productId}`);
   await deleteDoc(wishlistRef);
 };
 
 export const isInWishlist = async (userId, productId) => {
-  const wishlistRef = doc(db, 'wishlists', `${userId}_${productId}`);
+  const wishlistRef = doc(db, "wishlists", `${userId}_${productId}`);
   const snap = await getDoc(wishlistRef);
   return snap.exists();
 };
 
 export const getUserWishlist = async (userId) => {
   const q = query(
-    collection(db, 'wishlists'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    collection(db, "wishlists"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
   );
   const snap = await getDocs(q);
-  return snap.docs.map(doc => ({
+  return snap.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   }));
 };
 
-export const listenUserWishlist = (userId, callback, onError = console.error) => {
+export const listenUserWishlist = (
+  userId,
+  callback,
+  onError = console.error
+) => {
   const q = query(
-    collection(db, 'wishlists'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    collection(db, "wishlists"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
   );
-  
-  return onSnapshot(q, 
+
+  return onSnapshot(
+    q,
     (snapshot) => {
-      const wishlist = snapshot.docs.map(doc => ({
+      const wishlist = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       callback(wishlist);
     },
@@ -505,7 +520,7 @@ export const listenUserWishlist = (userId, callback, onError = console.error) =>
    VENDOR BOOKMARK FUNCTIONS
 ----------------------------------*/
 export const addVendorBookmark = async (userId, vendorId, vendorData) => {
-  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  const bookmarkRef = doc(db, "vendorBookmarks", `${userId}_${vendorId}`);
   await setDoc(bookmarkRef, {
     userId,
     vendorId,
@@ -515,41 +530,46 @@ export const addVendorBookmark = async (userId, vendorId, vendorData) => {
 };
 
 export const removeVendorBookmark = async (userId, vendorId) => {
-  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  const bookmarkRef = doc(db, "vendorBookmarks", `${userId}_${vendorId}`);
   await deleteDoc(bookmarkRef);
 };
 
 export const isVendorBookmarked = async (userId, vendorId) => {
-  const bookmarkRef = doc(db, 'vendorBookmarks', `${userId}_${vendorId}`);
+  const bookmarkRef = doc(db, "vendorBookmarks", `${userId}_${vendorId}`);
   const snap = await getDoc(bookmarkRef);
   return snap.exists();
 };
 
 export const getUserBookmarkedVendors = async (userId) => {
   const q = query(
-    collection(db, 'vendorBookmarks'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    collection(db, "vendorBookmarks"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
   );
   const snap = await getDocs(q);
-  return snap.docs.map(doc => ({
+  return snap.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   }));
 };
 
-export const listenUserBookmarkedVendors = (userId, callback, onError = console.error) => {
+export const listenUserBookmarkedVendors = (
+  userId,
+  callback,
+  onError = console.error
+) => {
   const q = query(
-    collection(db, 'vendorBookmarks'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    collection(db, "vendorBookmarks"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
   );
-  
-  return onSnapshot(q, 
+
+  return onSnapshot(
+    q,
     (snapshot) => {
-      const bookmarks = snapshot.docs.map(doc => ({
+      const bookmarks = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       callback(bookmarks);
     },
