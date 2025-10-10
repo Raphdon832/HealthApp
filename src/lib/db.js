@@ -292,6 +292,7 @@ export const placeOrder = async ({
   total,
   email,
 }) => {
+  console.log("This is running");
   const paymentSuccess = await onCheckout(total);
   const { data, status } = paymentSuccess;
   if (status) {

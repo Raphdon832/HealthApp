@@ -36,7 +36,8 @@ export default function PrescriptionPreview({ prescriptionId }) {
           if (productSnap.exists()) {
             const product = { id: productSnap.id, ...productSnap.data() };
             if (!products.find((p) => p.id === product.id)) {
-              addProduct(product);
+              const productWithQty = { ...product, qty: drug.dosage };
+              addProduct(productWithQty);
             }
             return drug.dosage * product.price;
           }
@@ -82,7 +83,6 @@ export default function PrescriptionPreview({ prescriptionId }) {
       <div className="mt-2">
         <button
           onClick={() => {
-            console.log(products);
             setShowCheckOut(true);
           }}
           className="w-full px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"

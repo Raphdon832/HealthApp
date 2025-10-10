@@ -188,16 +188,16 @@ export function CheckOut({ items, totalPrice, onClose }) {
     try {
       const first = items[0];
       const pharmacyId = first.product?.pharmacyId;
-      const cartItems = groupItems();
+      // const cartItems = groupItems();
 
       const orderData = {
         customerId: user.uid,
         pharmacyId,
-        items: cartItems.map((i) => ({
+        items: items.map((i) => ({
           productId: i.productId,
           quantity: i.qty,
-          price: i.product.price,
-          pharmacyId: i.product.pharmacyId,
+          price: i.price,
+          pharmacyId: i.pharmacyId,
         })),
         total: totalWithDelivery,
         subtotal: total,
@@ -208,16 +208,30 @@ export function CheckOut({ items, totalPrice, onClose }) {
         paymentMethod: selectedPaymentMethod,
       };
 
+      console.log(`Order: ${orderData.total}`);
+      console.log(`Order Items: ${orderData.items}`);
+
       let orderStatus;
       if (selectedPaymentMethod === "online") {
         // Use existing online payment flow
-        orderStatus = await placeOrder(orderData);
+        orderStatus = await placeOrder({
+          customerId: orderData.customerId,
+          items: orderData.items,
+          total: totalPrice,
+          email: orderData.customerEmail,
+        });
       } else {
         // For cash on delivery, create order directly without payment
+        // orderStatus = await placeOrder({
+        //   ...orderData,
+        //   paymentStatus: "pending",
+        //   orderStatus: "confirmed",
+        // });
         orderStatus = await placeOrder({
-          ...orderData,
-          paymentStatus: "pending",
-          orderStatus: "confirmed",
+          customerId: orderData.customerId,
+          items: orderData.items,
+          total: totalPrice,
+          email: orderData.customerEmail,
         });
       }
 
@@ -229,7 +243,7 @@ export function CheckOut({ items, totalPrice, onClose }) {
       }
 
       // Clear cart and close modals
-      for (const i of items) await removeFromCart(user.uid, i.id);
+      // for (const i of items) await removeFromCart(user.uid, i.id);
       setShowPaymentMethods(false);
       setShowOrderSummary(false);
 
