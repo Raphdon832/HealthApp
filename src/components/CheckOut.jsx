@@ -21,7 +21,7 @@ import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
 
-export function CheckOut({ items, totalPrice, onClose }) {
+export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
   const { user } = useAuth();
 
   const { t } = useTranslation();
@@ -188,16 +188,16 @@ export function CheckOut({ items, totalPrice, onClose }) {
     try {
       const first = items[0];
       const pharmacyId = first.product?.pharmacyId;
-      const cartItems = groupItems();
+      // const cartItems = groupItems();
 
       const orderData = {
         customerId: user.uid,
         pharmacyId,
-        items: cartItems.map((i) => ({
-          productId: i.productId,
+        items: items.map((i) => ({
+          productId: i.id,
           quantity: i.qty,
-          price: i.product.price,
-          pharmacyId: i.product.pharmacyId,
+          price: i.price,
+          pharmacyId: i.pharmacyId,
         })),
         total: totalWithDelivery,
         subtotal: total,
@@ -208,16 +208,32 @@ export function CheckOut({ items, totalPrice, onClose }) {
         paymentMethod: selectedPaymentMethod,
       };
 
+      console.log(`Order: ${orderData.total}`);
+      console.log(`Order Items: ${orderData.items}`);
+
       let orderStatus;
       if (selectedPaymentMethod === "online") {
         // Use existing online payment flow
-        orderStatus = await placeOrder(orderData);
+        orderStatus = await placeOrder({
+          customerId: orderData.customerId,
+          items: orderData.items,
+          total: totalPrice,
+          email: orderData.customerEmail,
+          prescription: prescription,
+        });
       } else {
         // For cash on delivery, create order directly without payment
+        // orderStatus = await placeOrder({
+        //   ...orderData,
+        //   paymentStatus: "pending",
+        //   orderStatus: "confirmed",
+        // });
         orderStatus = await placeOrder({
-          ...orderData,
-          paymentStatus: "pending",
-          orderStatus: "confirmed",
+          customerId: orderData.customerId,
+          items: orderData.items,
+          total: totalPrice,
+          email: orderData.customerEmail,
+          prescription: prescription,
         });
       }
 
@@ -229,7 +245,7 @@ export function CheckOut({ items, totalPrice, onClose }) {
       }
 
       // Clear cart and close modals
-      for (const i of items) await removeFromCart(user.uid, i.id);
+      // for (const i of items) await removeFromCart(user.uid, i.id);
       setShowPaymentMethods(false);
       setShowOrderSummary(false);
 
@@ -276,9 +292,9 @@ export function CheckOut({ items, totalPrice, onClose }) {
                   {t("items", "Items")} ({items.length})
                 </h3>
                 <div className="space-y-3">
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <div
-                      key={item.product?.id}
+                      key={index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <ProductAvatar

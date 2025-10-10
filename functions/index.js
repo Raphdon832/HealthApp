@@ -128,50 +128,52 @@ const initOrder = onCall(async (request) => {
 });
 
 const paystackWebhook = onRequest(async (req, res) => {
-  try {
-    const signature = req.get("x-paystack-signature") || "";
-    const rawBody = JSON.stringify(req.body);
+  cors(req, res, async () => {
+    try {
+      const signature = req.get("x-paystack-signature") || "";
+      const rawBody = JSON.stringify(req.body);
 
-    if (!verifyPaystackSignature(rawBody, signature)) {
-      return res.status(400).send("Invalid signature");
-    }
-
-    const event = req.body;
-
-    if (event.event === "transfer.success") {
-      const transferRefence = event.data.reference;
-
-      const transferDoc = await db
-        .collection("transfers")
-        .doc(transferRefence)
-        .get();
-      if (transferDoc.exists) {
-        const { orderId, pharmacyId, itemIndex } = transferDoc.data();
-        const orderRef = db.collection("orders").doc(orderId);
-        const orderSnap = await orderRef.get();
-        if (orderSnap.exists) {
-          const order = orderSnap.data();
-          const items = order.items || [];
-          if (
-            items[itemIndex] &&
-            items[itemIndex].transferRefence === transferRefence
-          ) {
-            items[itemIndex].transferStatus = "success";
-            await orderRef.update({ items });
-          }
-        }
-      } else {
-        console.warn(
-          "Transfer reference not tracked locally: ",
-          transferRefence
-        );
+      if (!verifyPaystackSignature(rawBody, signature)) {
+        return res.status(400).send("Invalid signature");
       }
-    }
 
-    return res.status(200).send("OK");
-  } catch (error) {
-    return res.status(500).send("Error");
-  }
+      const event = req.body;
+
+      if (event.event === "transfer.success") {
+        const transferRefence = event.data.reference;
+
+        const transferDoc = await db
+          .collection("transfers")
+          .doc(transferRefence)
+          .get();
+        if (transferDoc.exists) {
+          const { orderId, pharmacyId, itemIndex } = transferDoc.data();
+          const orderRef = db.collection("orders").doc(orderId);
+          const orderSnap = await orderRef.get();
+          if (orderSnap.exists) {
+            const order = orderSnap.data();
+            const items = order.items || [];
+            if (
+              items[itemIndex] &&
+              items[itemIndex].transferRefence === transferRefence
+            ) {
+              items[itemIndex].transferStatus = "success";
+              await orderRef.update({ items });
+            }
+          }
+        } else {
+          console.warn(
+            "Transfer reference not tracked locally: ",
+            transferRefence
+          );
+        }
+      }
+
+      return res.status(200).send("OK");
+    } catch (error) {
+      return res.status(500).send("Error");
+    }
+  });
 });
 
 const confirmDelivery = onCall(async (request) => {
@@ -202,7 +204,10 @@ const confirmDelivery = onCall(async (request) => {
       .filter((it) => it.pharmacyId === pharmacyId && !it.paid);
 
     if (itemsForPharm.length === 0) {
-      return { success: false, message: "No unpaid item for this pharmacist" };
+      return {
+        success: false,
+        message: "No unpaid item for this pharmacist",
+      };
     }
 
     const recipientCode = await ensureRecipient(pharmacyId);
