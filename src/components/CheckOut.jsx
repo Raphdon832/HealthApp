@@ -21,7 +21,7 @@ import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
 
-export function CheckOut({ items, totalPrice, onClose }) {
+export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
   const { user } = useAuth();
 
   const { t } = useTranslation();
@@ -194,7 +194,7 @@ export function CheckOut({ items, totalPrice, onClose }) {
         customerId: user.uid,
         pharmacyId,
         items: items.map((i) => ({
-          productId: i.productId,
+          productId: i.id,
           quantity: i.qty,
           price: i.price,
           pharmacyId: i.pharmacyId,
@@ -219,6 +219,7 @@ export function CheckOut({ items, totalPrice, onClose }) {
           items: orderData.items,
           total: totalPrice,
           email: orderData.customerEmail,
+          prescription: prescription,
         });
       } else {
         // For cash on delivery, create order directly without payment
@@ -232,6 +233,7 @@ export function CheckOut({ items, totalPrice, onClose }) {
           items: orderData.items,
           total: totalPrice,
           email: orderData.customerEmail,
+          prescription: prescription,
         });
       }
 

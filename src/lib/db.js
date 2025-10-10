@@ -291,10 +291,12 @@ export const placeOrder = async ({
   items,
   total,
   email,
+  prescription = false,
 }) => {
-  console.log("This is running");
   const paymentSuccess = await onCheckout(total);
   const { data, status } = paymentSuccess;
+  console.log("Data: ", data);
+  console.log("Items: ", items);
   if (status) {
     setDoc(doc(db, "orders", data.orderId), {
       customerId,
@@ -305,7 +307,7 @@ export const placeOrder = async ({
         price: it.price,
         quantity: it.quantity || 1,
         status: "pending",
-        paid: false,
+        paid: prescription ? true : false,
         transferReference: null,
         transferStatus: null,
       })),

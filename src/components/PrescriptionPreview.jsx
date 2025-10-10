@@ -96,6 +96,7 @@ export default function PrescriptionPreview({ prescriptionId }) {
           items={products}
           totalPrice={totalPrice}
           onClose={() => setShowCheckOut(false)}
+          prescription={true}
         />
       )}
     </div>
