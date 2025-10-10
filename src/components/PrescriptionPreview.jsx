@@ -1,4 +1,11 @@
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  collection,
+  getDoc,
+  onSnapshot,
+  where,
+  query,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 
@@ -9,6 +16,7 @@ export default function PrescriptionPreview({ prescriptionId }) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [products, setProduct] = useState([]);
   const [showCheckout, setShowCheckOut] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
 
   const addProduct = (newProduct) => {
     setProduct((prevProducts) => [...prevProducts, newProduct]);
@@ -53,6 +61,23 @@ export default function PrescriptionPreview({ prescriptionId }) {
     calculateTotal();
   }, [prescription]);
 
+  useEffect(() => {
+    const q = query(
+      collection(db, "orders"),
+      where("prescriptionId", "==", prescriptionId)
+    );
+
+    const unSub = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        const paid = !!data.prescriptionId;
+        setIsPaid(paid);
+      }
+    });
+
+    return () => unSub();
+  }, []);
+
   if (!prescription) {
     return (
       <div className="text-xs text-gray-400 mt-1 italic">
@@ -81,14 +106,23 @@ export default function PrescriptionPreview({ prescriptionId }) {
         <span className="font-medium">TotalPrice:</span> {totalPrice || 0}
       </div>
       <div className="mt-2">
-        <button
-          onClick={() => {
-            setShowCheckOut(true);
-          }}
-          className="w-full px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          🛒 Order
-        </button>
+        {isPaid ? (
+          <button
+            disabled
+            className="w-full px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md cursor-not-allowed"
+          >
+            ✅ Paid
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setShowCheckOut(true);
+            }}
+            className="w-full px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            🛒 Order
+          </button>
+        )}
       </div>
 
       {showCheckout && (
@@ -96,7 +130,7 @@ export default function PrescriptionPreview({ prescriptionId }) {
           items={products}
           totalPrice={totalPrice}
           onClose={() => setShowCheckOut(false)}
-          prescription={true}
+          prescription={prescriptionId}
         />
       )}
     </div>

@@ -314,6 +314,7 @@ export const placeOrder = async ({
       total,
       paystackReference: data.paystackReference,
       status: "paid",
+      prescriptionId: prescription ? prescription : null,
       paidAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     });

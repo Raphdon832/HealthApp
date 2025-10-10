@@ -292,9 +292,9 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
                   {t("items", "Items")} ({items.length})
                 </h3>
                 <div className="space-y-3">
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <div
-                      key={item.product?.id}
+                      key={index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <ProductAvatar
