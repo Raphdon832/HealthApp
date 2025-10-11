@@ -48,5 +48,3 @@ const verifyPayment = async (reference) => {
 };
 
 export { sendPayment, verifyPayment };
-
-// TODO: Implement verify using useEffect

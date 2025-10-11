@@ -284,7 +284,6 @@ export const listenCart = (uid, cb) =>
 export const removeFromCart = (uid, itemId) =>
   deleteDoc(doc(db, "users", uid, "cart", itemId));
 
-// TODO: Integrate payment
 export const placeOrder = async ({
   customerId,
   pharmacyId,
