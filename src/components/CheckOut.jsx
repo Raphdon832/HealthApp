@@ -21,13 +21,12 @@ import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
 
-export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
+export function CheckOut({ items, total, onClose, prescription = false }) {
   const { user } = useAuth();
 
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords, location } = useUserLocation();
-  //   const [items, setItems] = useState([]);
 
   const [showOrderSummary, setShowOrderSummary] = useState(true);
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
@@ -54,11 +53,6 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
       calculateDeliveryFee();
     }
   }, [items, userCoords]);
-
-  const total = useMemo(
-    () => items.reduce((s, i) => s + (i.product?.price + 0.0 || 0) * i.qty, 0),
-    [items]
-  );
 
   const totalWithDelivery = useMemo(
     () => total + deliveryFee,
@@ -154,32 +148,9 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
     }
   };
 
-  const startCheckout = () => {
-    setShowOrderSummary(true);
-  };
-
   const proceedToPayment = () => {
     setShowOrderSummary(false);
     setShowPaymentMethods(true);
-  };
-
-  const groupItems = () => {
-    const map = new Map();
-    for (const i of items) {
-      const pid = i.product?.id;
-      if (!pid) continue;
-      if (map.has(pid)) {
-        const existing = map.get(pid);
-        map.set(pid, {
-          ...existing,
-          qty: existing.qty + i.qty,
-          ids: [...(existing.ids || [existing.id]), i.id],
-        });
-      } else {
-        map.set(pid, { ...i, ids: [i.id] });
-      }
-    }
-    return Array.from(map.values());
   };
 
   const handleFinalCheckout = async () => {
@@ -217,7 +188,7 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
         orderStatus = await placeOrder({
           customerId: orderData.customerId,
           items: orderData.items,
-          total: totalPrice,
+          total: total,
           email: orderData.customerEmail,
           prescription: prescription,
         });
@@ -231,7 +202,7 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
         orderStatus = await placeOrder({
           customerId: orderData.customerId,
           items: orderData.items,
-          total: totalPrice,
+          total: total,
           email: orderData.customerEmail,
           prescription: prescription,
         });
@@ -298,25 +269,22 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <ProductAvatar
-                        name={item.product?.name}
-                        image={item.product?.image}
-                        category={item.product?.category}
+                        name={item.name}
+                        image={item.image} /*Put a default image*/
+                        category={item.category}
                         size={40}
                         roundedClass="rounded-lg"
                       />
                       <div className="flex-1">
-                        <div className="text-[14px] font-medium truncate">
-                          {item.product?.name}
+                        <div className="text-[14px] font-medium truncate blur-sm select-none">
+                          {item.name}
                         </div>
                         <div className="text-[12px] text-gray-600">
                           {t("qty", "Qty")}: {item.qty}
                         </div>
                       </div>
                       <div className="text-[14px] font-medium text-sky-600">
-                        ₦
-                        {Number(
-                          (item.product?.price || 0) * item.qty
-                        ).toLocaleString()}
+                        ₦{Number((item.price || 0) * item.qty).toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -417,7 +385,7 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
                   <span className="text-[14px]">
                     {t("subtotal", "Subtotal")}
                   </span>
-                  <span className="text-[14px] font-medium">₦{totalPrice}</span>
+                  <span className="text-[14px] font-medium">₦{total}</span>
                 </div>
                 {deliveryFee > 0 && (
                   <div className="flex justify-between items-center mb-2">
@@ -434,7 +402,7 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
                     {t("total", "Total")}
                   </span>
                   <span className="text-[16px] font-bold text-sky-600">
-                    ₦{Number(totalWithDelivery).toLocaleString()}
+                    ₦{Number(total).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -552,7 +520,7 @@ export function CheckOut({ items, totalPrice, onClose, prescription = false }) {
                     {t("total_amount", "Total Amount")}
                   </span>
                   <span className="text-[18px] font-bold text-sky-600">
-                    ₦{Number(totalWithDelivery).toLocaleString()}
+                    ₦{Number(total).toLocaleString()}
                   </span>
                 </div>
               </div>

@@ -128,7 +128,7 @@ export default function PrescriptionPreview({ prescriptionId }) {
       {showCheckout && (
         <CheckOut
           items={products}
-          totalPrice={totalPrice}
+          total={totalPrice}
           onClose={() => setShowCheckOut(false)}
           prescription={prescriptionId}
         />
