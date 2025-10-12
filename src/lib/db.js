@@ -284,16 +284,18 @@ export const listenCart = (uid, cb) =>
 export const removeFromCart = (uid, itemId) =>
   deleteDoc(doc(db, "users", uid, "cart", itemId));
 
-// TODO: Integrate payment
 export const placeOrder = async ({
   customerId,
   pharmacyId,
   items,
   total,
   email,
+  prescription = false,
 }) => {
   const paymentSuccess = await onCheckout(total);
   const { data, status } = paymentSuccess;
+  console.log("Data: ", data);
+  console.log("Items: ", items);
   if (status) {
     setDoc(doc(db, "orders", data.orderId), {
       customerId,
@@ -304,13 +306,14 @@ export const placeOrder = async ({
         price: it.price,
         quantity: it.quantity || 1,
         status: "pending",
-        paid: false,
+        paid: prescription ? true : false,
         transferReference: null,
         transferStatus: null,
       })),
       total,
       paystackReference: data.paystackReference,
       status: "paid",
+      prescriptionId: prescription ? prescription : null,
       paidAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     });
