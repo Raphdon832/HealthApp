@@ -63,7 +63,7 @@ import ProductPreview from '@/pages/ProductPreview';
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { getSetting } = useSettings();
   const [tab, setTab] = useState(location.pathname);
   const [cartCount, setCartCount] = useState(0);
@@ -76,16 +76,18 @@ function AppLayout() {
   useEffect(() => setTab(location.pathname), [location.pathname]);
 
   useEffect(() => {
-    if (!user || (profile && profile.role === "pharmacy"))
+    if (!user || loading || (profile && profile.role === "pharmacy"))
       return setCartCount(0);
     const q = query(collection(db, "users", user.uid, "cart"));
     const unsub = onSnapshot(q, (snap) => setCartCount(snap.size));
     return unsub;
-  }, [user, profile]);
+  }, [user, profile, loading]);
 
   // Listen to orders count for pharmacy users (exclude processing, shipped, cancelled)
   useEffect(() => {
-    if (!user || !profile || profile.role !== 'pharmacy') return setOrdersCount(0);
+    if (!user || loading || !profile || profile.role !== 'pharmacy') {
+      return setOrdersCount(0);
+    }
     
     const pharmacyId = profile.uid || user.uid;
     const q = query(
@@ -107,7 +109,7 @@ function AppLayout() {
   }, [user, profile]);
 
   useEffect(() => {
-    if (!user || !profile?.role) return setUnreadMessages(0);
+    if (!user || loading || !profile?.role) return setUnreadMessages(0);
 
     // Use the same listener used by Messages.jsx to ensure we subscribe to the exact same
     // set of threads (by customerId/vendorId) and compute unread total from thread docs.
@@ -132,7 +134,7 @@ function AppLayout() {
     );
 
     return () => unsub && unsub();
-  }, [user, profile?.role]);
+  }, [user, profile?.role, loading]);
 
   // Detect “chat modal open” via query param
   const params = new URLSearchParams(location.search);
@@ -162,6 +164,7 @@ function AppLayout() {
   const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
   const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
   const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
+  const isAuthLoading = loading || (user && profile === undefined);
 
   return (
     <div
@@ -178,7 +181,7 @@ function AppLayout() {
       </div>
 
       {/* Hide BottomNav when chat modal flag is on */}
-      {!chatModalOpen && (
+      {!chatModalOpen && !isAuthLoading && (
         <>
           <BottomNav
             tab={tab}
