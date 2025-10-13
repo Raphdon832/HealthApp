@@ -38,6 +38,7 @@ import SuperuserDashboard from '@/pages/SuperuserDashboard';
 import PharmacyMap from '@/pages/PharmacyMap';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import AppBootstrapLoader from '@/components/AppBootstrapLoader';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -259,7 +260,7 @@ function RoleBasedRootRoute() {
   const { user, profile, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSkeleton lines={4} className="my-8" />;
+    return <AppBootstrapLoader />;
   }
 
   if (!user) {
