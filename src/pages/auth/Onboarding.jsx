@@ -74,10 +74,10 @@ export default function Onboarding() {
         <span className="text-xs uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
           Step {currentIndex + 1} of {totalSlides}
         </span>
-        <h1 className="mt-8 text-4xl font-thin leading-tight sm:text-4xl">
+        <h1 className="mt-8 text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl">
           {currentSlide.title}
         </h1>
-        <p className="mt-4 max-w-xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+        <p className="mt-4 max-w-xl text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg">
           {currentSlide.description}
         </p>
 
@@ -85,7 +85,7 @@ export default function Onboarding() {
           <img
             src={currentSlide.illustration}
             alt={currentSlide.title}
-            className="w-full max-w-[320px] object-contain sm:max-w-[380px]"
+            className="w-full max-w-[400px] object-contain sm:max-w-[440px]"
             loading="lazy"
           />
         </div>
@@ -99,7 +99,7 @@ export default function Onboarding() {
             disabled={currentIndex === 0}
             className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
           >
-            Back
+            back
           </button>
 
           <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function Onboarding() {
           <button
             type="button"
             onClick={handleNext}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-sm font-thin text-white transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="flex h-20 w-20 z-10 items-center justify-center shadow-md rounded-full bg-sky-500 text-lg font-thin text-white transition-colors hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {currentIndex === totalSlides - 1 ? "Start" : "Next"}
           </button>
