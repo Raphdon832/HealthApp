@@ -47,13 +47,12 @@ export default function Landing() {
 
   return (
     <AuthLayout>
-      <div className="mt-4 font-poppins text-[32px] sm:text-[38px] md:text-[42px] lg:text-[54px] font-thin tracking-tight leading-[109%] text-left animate-text-reveal">
-        HealthCare at
-        <br />
-        Your Doorstep
+      <div className="mt-4 font-poppins text-[32px] sm:text-[38px] md:text-[42px] lg:text-[50px] font-thin tracking-tight leading-[109%] text-left lg:text-left lg:max-w-4xl animate-text-reveal">
+        <span className="block lg:inline">HealthCare at</span>{' '}
+        <span className="block lg:inline">Your Doorstep</span>
       </div>
       <p
-        className="mt-1 text-black text-[13px] sm:text-[14px] md:text-[16px] tracking-tight font-thin leading-[154%] font-poppins text-left animate-fade-in"
+        className="mt-1 text-black text-[13px] sm:text-[14px] md:text-[16px] tracking-tight font-thin leading-[154%] font-poppins text-left lg:text-left lg:max-w-2xl animate-fade-in"
         style={{ animationDelay: '0.2s' }}
       >
         Pick up and deliver medical prescribed medications and, over-the-counter items from pharmacies to your doorstep.
@@ -72,12 +71,12 @@ export default function Landing() {
           } card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
           style={{ animationDelay: '0.5s' }}
         >
-          <div className="absolute left-[9px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+          <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
             I’m a
             <br />
             customer
           </div>
-          <div className="absolute left-[9px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+          <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
             Sign Up or Login as a customer
           </div>
         </button>
@@ -91,12 +90,12 @@ export default function Landing() {
           } card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
           style={{ animationDelay: '0.6s' }}
         >
-          <div className="absolute left-[9px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+          <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
             I’m a
             <br />
             pharmacy
           </div>
-          <div className="absolute left-[9px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+          <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
             Sign Up or Login as a pharmacy
           </div>
         </button>
