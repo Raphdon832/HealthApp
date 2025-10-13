@@ -37,6 +37,7 @@ import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import SuperuserDashboard from '@/pages/SuperuserDashboard';
 import PharmacyMap from '@/pages/PharmacyMap';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -254,6 +255,32 @@ function ProfileRouter() {
   return <ProfileCustomer onSwitchToPharmacy={() => {}} />;
 }
 
+function RoleBasedRootRoute() {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSkeleton lines={4} className="my-8" />;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth/landing" replace />;
+  }
+
+  if (profile?.role === "pharmacy") {
+    return <Dashboard />;
+  }
+
+  if (profile?.role === "customer") {
+    return <Home />;
+  }
+
+  if (profile?.role === "superuser") {
+    return <Navigate to="/superuser" replace />;
+  }
+
+  return <Home />;
+}
+
 function Shell() {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -329,15 +356,7 @@ function Shell() {
         {/* Root route adapts based on auth state */}
         <Route
           path="/"
-          element={
-            profile
-              ? profile.role === "pharmacy"
-                ? <Dashboard />
-                : profile.role === "customer"
-                  ? <Home />
-                  : <Navigate to="/auth/landing" replace />
-              : <Navigate to="/auth/landing" replace />
-          }
+          element={<RoleBasedRootRoute />}
         />
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
