@@ -42,6 +42,7 @@ import AppBootstrapLoader from '@/components/AppBootstrapLoader';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
+import Onboarding from "@/pages/auth/Onboarding";
 import CustomerRegister from "@/pages/auth/CustomerRegister";
 import CustomerSignIn from "@/pages/auth/CustomerSignIn";
 import PharmacyRegister from "@/pages/auth/PharmacyRegister";
@@ -267,7 +268,7 @@ function RoleBasedRootRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/auth/landing" replace />;
+    return <Navigate to="/auth/onboarding" replace />;
   }
 
   if (profile?.role === "pharmacy") {
@@ -317,13 +318,14 @@ function Shell() {
     <Routes>
       {/* Auth (no BottomNav) */}
       <Route element={<BareLayout />}>
+        <Route path="/auth/onboarding" element={<Onboarding />} />
         <Route path="/auth/landing" element={<Landing />} />
         <Route path="/auth/customer/register" element={<CustomerRegister />} />
         <Route path="/auth/customer/signin" element={<CustomerSignIn />} />
         <Route path="/auth/pharmacy/register" element={<PharmacyRegister />} />
         <Route path="/auth/pharmacy/signin" element={<PharmacySignIn />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-        <Route path="/auth" element={<Navigate to="/auth/landing" replace />} />
+        <Route path="/auth" element={<Navigate to="/auth/onboarding" replace />} />
 
         {/* Chat page routes - no BottomNav */}
         <Route
