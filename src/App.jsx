@@ -326,12 +326,19 @@ function Shell() {
       </Route>
       {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
       <Route element={<AppLayout />}>
-        {/* Remove / route for superuser, only show for pharmacy/customer */}
-        {profile && profile.role === "pharmacy" ? (
-          <Route path="/" element={<Dashboard />} />
-        ) : profile && profile.role === "customer" ? (
-          <Route path="/" element={<Home />} />
-        ) : null}
+        {/* Root route adapts based on auth state */}
+        <Route
+          path="/"
+          element={
+            profile
+              ? profile.role === "pharmacy"
+                ? <Dashboard />
+                : profile.role === "customer"
+                  ? <Home />
+                  : <Navigate to="/auth/landing" replace />
+              : <Navigate to="/auth/landing" replace />
+          }
+        />
         <Route path="/vendor/:id" element={<VendorProfile />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
