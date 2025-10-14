@@ -140,9 +140,8 @@ export default function Onboarding() {
               {currentSlide.description}
             </motion.p>
 
-            {/* image is rendered fixed at bottom-right to avoid layout shifts */}
+            {/* image placeholder keeps layout stable while actual image is fixed */}
             <div className="relative mt-8 flex w-full justify-end" style={{ bottom: 70 }}>
-              {/* placeholder space to keep layout consistent when image is anchored */}
               <div className="w-full max-w-[400px] sm:max-w-[440px] h-0" aria-hidden />
             </div>
           </AnimatePresence>
@@ -160,7 +159,8 @@ export default function Onboarding() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.98 }}
         transition={{ type: "spring", stiffness: 160, damping: 20 }}
-        className="fixed right-4 bottom-4 pointer-events-none z-10 w-[320px] max-w-[120vw] sm:w-[420px] md:w-[520px] object-contain will-change-transform"
+        onAnimationComplete={() => setIsAnimating(false)}
+        className="fixed right-4 bottom-4 pointer-events-none z-10 w-[320px] max-w-[90vw] sm:w-[420px] md:w-[520px] object-contain will-change-transform"
       />
 
       {/* fixed bottom controls: back (left), dots (center), next (right) */}
@@ -171,7 +171,7 @@ export default function Onboarding() {
             onClick={handleBack}
             disabled={currentIndex === 0}
             aria-label="Go to previous"
-            className="z-50 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:text-white bg-white/60 backdrop-blur rounded-md px-3 py-2 shadow-sm"
+            className="z-50 text-sm font-normal text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-0 dark:text-slate-400 dark:hover:text-white bg-white/0 backdrop-blur rounded-md px-3 py-2"
           >
             back
           </button>
