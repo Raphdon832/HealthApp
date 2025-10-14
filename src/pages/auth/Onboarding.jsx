@@ -168,7 +168,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.45, delay: 0.04 }}
-                className="mt-4 max-w-xl lg:max-w-none text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg lg:text-[22px] pl-4 sm:pl-6 lg:pl-6"
+                className="mt-4 max-w-xl lg:max-w-none text-left text-[17px] font-normal text-slate-500 dark:text-slate-300 sm:text-lg lg:text-[22px] pl-4 sm:pl-6 lg:pl-6"
               >
                 {currentSlide.description}
               </motion.p>
@@ -257,7 +257,7 @@ export default function Onboarding() {
             onClick={handleNext}
             whileTap={{ scale: 0.96 }}
             whileHover={{ scale: 1.02 }}
-            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500/40 backdrop-blur-md text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600/40 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-600 text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {currentIndex === totalSlides - 1 ? "Start" : "Next"}
           </motion.button>
