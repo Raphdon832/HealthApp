@@ -295,7 +295,7 @@ export default function ReviewsManagement() {
                     })}
                   </span>
                   {!review.pharmacyResponse && (
-                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium">
+                    <span className="text-orange-600 px-2 py-1 rounded-full font-normal text-[9px] bg-orange-100" style={{ fontSize: '9px !important' }}>
                       {t('needs_response', 'Needs Response')}
                     </span>
                   )}
@@ -311,7 +311,7 @@ export default function ReviewsManagement() {
                     className="flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-1" title={review.productName}>
+                    <h4 className="font-semibold text-gray-900 line-clamp-1" style={{ fontSize: '10px !important' }} title={review.productName}>
                       {review.productName}
                     </h4>
                     <p className="text-xs text-gray-500 truncate">
@@ -325,15 +325,15 @@ export default function ReviewsManagement() {
                   <div className="flex">
                     {renderStars(review.rating)}
                   </div>
-                  <span className="text-sm text-gray-600">({review.rating}/5)</span>
+                  <span className="text-gray-600" style={{ fontSize: '10px !important' }}>({review.rating}/5)</span>
                 </div>
 
                 {/* Reviewer name */}
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{t('reviewed_by', 'Reviewed by:')}:</span>
-                  <span className="font-medium text-gray-800 text-sm">{review.customerName || review.name}</span>
+                  <span className="text-gray-600" style={{ fontSize: '10px !important' }}>{t('reviewed_by', 'Reviewed by:')}:</span>
+                  <span className="font-medium text-gray-800" style={{ fontSize: '10px !important' }}>{review.customerName || review.name}</span>
                   {review.verified && (
-                    <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
                       {t('verified', 'Verified')}
                     </span>
                   )}
@@ -341,7 +341,7 @@ export default function ReviewsManagement() {
 
                 {/* Review comment */}
                 <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                  <p className="text-gray-800 text-sm sm:text-base leading-relaxed">{review.comment}</p>
+                  <p className="text-gray-800 leading-relaxed" style={{ fontSize: '10px !important' }}>{review.comment}</p>
                 </div>
 
                 {/* Helpfulness indicator */}
@@ -371,7 +371,8 @@ export default function ReviewsManagement() {
                   <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
                     <button
                       onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: !prev[review.id] }))}
-                      className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-normal text-[12px] transition-colors"
+                      style={{ fontSize: '10px !important' }}
                     >
                       <Reply className="h-4 w-4" />
                       {expandedReviews[review.id] ? t('cancel_response', 'Cancel Response') : t('respond_to_review', 'Respond to Review')}
@@ -395,14 +396,16 @@ export default function ReviewsManagement() {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => handleResponse(review.id, review.productId, responseText[review.id] || '')}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors font-medium disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+                            style={{ fontSize: '10px !important' }}
                             disabled={!responseText[review.id]?.trim()}
                           >
                             {t('submit_response', 'Submit Response')}
                           </button>
                           <button
                             onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: false }))}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            style={{ fontSize: '10px !important' }}
                           >
                             {t('cancel', 'Cancel')}
                           </button>
