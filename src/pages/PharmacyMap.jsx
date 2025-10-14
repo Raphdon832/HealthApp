@@ -602,25 +602,25 @@ export default function PharmacyMap() {
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{selectedPharmacy.name}</h3>
                   <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
-                  <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
-                    <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                      <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                      <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
-                      <span className="font-medium whitespace-nowrap">{selectedPharmacy.distance?.toFixed(1) || '0'} km</span>
-                    </div>
-                    {selectedPharmacy.phone && (
+                    <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                       <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
-                        <Phone className="h-3 w-3 text-purple-500 flex-shrink-0" />
-                        <span className="font-medium text-xs truncate max-w-[80px]">{selectedPharmacy.phone}</span>
+                        <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                        <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{selectedPharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                       </div>
-                    )}
-                  </div>
+                      <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
+                        <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
+                        <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{selectedPharmacy.distance?.toFixed(1) || '0'} km</span>
+                      </div>
+                      {selectedPharmacy.phone && (
+                        <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
+                          <Phone className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                          <span className="font-normal truncate max-w-[80px]" style={{ fontSize: '10px !important' }}>{selectedPharmacy.phone}</span>
+                        </div>
+                      )}
+                    </div>
                 </div>
               </div>
-              <span className="bg-blue-600 text-white text-xs px-1 py-1 rounded-full font-medium flex-shrink-0 ml-2">
+              <span className="bg-blue-600 text-white text-xs px-1 py-1 rounded-full font-normal flex-shrink-0 ml-2">
                 {t('closest', 'Closest')}
               </span>
             </div>
@@ -628,28 +628,28 @@ export default function PharmacyMap() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => handleGetDirections(selectedPharmacy)}
-                className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
+                className="flex-1 bg-blue-600 text-white py-1 px-2 text-xs rounded-full font-normal hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
               >
                 <Navigation className="h-3 w-3" />
-                <span className="hidden sm:inline">{t('get_directions', 'Get Directions')}</span>
-                <span className="sm:hidden">{t('get_directions', 'Get Directions')}</span>
+                <span className="hidden sm:inline" style={{ fontSize: '10px !important' }}>{t('get_directions', 'Get Directions')}</span>
+                <span className="sm:hidden" style={{ fontSize: '10px !important' }}>{t('get_directions', 'Get Directions')}</span>
               </button>
               {selectedPharmacy.phone && (
                 <button
                   onClick={() => handleCallPharmacy(selectedPharmacy)}
-                  className="bg-green-600 text-white py-2 px-3 rounded-full text-xs font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
+                  className="bg-green-600 text-white py-2 px-3 rounded-full font-medium hover:bg-green-700 transition-all duration-200 flex items-center justify-center gap-1 btn-interactive"
                   title={t('call_pharmacy', 'Call pharmacy')}
                 >
                   <Phone className="h-3 w-3" />
-                  <span className="hidden sm:inline">{t('call', 'Call')}</span>
+                  <span className="hidden sm:inline" style={{ fontSize: '10px !important' }}>{t('call', 'Call')}</span>
                 </button>
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full text-xs font-medium hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
+                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full font-normal text-xs hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
               >
-                <span className="hidden sm:inline">{t('view_products', 'View Products')}</span>
-                <span className="sm:hidden">{t('view_products', 'View Products')}</span>
+                <span className="hidden sm:inline" style={{ fontSize: '10px !important' }}>{t('view_products', 'View Products')}</span>
+                <span className="sm:hidden" style={{ fontSize: '10px !important' }}>{t('view_products', 'View Products')}</span>
               </button>
             </div>
           </div>
@@ -700,7 +700,7 @@ export default function PharmacyMap() {
                 id={`pharmacy-${pharmacy.id}`}
                 className={`bg-white dark:bg-transparent rounded-lg p-3 border border-gray-200 dark:border-gray-600 dark:border-gray-600 cursor-pointer transition-all duration-200 card-interactive animate-fadeInUp ${
                   selectedPharmacy?.id === pharmacy.id
-                    ? 'border-blue-300 dark:border-gray-600 bg-blue-50 dark:bg-blue-900/30 shadow-blue-100 scale-102'
+                    ? 'border-sky-600 dark:border-sky-600 bg-blue-50 dark:bg-blue-900/30 scale-102'
                     : 'border-gray-200 dark:border-gray-600 dark:border-gray-600 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 hover:shadow-md'
                 }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
@@ -717,21 +717,21 @@ export default function PharmacyMap() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{pharmacy.name}</h3>
                         {index === 0 && (
-                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                          <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs px-2 py-0.5 rounded-full font-normal flex-shrink-0">
                             {t('closest', 'Closest')}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{pharmacy.address}</p>
                       
-                      <div className="flex items-center gap-3 text-sm">
+                      <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                           <Clock className="h-3 w-3 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">{pharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
+                          <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{pharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                         </div>
                         <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="font-medium whitespace-nowrap">{pharmacy.distance?.toFixed(1) || '0'} km</span>
+                          <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{pharmacy.distance?.toFixed(1) || '0'} km</span>
                         </div>
                       </div>
                     </div>
