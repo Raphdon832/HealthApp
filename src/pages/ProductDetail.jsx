@@ -655,8 +655,8 @@ export default function ProductDetail({ product, pharmacy }) {
 </div>
         {/* Category products modal */}
         {showCategoryProducts && (
-          <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
-            <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto animate-bounce-in shadow-xl">
+          <div onClick={() => setShowCategoryProducts(false)} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/30 dark:bg-black/80 animate-fade-in" role="dialog" aria-modal="true">
+            <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-2xl p-4 w-[90vw] max-w-md max-h-[80vh] overflow-y-auto animate-bounce-in shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-lg font-medium animate-text-reveal">{t('products_in_category', 'Products in "{category}"').replace('{category}', product.category || 'General')}</div>
                 <button onClick={() => setShowCategoryProducts(false)} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors duration-200 hover:scale-110 active:scale-95">{t('close', 'Close')}</button>
@@ -690,7 +690,7 @@ export default function ProductDetail({ product, pharmacy }) {
 
         {/* Share Options Modal/Dropdown */}
         {showShareOptions && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/30 animate-fade-in" role="dialog" aria-modal="true">
             <div className="bg-white rounded-2xl p-6 w-[90vw] max-w-xs shadow-xl animate-bounce-in flex flex-col gap-4">
               <div className="font-poppins font-medium text-[16px] mb-2 text-center">{t('share_product', 'Share Product')}</div>
               <button
@@ -700,7 +700,7 @@ export default function ProductDetail({ product, pharmacy }) {
                 <Share2 className="w-4 h-4" /> {t('share_product', 'Share Product')}
               </button>
               <button
-                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 dark:text-black font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleMessageVendor}
               >
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
