@@ -108,14 +108,7 @@ export default function Onboarding() {
         style={{ paddingTop: 23 }}
       >
         <div {...handlers} className="flex flex-col">
-          <motion.span
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="text-xs uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500"
-          >
-            Step {currentIndex + 1} of {totalSlides}
-          </motion.span>
+          {/* step indicator moved to fixed top-left to remain visible */}
 
           <AnimatePresence mode="wait">
             <motion.h1
@@ -147,6 +140,16 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* fixed step indicator at top-left */}
+      <motion.span
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="fixed left-4 top-4 z-50 text-xs uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500 pointer-events-none"
+      >
+        Step {currentIndex + 1} of {totalSlides}
+      </motion.span>
 
       {/* fixed illustration at bottom-right */}
       <motion.img
