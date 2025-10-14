@@ -201,7 +201,7 @@ export default function Onboarding() {
         Step {currentIndex + 1} of {totalSlides}
       </motion.span>
 
-      {/* fixed illustration — center horizontally on small screens, stay right-anchored on larger screens */}
+      {/* fixed illustration — anchor bottom-right on onboarding and prevent clipping */}
       <motion.img
         key={currentSlide.illustration}
         src={currentSlide.illustration}
@@ -213,7 +213,9 @@ export default function Onboarding() {
         exit={{ opacity: 0, y: 24, scale: 0.98 }}
         transition={{ type: "spring", stiffness: 160, damping: 20 }}
         onAnimationComplete={() => setIsAnimating(false)}
-        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-10 w-[320px] max-w-[90vw] sm:left-auto sm:right-4 sm:transform-none sm:translate-x-0 sm:w-[420px] md:w-[520px] object-contain will-change-transform"
+        // Use right anchoring with a safe max width and an inset so image won't clip off-screen
+        className="fixed bottom-4 right-4 pointer-events-none z-10 w-[320px] max-w-[90vw] sm:w-[420px] md:w-[520px] object-contain will-change-transform"
+        style={{ maxWidth: 'min(520px, 90vw)' }}
       />
 
       {/* fixed bottom controls: back (left), dots (center), next (right) */}
