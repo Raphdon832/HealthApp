@@ -95,31 +95,44 @@ export default function ProfileCustomer() {
     
     // Fetch drugs bought (harmonized by productId, using product name from products collection)
     getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))).then(async snapshot => {
+      console.log('Orders fetched:', snapshot.docs.length);
       const drugs = {};
       for (const docSnap of snapshot.docs) {
         const order = docSnap.data();
+        console.log('Processing order:', docSnap.id, order);
         for (const item of (order.items || [])) {
+          console.log('Processing item:', item);
           const key = item.productId;
           if (!drugs[key]) {
             // Try to get product name from products collection
             let name = item.name;
             if (!name && key) {
-              const prodSnap = await getDoc(doc(db, 'products', key));
-              name = prodSnap.exists() ? prodSnap.data().name : key;
+              try {
+                const prodSnap = await getDoc(doc(db, 'products', key));
+                name = prodSnap.exists() ? prodSnap.data().name : key;
+                console.log('Product name fetched:', name);
+              } catch (error) {
+                console.error('Error fetching product:', error);
+                name = key;
+              }
             }
-            drugs[key] = { name, count: 0, lastDate: order.createdAt?.toDate?.() || null };
+            drugs[key] = { id: key, name, count: 0, date: order.createdAt?.toDate?.() || null };
           }
           drugs[key].count += Number(item.qty || item.quantity || 1);
           // Use latest date
           const orderDate = order.createdAt?.toDate?.() || null;
-          if (orderDate && (!drugs[key].lastDate || orderDate > drugs[key].lastDate)) {
-            drugs[key].lastDate = orderDate;
+          if (orderDate && (!drugs[key].date || orderDate > drugs[key].date)) {
+            drugs[key].date = orderDate;
           }
         }
       }
-      // Sort by lastDate desc
-      const drugsArr = Object.values(drugs).sort((a, b) => (b.lastDate || 0) - (a.lastDate || 0));
+      // Sort by date desc
+      const drugsArr = Object.values(drugs).sort((a, b) => (b.date || 0) - (a.date || 0));
+      console.log('Drugs bought:', drugsArr);
       setDrugsBought(drugsArr);
+    }).catch(error => {
+      console.error('Error fetching drugs bought:', error);
+      setDrugsBought([]);
     });
     // Subscribe to real-time user profile document
     const userDocRef = doc(db, 'users', user.uid);
@@ -480,13 +493,19 @@ export default function ProfileCustomer() {
               <button className="text-[12px] text-sky-600 font-light px-2 py-1 rounded-full hover:bg-sky-50" onClick={() => setShowAllDrugs(true)}>{t('see_more', 'See more')}</button>
             </div>
             <div className="w-full flex flex-col gap-2">
-              {(drugsBought.slice(0,3)).map((drug, idx) => (
-                <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-                  <span className="text-[12px] text-zinc-500 font-light w-1/3 text-left">{drug.name}</span>
-                  <span className="text-[12px] text-zinc-400 font-light w-1/3 flex justify-center">{drug.date}</span>
-                  <span className="text-[12px] text-zinc-500 font-light w-1/3 text-right">{drug.count ?? 1}</span>
+              {drugsBought.length > 0 ? (
+                (drugsBought.slice(0,3)).map((drug, idx) => (
+                  <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+                    <span className="text-[12px] text-zinc-500 font-light w-1/3 text-left">{drug.name}</span>
+                    <span className="text-[12px] text-zinc-400 font-light w-1/3 flex justify-center">{drug.date ? drug.date.toLocaleDateString() : 'N/A'}</span>
+                    <span className="text-[12px] text-zinc-500 font-light w-1/3 text-right">{drug.count ?? 1}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full text-center py-4">
+                  <span className="text-[12px] text-zinc-400 font-light">{t('no_drugs_bought_yet', 'No drugs bought yet')}</span>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Modal for all drugs bought */}
@@ -495,13 +514,19 @@ export default function ProfileCustomer() {
                 <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
                   <div className="text-[18px] font-light font-poppins text-sky-600 dark:text-white mb-2 tracking-tight">{t('all_drugs_bought', 'All Drugs Bought')}</div>
                   <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
-                    {drugsBought.map((drug, idx) => (
-                      <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-                        <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-left">{drug.name}</span>
-                        <span className="text-[12px] text-zinc-400 dark:text-gray-400 font-light w-1/3 flex justify-center">{drug.date}</span>
-                        <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-right">{drug.count ?? 1}</span>
+                    {drugsBought.length > 0 ? (
+                      drugsBought.map((drug, idx) => (
+                        <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
+                          <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-left">{drug.name}</span>
+                          <span className="text-[12px] text-zinc-400 dark:text-gray-400 font-light w-1/3 flex justify-center">{drug.date ? drug.date.toLocaleDateString() : 'N/A'}</span>
+                          <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-right">{drug.count ?? 1}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="w-full text-center py-8">
+                        <span className="text-[14px] text-zinc-400 dark:text-gray-400 font-light">{t('no_drugs_bought_yet', 'No drugs bought yet')}</span>
                       </div>
-                    ))}
+                    )}
                   </div>
                   <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full hover:bg-sky-700 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowAllDrugs(false)}>{t('close', 'Close')}</button>
                 </div>
