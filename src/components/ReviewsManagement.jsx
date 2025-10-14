@@ -17,6 +17,7 @@ export default function ReviewsManagement() {
   const [responseText, setResponseText] = useState({});
   const [expandedReviews, setExpandedReviews] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedReview, setSelectedReview] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -158,6 +159,10 @@ export default function ReviewsManagement() {
     return { total, responded, avgRating, positiveReviews };
   };
 
+  const handleReviewSelect = (reviewId) => {
+    setSelectedReview(selectedReview === reviewId ? null : reviewId);
+  };
+
   const stats = getReviewStats();
   const filteredReviews = getFilteredAndSortedReviews();
 
@@ -278,14 +283,19 @@ export default function ReviewsManagement() {
           filteredReviews.map((review, index) => (
             <div 
               key={review.id} 
-              className="p-4 sm:p-6 hover:bg-gray-50 transition-all duration-200 animate-fade-in"
+              className={`p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 animate-fade-in cursor-pointer ${
+                selectedReview === review.id 
+                  ? 'ring-2 ring-sky-500 dark:ring-sky-400 bg-sky-50 dark:bg-sky-900/30 scale-102' 
+                  : ''
+              }`}
               style={{ animationDelay: `${index * 0.1}s` }}
+              onClick={() => handleReviewSelect(review.id)}
             >
               {/* Review Card */}
               <div className="space-y-3">
                 {/* Date at the top */}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
                     {review.createdAt && new Date(review.createdAt.seconds * 1000).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -295,7 +305,7 @@ export default function ReviewsManagement() {
                     })}
                   </span>
                   {!review.pharmacyResponse && (
-                    <span className="text-orange-600 px-2 py-1 rounded-full font-normal text-[9px] bg-orange-100" style={{ fontSize: '9px !important' }}>
+                    <span className="text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full font-normal text-[9px] bg-orange-100 dark:bg-orange-900/30" style={{ fontSize: '9px !important' }}>
                       {t('needs_response', 'Needs Response')}
                     </span>
                   )}
@@ -311,10 +321,10 @@ export default function ReviewsManagement() {
                     className="flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 line-clamp-1" style={{ fontSize: '10px !important' }} title={review.productName}>
+                    <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-1" style={{ fontSize: '10px !important' }} title={review.productName}>
                       {review.productName}
                     </h4>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {products[review.productId]?.category || t('medicine', 'Medicine')}
                     </p>
                   </div>
@@ -325,28 +335,28 @@ export default function ReviewsManagement() {
                   <div className="flex">
                     {renderStars(review.rating)}
                   </div>
-                  <span className="text-gray-600" style={{ fontSize: '10px !important' }}>({review.rating}/5)</span>
+                  <span className="text-gray-600 dark:text-gray-300" style={{ fontSize: '10px !important' }}>({review.rating}/5)</span>
                 </div>
 
                 {/* Reviewer name */}
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600" style={{ fontSize: '10px !important' }}>{t('reviewed_by', 'Reviewed by:')}:</span>
-                  <span className="font-medium text-gray-800" style={{ fontSize: '10px !important' }}>{review.customerName || review.name}</span>
+                  <span className="text-gray-600 dark:text-gray-300" style={{ fontSize: '10px !important' }}>{t('reviewed_by', 'Reviewed by:')}:</span>
+                  <span className="font-medium text-gray-800 dark:text-gray-200" style={{ fontSize: '10px !important' }}>{review.customerName || review.name}</span>
                   {review.verified && (
-                    <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">
                       {t('verified', 'Verified')}
                     </span>
                   )}
                 </div>
 
                 {/* Review comment */}
-                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                  <p className="text-gray-800 leading-relaxed" style={{ fontSize: '10px !important' }}>{review.comment}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4">
+                  <p className="text-gray-800 dark:text-gray-200 leading-relaxed" style={{ fontSize: '10px !important' }}>{review.comment}</p>
                 </div>
 
                 {/* Helpfulness indicator */}
                 {review.helpful > 0 && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>👍</span>
                     <span>{t('people_found_helpful', '{count} people found this helpful', { count: review.helpful })}</span>
                   </div>
@@ -404,7 +414,7 @@ export default function ReviewsManagement() {
                           </button>
                           <button
                             onClick={() => setExpandedReviews(prev => ({ ...prev, [review.id]: false }))}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                             style={{ fontSize: '10px !important' }}
                           >
                             {t('cancel', 'Cancel')}
