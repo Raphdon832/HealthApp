@@ -147,7 +147,7 @@ export default function SalesTrends({ data }) {
               {data[hoveredPoint].label}
             </div>
             <div className="text-sm font-semibold text-sky-600 dark:text-sky-400">
-              {t('orders_count', '{count} order{plural}', { count: data[hoveredPoint].value, plural: data[hoveredPoint].value > 1 ? 's' : '' })}
+              {data[hoveredPoint].value.toLocaleString()} {t('orders', 'Orders')}
             </div>
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
               <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
@@ -172,11 +172,16 @@ export default function SalesTrends({ data }) {
 
       {/* Y-axis Labels */}
       <div className="absolute left-1 top-12 h-24 flex flex-col justify-between text-xs text-zinc-400 dark:text-zinc-500">
-        <span>{max}</span>
-        <span>{Math.round(max * 0.75)}</span>
-        <span>{Math.round(max * 0.5)}</span>
-        <span>{Math.round(max * 0.25)}</span>
+        <span>{max.toLocaleString()}</span>
+        <span>{Math.round(max * 0.75).toLocaleString()}</span>
+        <span>{Math.round(max * 0.5).toLocaleString()}</span>
+        <span>{Math.round(max * 0.25).toLocaleString()}</span>
         <span>0</span>
+      </div>
+
+      {/* Y-axis Title */}
+      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -rotate-90 text-xs text-zinc-500 dark:text-zinc-400 font-medium" style={{ left: '-40px' }}>
+        {t('orders', 'Orders')}
       </div>
 
       {/* Background decoration */}
