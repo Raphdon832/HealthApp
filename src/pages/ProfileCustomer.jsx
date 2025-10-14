@@ -87,12 +87,6 @@ export default function ProfileCustomer() {
       setBookmarkedVendors(bookmarks);
     });
 
-    // Cleanup listeners on unmount
-    return () => {
-      if (unsubscribeWishlist) unsubscribeWishlist();
-      if (unsubscribeBookmarks) unsubscribeBookmarks();
-    };
-    
     // Fetch drugs bought (harmonized by productId, using product name from products collection)
     getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))).then(async snapshot => {
       console.log('Orders fetched:', snapshot.docs.length);
@@ -134,7 +128,7 @@ export default function ProfileCustomer() {
       console.error('Error fetching drugs bought:', error);
       setDrugsBought([]);
     });
-    // Subscribe to real-time user profile document
+  // Subscribe to real-time user profile document
     const userDocRef = doc(db, 'users', user.uid);
     const unsub = onSnapshot(userDocRef, snap => {
       if (snap && snap.exists()) {
@@ -155,7 +149,12 @@ export default function ProfileCustomer() {
       }
     }, () => {});
 
-    return () => unsub && unsub();
+    // Consolidated cleanup for all listeners
+    return () => {
+      if (unsubscribeWishlist) unsubscribeWishlist();
+      if (unsubscribeBookmarks) unsubscribeBookmarks();
+      if (unsub) unsub();
+    };
   }, [user]);
 
   // Keep edit fields in sync with realtime profile when not actively editing
