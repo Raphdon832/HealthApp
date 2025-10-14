@@ -111,18 +111,18 @@ export default function Onboarding() {
         <div {...handlers} className="flex flex-col mr-auto self-start w-full">
           {/* step indicator moved to fixed top-left to remain visible */}
 
-          <div className="w-full max-w-xl pr-6 sm:pr-8 md:pr-56 lg:pr-64">
+          <div className="w-full max-w-xl pr-6 sm:pr-8 md:pr-56 lg:pr-64 lg:max-w-none">
             {/* Pharmasea logo (subtle entrance) */}
             <motion.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-4 mt-16 justify-center flex"
+              className="mb-4 mt-16 flex justify-center lg:justify-center"
             >
               <img
                 src="/PharmLogo.png"
                 alt="Pharmasea"
-                className="h-8 sm:h-10 md:h-12 object-contain"
+                className="mx-auto h-8 sm:h-10 md:h-12 lg:h-16 object-contain"
               />
             </motion.div>
             <AnimatePresence mode="wait">
@@ -132,7 +132,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.45 }}
-                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
+                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-6xl"
               >
                 {currentSlide.title.includes("(for Vendors)") ? (
                   <>
@@ -150,7 +150,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.45, delay: 0.04 }}
-                className="mt-4 max-w-xl text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg"
+                className="mt-4 max-w-xl lg:max-w-none text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg lg:text-[22px]"
               >
                 {currentSlide.description}
               </motion.p>
@@ -239,7 +239,7 @@ export default function Onboarding() {
             onClick={handleNext}
             whileTap={{ scale: 0.96 }}
             whileHover={{ scale: 1.02 }}
-            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500/40 backdrop-blur-md text-lg font-normal text-white transition-colors hover:bg-sky-600/40 hover:backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500/40 backdrop-blur-md text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600/40 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {currentIndex === totalSlides - 1 ? "Start" : "Next"}
           </motion.button>
