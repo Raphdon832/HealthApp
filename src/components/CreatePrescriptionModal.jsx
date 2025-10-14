@@ -136,7 +136,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
           <label className="block text-sm mb-1 font-light">Start Date</label>
           <input 
             type="date" 
-            className="border-b p-1 w-full text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
+            className="border-b p-1 w-full text-[12px] dark:bg-gray-800 focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
             value={startDate} 
             onChange={e => setStartDate(e.target.value)} 
             required 
@@ -147,7 +147,7 @@ export default function CreatePrescriptionModal({ open, onClose, products, onSub
           <input 
             type="number" 
             min="1" 
-            className="border-b p-1 w-full text-[12px] focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
+            className="border-b p-1 w-full text-[12px] dark:bg-gray-800 focus:border-sky-500 dark:border-gray-600 transition-colors duration-200" 
             value={duration} 
             onChange={e => setDuration(e.target.value)} 
             required 
