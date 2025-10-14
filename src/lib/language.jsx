@@ -2291,13 +2291,22 @@ const translations = {
 export const useTranslation = () => {
   const { getSetting } = useSettings();
   const currentLanguage = getSetting(SETTINGS_KEYS.LANGUAGE) || 'en';
-  
+
+  // t supports optional interpolation vars: t(key, fallback?, vars?)
   const t = useMemo(() => {
-    return (key, fallback = key) => {
-      return translations[currentLanguage]?.[key] || translations['en']?.[key] || fallback;
+    return (key, fallback = key, vars = {}) => {
+      const raw = translations[currentLanguage]?.[key] || translations['en']?.[key] || fallback;
+      if (!raw || typeof raw !== 'string') return raw;
+      // replace {name} placeholders with provided vars
+      return raw.replace(/\{(\w+)\}/g, (_, name) => {
+        if (vars && Object.prototype.hasOwnProperty.call(vars, name)) {
+          return String(vars[name]);
+        }
+        return `{${name}}`;
+      });
     };
   }, [currentLanguage]);
-  
+
   return { t, currentLanguage };
 };
 
