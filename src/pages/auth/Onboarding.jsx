@@ -98,46 +98,75 @@ export default function Onboarding() {
         onClick={handleSkip}
         aria-label="Skip onboarding"
         className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-normal text-sky-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
-        style={{ WebkitTapHighlightColor: 'transparent' }}
+        style={{ WebkitTapHighlightColor: "transparent" }}
       >
         Skip
       </button>
 
+      {/* CONTENT WRAPPER — flush-left */}
       <div
-        className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 pb-28 sm:px-10 lg:px-14"
+        className="flex w-full max-w-none flex-1 flex-col items-start px-0 pb-28 sm:px-0 lg:px-0"
         style={{ paddingTop: 23 }}
       >
-        <div {...handlers} className="flex flex-col">
+        <div {...handlers} className="flex flex-col mr-auto self-start w-full">
           {/* step indicator moved to fixed top-left to remain visible */}
 
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={currentSlide.title}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.45 }}
-              className="mt-8 text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
-            >
-              {currentSlide.title}
-            </motion.h1>
-
-            <motion.p
-              key={currentSlide.description}
-              initial={{ opacity: 0, y: 8 }}
+          <div className="w-full max-w-xl pr-6 sm:pr-8 md:pr-56 lg:pr-64">
+            {/* Pharmasea logo (subtle entrance) */}
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45, delay: 0.04 }}
-              className="mt-4 max-w-xl text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg"
+              transition={{ duration: 0.4 }}
+              className="mb-4 mt-16 justify-center flex"
             >
-              {currentSlide.description}
-            </motion.p>
+              <img
+                src="/PharmLogo.png"
+                alt="Pharmasea"
+                className="h-8 sm:h-10 md:h-12 object-contain"
+              />
+            </motion.div>
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={currentSlide.title}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.45 }}
+                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
+              >
+                {currentSlide.title.includes("(for Vendors)") ? (
+                  <>
+                    {currentSlide.title.replace(" (for Vendors)", "")}
+                    <span className="ml-2 align-left text-sm font-light text-slate-500 dark:text-slate-400">(for Vendors)</span>
+                  </>
+                ) : (
+                  currentSlide.title
+                )}
+              </motion.h1>
+
+              <motion.p
+                key={currentSlide.description}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.45, delay: 0.04 }}
+                className="mt-4 max-w-xl text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg"
+              >
+                {currentSlide.description}
+              </motion.p>
+            </AnimatePresence>
+          </div>
 
             {/* image placeholder keeps layout stable while actual image is fixed */}
-            <div className="relative mt-8 flex w-full justify-end" style={{ bottom: 70 }}>
-              <div className="w-full max-w-[400px] sm:max-w-[440px] h-0" aria-hidden />
+            <div
+              className="relative mt-8 flex w-full justify-end"
+              style={{ bottom: 70 }}
+            >
+              <div
+                className="w-full max-w-[400px] sm:max-w-[440px] h-0"
+                aria-hidden
+              />
             </div>
-          </AnimatePresence>
         </div>
       </div>
 
@@ -167,7 +196,10 @@ export default function Onboarding() {
       />
 
       {/* fixed bottom controls: back (left), dots (center), next (right) */}
-      <div aria-hidden className="fixed inset-x-0 bottom-6 z-40 flex justify-center pointer-events-none">
+      <div
+        aria-hidden
+        className="fixed inset-x-0 bottom-6 z-40 flex justify-center pointer-events-none"
+      >
         <div className="w-full max-w-md pointer-events-auto flex items-center justify-between px-4">
           <button
             type="button"
@@ -187,7 +219,8 @@ export default function Onboarding() {
                 initial={false}
                 animate={{
                   scale: idx === currentIndex ? 1.15 : 1,
-                  backgroundColor: idx === currentIndex ? "#0f172a" : "#e6e9ee",
+                  backgroundColor:
+                    idx === currentIndex ? "#0f172a" : "#e6e9ee",
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 onClick={() => {
@@ -195,7 +228,7 @@ export default function Onboarding() {
                   setIsAnimating(true);
                   setCurrentIndex(idx);
                 }}
-                className={`h-2 w-2 rounded-full cursor-pointer dark:cursor-pointer`}
+                className="h-2 w-2 rounded-full cursor-pointer dark:cursor-pointer"
                 aria-label={`Go to step ${idx + 1}`}
               />
             ))}
@@ -206,7 +239,7 @@ export default function Onboarding() {
             onClick={handleNext}
             whileTap={{ scale: 0.96 }}
             whileHover={{ scale: 1.02 }}
-            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500 text-lg font-normal text-white transition-colors hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500/40 backdrop-blur-md text-lg font-normal text-white transition-colors hover:bg-sky-600/40 hover:backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {currentIndex === totalSlides - 1 ? "Start" : "Next"}
           </motion.button>
