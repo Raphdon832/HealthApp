@@ -138,21 +138,23 @@ export default function Orders() {
   return (
     <>
       <FixedHeader title="Orders" t={t} />
-  <div className="pt-24 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen flex flex-col">
+  <div className="pt-10 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen flex flex-col">
         {/* Filters */}
-        <div className="mt-8 flex gap-2 flex-wrap">
+        <div className="mt-8 -mx-4 sm:mx-0 sticky top-20 pt-8 sm:static z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+          <div className="flex gap-2 flex-nowrap px-4 sm:px-0 overflow-x-auto scrollbar-hide py-2">
           <button
-            className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
+            className={`px-3 py-1 rounded-full border text-[10px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
             onClick={()=>setStatusFilter('all')}
           >{t('all', 'All')}</button>
           {ORDER_STATUSES.map(s => (
             <button
               key={s}
-              className={`px-3 py-1 rounded-full border text-[12px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
+              className={`px-3 py-1 rounded-full border text-[10px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
               onClick={()=>setStatusFilter(s)}
             >{t(s, s.charAt(0).toUpperCase()+s.slice(1))}</button>
         ))}
-      </div>
+          </div>
+        </div>
       <div className="mt-4 space-y-6">
         {filteredOrders.length === 0 ? (
           <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] text-center py-12 animate-fadeInUp">
