@@ -128,13 +128,17 @@ export default function MyPrescriptionsSection() {
 
   return (
     <div className="w-full">
-      <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">
-        {t('my_prescriptions', 'My Prescriptions')}
+      <div className="mb-2 flex items-start justify-between">
+        <div className="text-[18px] font-light font-poppins text-black dark:text-white tracking-tight">
+          {t('my_prescriptions', 'My Prescriptions')}
+        </div>
         {prescriptions.length > 0 && (
-          <button
-            className="ml-12 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-normal"
-            onClick={() => prescriptions.forEach(p => addToCalendar(p, t))}
-          >{t('add_to_calendar', 'Add to Calendar')}</button>
+          <div className="flex items-center gap-2">
+            <button
+              className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-normal dark:bg-green-900 dark:text-green-200"
+              onClick={() => prescriptions.forEach(p => addToCalendar(p, t))}
+            >{t('add_to_calendar', 'Add to Calendar')}</button>
+          </div>
         )}
       </div>
 
