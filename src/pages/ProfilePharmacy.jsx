@@ -24,30 +24,11 @@ const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSet
         <div className="flex items-center justify-between">
           <h1 className="mt-8 text-[24px] sm:text-[30px] md:text-[36px] lg:text-[42px] font-light font-poppins leading-none text-gray-900 dark:text-white">{t('pharmacy_profile', 'Pharmacy\nProfile').replace('\\n', '\n')}</h1>
           <div className="flex items-center gap-3">
-            {/* Inline search bar for small+ screens */}
-            <div className="hidden sm:flex items-center border-b px-2 py-1 w-[min(420px,40vw)] max-w-[520px]">
-              <input
-                value={searchValue}
-                onChange={onSearchChange}
-                onKeyDown={e => { if (e.key === 'Enter') onSearchSubmit(); }}
-                placeholder="Search products, orders, customers..."
-                className="flex-1 text-sm font-light outline-none truncate"
-                aria-label="Search products or orders"
-              />
-              <button
-                onClick={onSearchSubmit}
-                aria-label="Search"
-                className="ml-2 rounded-full p-2 text-sky-600"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Compact icon for very small screens */}
+            {/* Search icon */}
             <button
               onClick={onSearchSubmit}
-              aria-label="Open search"
-              className="ml-2 rounded-full p-2 hover:bg-sky-50 sm:hidden"
+              aria-label="Search"
+              className="ml-2 rounded-full p-2 hover:bg-sky-50"
             >
               <Search className="h-5 w-5 text-sky-600 mt-8" />
             </button>
