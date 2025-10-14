@@ -260,41 +260,42 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* CTA: show circular Next on non-final slides (right aligned), render a centered, wider pill on final slide with higher z-index */}
-          {currentIndex === totalSlides - 1 ? (
+          {/* CTA: morph the circular Next into the pill Continue using a shared layoutId to produce a smooth shape/position transition */}
+          <div className="relative w-full flex justify-end items-center z-20 pointer-events-auto px-4">
             <motion.div
-              initial={{ width: 160 }}
-              animate={{ width: 200 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-              style={{ position: 'relative' }}
-              className="z-50 flex items-center justify-end pointer-events-auto w-full"
+              layoutId="cta"
+              layout
+              transition={{ layout: { type: 'spring', stiffness: 320, damping: 28 } }}
+              className="flex items-center justify-end w-full"
+              style={{ display: 'flex', justifyContent: 'flex-end' }}
             >
-              <div className="w-full flex justify-end">
+              {currentIndex === totalSlides - 1 ? (
                 <motion.button
+                  key="continue-btn"
                   type="button"
                   onClick={handleNext}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.985 }}
                   whileHover={{ scale: 1.02 }}
-                  className="h-14 shadow-md bg-sky-600 text-lg font-medium text-white transition-colors hover:bg-sky-600/90 active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="h-14 shadow-md bg-sky-600 text-lg font-medium text-white transition-colors hover:bg-sky-600/90 active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 pointer-events-auto"
                   style={{ minWidth: 220, borderRadius: 999, zIndex: 999 }}
                 >
                   Continue
                 </motion.button>
-              </div>
+              ) : (
+                <motion.button
+                  key="next-btn"
+                  type="button"
+                  onClick={handleNext}
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="flex h-14 items-center justify-center shadow-md rounded-full bg-sky-600 text-lg font-normal text-white transition-colors dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 pointer-events-auto"
+                  style={{ width: 56, height: 56, borderRadius: 999, zIndex: 999 }}
+                >
+                  Next
+                </motion.button>
+              )}
             </motion.div>
-          ) : (
-            <div className="relative w-full flex justify-end items-center z-20">
-              <motion.button
-                type="button"
-                onClick={handleNext}
-                whileTap={{ scale: 0.96 }}
-                whileHover={{ scale: 1.02 }}
-                className="flex h-20 w-20 z-20 items-center justify-center shadow-md rounded-full bg-sky-600 text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 pointer-events-auto"
-              >
-                Next
-              </motion.button>
-            </div>
-          )}
+          </div>
 
           
         </div>
