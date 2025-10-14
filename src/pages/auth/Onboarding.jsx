@@ -37,6 +37,15 @@ const ONBOARDING_SLIDES = [
   },
 ];
 
+const SLIDE_BACKGROUNDS = [
+  '#D1FFF8',
+  '#FFDBDB',
+  '#D9FFE1',
+  '#FFF7CD',
+  '#EFE1FF',
+  '#E1F2FF',
+];
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -91,8 +100,17 @@ export default function Onboarding() {
     trackMouse: true,
   });
 
+  const currentBg = SLIDE_BACKGROUNDS[currentIndex] || '#FFFFFF';
+  // full-bleed style to escape surrounding layout padding and span the full viewport width
+  const fullBleedStyle = {
+    backgroundColor: currentBg,
+    width: '100vw',
+    marginLeft: 'calc(50% - 50vw)',
+    marginRight: 'calc(50% - 50vw)'
+  };
+
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-white text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
+    <div className="relative flex min-h-screen flex-col overflow-hidden transition-colors duration-300" style={fullBleedStyle}>
       <button
         type="button"
         onClick={handleSkip}
@@ -132,7 +150,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.45 }}
-                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-6xl"
+                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-6xl pl-4 sm:pl-6 lg:pl-6"
               >
                 {currentSlide.title.includes("(for Vendors)") ? (
                   <>
@@ -150,7 +168,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.45, delay: 0.04 }}
-                className="mt-4 max-w-xl lg:max-w-none text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg lg:text-[22px]"
+                className="mt-4 max-w-xl lg:max-w-none text-left text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg lg:text-[22px] pl-4 sm:pl-6 lg:pl-6"
               >
                 {currentSlide.description}
               </motion.p>

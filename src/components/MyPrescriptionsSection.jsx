@@ -26,9 +26,9 @@ function scheduleNotifications(prescription, t) {
     const timesPerDay = parseFrequency(drug.frequency);
     // Schedule for each day and each time per day
     for (let day = 0; day < days; day++) {
-      for (let t = 0; t < timesPerDay; t++) {
+      for (let timeIndex = 0; timeIndex < timesPerDay; timeIndex++) {
         // For demo: schedule at intervals from now (in real: use actual time fields)
-        const notifyTime = new Date(start.getTime() + day * 24*60*60*1000 + t * (24/timesPerDay)*60*60*1000);
+        const notifyTime = new Date(start.getTime() + day * 24*60*60*1000 + timeIndex * (24 / timesPerDay) * 60*60*1000);
         if (notifyTime > now) {
           const timeout = notifyTime.getTime() - now.getTime();
           setTimeout(() => {
@@ -51,8 +51,8 @@ function addToCalendar(prescription, t) {
   drugs.forEach(drug => {
     const timesPerDay = parseFrequency(drug.frequency);
     for (let day = 0; day < days; day++) {
-      for (let t = 0; t < timesPerDay; t++) {
-        const eventStart = new Date(start.getTime() + day * 24*60*60*1000 + t * (24/timesPerDay)*60*60*1000);
+      for (let timeIndex = 0; timeIndex < timesPerDay; timeIndex++) {
+        const eventStart = new Date(start.getTime() + day * 24*60*60*1000 + timeIndex * (24 / timesPerDay) * 60*60*1000);
         const dt = eventStart.toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
         ics += `BEGIN:VEVENT\nSUMMARY:${t('take_medicine', 'Take {drugName}', { drugName: drug.name })}\nDESCRIPTION:${t('dosage_frequency', 'Dosage: {dosage} ({frequency})', { dosage: drug.dosage || '', frequency: drug.frequency || '' })}\nDTSTART:${dt}\nDTEND:${dt}\nEND:VEVENT\n`;
       }
