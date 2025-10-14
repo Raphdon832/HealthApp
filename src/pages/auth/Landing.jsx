@@ -1,5 +1,6 @@
 // src/pages/auth/Landing.jsx
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 
@@ -47,86 +48,106 @@ export default function Landing() {
 
   return (
     <AuthLayout>
-      <div className="mt-4 font-poppins text-[32px] sm:text-[38px] md:text-[42px] lg:text-[50px] font-thin tracking-tight leading-[109%] text-left lg:text-left lg:max-w-4xl animate-text-reveal">
-        <span className="block lg:inline">HealthCare at</span>{' '}
-        <span className="block lg:inline">Your Doorstep</span>
-      </div>
-      <p
-        className="mt-1 text-black text-[13px] sm:text-[14px] md:text-[16px] tracking-tight font-thin leading-[154%] font-poppins text-left lg:text-left lg:max-w-2xl animate-fade-in"
-        style={{ animationDelay: '0.2s' }}
+      <motion.div
+        initial="hidden"
+        animate="show"
+        exit="hidden"
+        variants={{
+          hidden: { opacity: 0, y: 6 },
+          show: { opacity: 1, y: 0, transition: { staggerChildren: 0.08, when: 'beforeChildren' } },
+        }}
       >
-        Pick up and deliver medical prescribed medications and, over-the-counter items from pharmacies to your doorstep.
-      </p>
-
-      <div
-        className="mt-8 flex flex-row gap-4 w-full max-w-[350px] mx-0 animate-fade-in-up"
-        style={{ animationDelay: '0.4s' }}
-      >
-        <button
-          onClick={() => setRole('customer')}
-          className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${
-            role === 'customer'
-              ? 'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]'
-              : 'border-[#36A5FF] border-[1px]'
-          } card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
-          style={{ animationDelay: '0.5s' }}
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+          className="mt-4 font-poppins text-[32px] sm:text-[38px] md:text-[42px] lg:text-[50px] font-thin tracking-tight leading-[109%] text-left lg:text-left lg:max-w-4xl"
         >
-          <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
-            I’m a
-            <br />
-            customer
-          </div>
-          <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
-            Sign Up or Login as a customer
-          </div>
-        </button>
+          <span className="block lg:inline">HealthCare at</span>{' '}
+          <span className="block lg:inline">Your Doorstep</span>
+        </motion.h1>
 
-        <button
-          onClick={() => setRole('pharmacy')}
-          className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${
-            role === 'pharmacy'
-              ? 'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]'
-              : 'border-[#36A5FF] border-[1px]'
-          } card-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm group animate-bounce-in`}
-          style={{ animationDelay: '0.6s' }}
+        <motion.p
+          variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
+          className="mt-1 text-black text-[13px] sm:text-[14px] md:text-[16px] tracking-tight font-thin leading-[154%] font-poppins text-left lg:text-left lg:max-w-2xl"
         >
-          <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
-            I’m a
-            <br />
-            pharmacy
-          </div>
-          <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
-            Sign Up or Login as a pharmacy
-          </div>
-        </button>
-      </div>
+          Pick up and deliver medical prescribed medications and, over-the-counter items from pharmacies to your doorstep.
+        </motion.p>
 
-      <div className="flex justify-start w-full max-w-[350px] mx-0">
-        <button
-          onClick={navigateToRole}
-          disabled={!role}
-          className={`mt-8 w-full h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] font-light flex items-center justify-center btn-interactive transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm animate-fade-in-up ${
-            !role
-              ? 'border-zinc-300 dark:border-gray-600 text-zinc-400 cursor-not-allowed bg-white'
-              : 'border-[#36A5FF] text-[#36A5FF] cursor-pointer bg-white'
-          }`}
-          style={{ animationDelay: '0.7s' }}
+        <motion.div className="mt-8 flex flex-row gap-4 w-full max-w-[350px] mx-0" variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}>
+          <motion.button
+            onClick={() => setRole('customer')}
+            whileHover={{ scale: 1.035 }}
+            whileTap={{ scale: 0.985 }}
+            className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${
+              role === 'customer'
+                ? 'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]'
+                : 'border-[#36A5FF] border-[1px]'
+            } card-interactive transition-all duration-200 shadow-sm group`}
+          >
+            <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+              I’m a
+              <br />
+              customer
+            </div>
+            <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+              Sign Up or Login as a customer
+            </div>
+          </motion.button>
+
+          <motion.button
+            onClick={() => setRole('pharmacy')}
+            whileHover={{ scale: 1.035 }}
+            whileTap={{ scale: 0.985 }}
+            className={`relative rounded-3xl p-0 text-left font-poppins bg-[#F7F7F7]/10 w-[169px] h-[169px] ${
+              role === 'pharmacy'
+                ? 'border-[#36A5FF] border-[3px] ring-3 ring-[#36A5FF]'
+                : 'border-[#36A5FF] border-[1px]'
+            } card-interactive transition-all duration-200 shadow-sm group`}
+          >
+            <div className="absolute left-[9px] md:top-[70px] top-[80px] text-[20px] sm:text-[25px] font-light tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+              I’m a
+              <br />
+              pharmacy
+            </div>
+            <div className="absolute left-[9px] md:top-[127px] top-[127px] text-black text-[12px] sm:text-[13px] font-extralight tracking-tight leading-[109%] font-poppins group-hover:text-[#36A5FF] transition-colors duration-200">
+              Sign Up or Login as a pharmacy
+            </div>
+          </motion.button>
+        </motion.div>
+
+        <motion.div className="flex justify-start w-full max-w-[350px] mx-0">
+          <motion.button
+            onClick={navigateToRole}
+            disabled={!role}
+            whileHover={role ? { scale: 1.02 } : {}}
+            whileTap={role ? { scale: 0.985 } : {}}
+            className={`mt-8 w-full h-[47px] rounded-full border font-poppins text-[14px] sm:text-[16px] font-light flex items-center justify-center btn-interactive transition-all duration-200 shadow-sm ${
+              !role
+                ? 'border-zinc-300 dark:border-gray-600 text-zinc-400 cursor-not-allowed bg-white'
+                : 'border-[#36A5FF] text-[#36A5FF] cursor-pointer bg-white'
+            }`}
+          >
+            Continue
+          </motion.button>
+        </motion.div>
+
+        {/* Mobile / tablet illustrations only (grouped) */}
+        <motion.div
+          className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 md:hidden flex justify-center"
+          variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
         >
-          Continue
-        </button>
-      </div>
-
-      {/* Mobile / tablet illustrations only */}
-      <div className="pointer-events-none fixed bottom-0 left-1/2 transform -translate-x-1/2 flex flex-row gap-0 justify-center z-10 md:hidden">
-        <CustomerIllustration
-          className="w-[22vw] max-w-[110px] h-auto"
-          stroke={role === 'customer' ? '#36A5FF' : '#9C9C9C'}
-        />
-        <PharmacyIllustration
-          className="w-[28vw] max-w-[142px] h-auto -ml-4"
-          stroke={role === 'pharmacy' ? '#36A5FF' : '#989898'}
-        />
-      </div>
+          {/* Wrapper that groups both svgs so they can be centered together */}
+          <div className="flex flex-row items-end gap-0 justify-center">
+            <CustomerIllustration
+              className="w-[22vw] max-w-[110px] h-auto"
+              stroke={role === 'customer' ? '#36A5FF' : '#9C9C9C'}
+            />
+            <PharmacyIllustration
+              className="w-[28vw] max-w-[142px] h-auto -ml-4"
+              stroke={role === 'pharmacy' ? '#36A5FF' : '#989898'}
+            />
+          </div>
+        </motion.div>
+      </motion.div>
     </AuthLayout>
   );
 }
