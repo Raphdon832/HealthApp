@@ -111,15 +111,18 @@ export default function Onboarding() {
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden transition-colors duration-300" style={fullBleedStyle}>
-      <button
-        type="button"
-        onClick={handleSkip}
-        aria-label="Skip onboarding"
-        className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-normal text-sky-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
-        style={{ WebkitTapHighlightColor: "transparent" }}
-      >
-        Skip
-      </button>
+      {/* Top-right skip: hide on final slide */}
+      {currentIndex !== totalSlides - 1 && (
+        <button
+          type="button"
+          onClick={handleSkip}
+          aria-label="Skip onboarding"
+          className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-normal text-sky-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
+          style={{ WebkitTapHighlightColor: "transparent" }}
+        >
+          Skip
+        </button>
+      )}
 
       {/* CONTENT WRAPPER — flush-left */}
       <div
@@ -218,49 +221,82 @@ export default function Onboarding() {
         aria-hidden
         className="fixed inset-x-0 bottom-6 z-40 flex justify-center pointer-events-none"
       >
-        <div className="w-full max-w-md pointer-events-auto flex items-center justify-between px-4">
+        <div className="w-full max-w-md pointer-events-auto relative flex items-center justify-between px-4">
           <button
             type="button"
             onClick={handleBack}
             disabled={currentIndex === 0}
             aria-label="Go to previous"
-            className="z-50 text-sm font-normal text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-0 dark:text-slate-400 dark:hover:text-white bg-white/0 backdrop-blur rounded-md px-3 py-2"
+            className="z-20 text-sm font-normal text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-0 dark:text-slate-400 dark:hover:text-white bg-white/0 backdrop-blur rounded-md px-3 py-2"
           >
             back
           </button>
 
-          <div className="flex items-center gap-2">
-            {ONBOARDING_SLIDES.map((_, idx) => (
-              <motion.span
-                key={idx}
-                layout
-                initial={false}
-                animate={{
-                  scale: idx === currentIndex ? 1.15 : 1,
-                  backgroundColor:
-                    idx === currentIndex ? "#0f172a" : "#e6e9ee",
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                onClick={() => {
-                  if (isAnimating) return;
-                  setIsAnimating(true);
-                  setCurrentIndex(idx);
-                }}
-                className="h-2 w-2 rounded-full cursor-pointer dark:cursor-pointer"
-                aria-label={`Go to step ${idx + 1}`}
-              />
-            ))}
-          </div>
+          {/* dots: hide on last slide */}
+          {currentIndex === totalSlides - 1 ? (
+            <div className="w-0" />
+          ) : (
+            <div className="flex items-center gap-2 z-10 pointer-events-auto">
+              {ONBOARDING_SLIDES.map((_, idx) => (
+                <motion.span
+                  key={idx}
+                  layout
+                  initial={false}
+                  animate={{
+                    scale: idx === currentIndex ? 1.15 : 1,
+                    backgroundColor:
+                      idx === currentIndex ? "#0f172a" : "#e6e9ee",
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  onClick={() => {
+                    if (isAnimating) return;
+                    setIsAnimating(true);
+                    setCurrentIndex(idx);
+                  }}
+                  className="h-2 w-2 rounded-full cursor-pointer dark:cursor-pointer"
+                  aria-label={`Go to step ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
 
-          <motion.button
-            type="button"
-            onClick={handleNext}
-            whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.02 }}
-            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-600 text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-          >
-            {currentIndex === totalSlides - 1 ? "Start" : "Next"}
-          </motion.button>
+          {/* CTA: show circular Next on non-final slides (right aligned), render a centered, wider pill on final slide with higher z-index */}
+          {currentIndex === totalSlides - 1 ? (
+            <motion.div
+              initial={{ width: 160 }}
+              animate={{ width: 200 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+              style={{ position: 'relative' }}
+              className="z-50 flex items-center justify-end pointer-events-auto w-full"
+            >
+              <div className="w-full flex justify-end">
+                <motion.button
+                  type="button"
+                  onClick={handleNext}
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="h-14 shadow-md bg-sky-600 text-lg font-medium text-white transition-colors hover:bg-sky-600/90 active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                  style={{ minWidth: 220, borderRadius: 999, zIndex: 999 }}
+                >
+                  Continue
+                </motion.button>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="relative w-full flex justify-end items-center z-20">
+              <motion.button
+                type="button"
+                onClick={handleNext}
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.02 }}
+                className="flex h-20 w-20 z-20 items-center justify-center shadow-md rounded-full bg-sky-600 text-lg font-normal text-white transition-colors lg:bg-sky-600 hover:bg-sky-600 hover:backdrop-blur-md active:scale-[1] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 pointer-events-auto"
+              >
+                Next
+              </motion.button>
+            </div>
+          )}
+
+          
         </div>
       </div>
     </div>
