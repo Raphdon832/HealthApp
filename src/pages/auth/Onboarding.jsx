@@ -97,7 +97,7 @@ export default function Onboarding() {
         type="button"
         onClick={handleSkip}
         aria-label="Skip onboarding"
-        className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
+        className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-normal text-sky-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         Skip
