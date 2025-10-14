@@ -1,6 +1,8 @@
 // src/pages/auth/Onboarding.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSwipeable } from "react-swipeable";
 
 const ONBOARDING_SLIDES = [
   {
@@ -38,6 +40,7 @@ const ONBOARDING_SLIDES = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const totalSlides = ONBOARDING_SLIDES.length;
 
   const currentSlide = useMemo(
@@ -48,80 +51,159 @@ export default function Onboarding() {
   const handleSkip = () => navigate("/auth/landing", { replace: true });
 
   const handleNext = () => {
+    if (isAnimating) return;
     if (currentIndex >= totalSlides - 1) {
       navigate("/auth/landing", { replace: true });
       return;
     }
+    setIsAnimating(true);
     setCurrentIndex((prev) => Math.min(prev + 1, totalSlides - 1));
   };
 
   const handleBack = () => {
+    if (isAnimating) return;
     if (currentIndex === 0) return;
+    setIsAnimating(true);
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
+
+  // keyboard navigation
+  const onKeyDown = useCallback(
+    (e) => {
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handleBack();
+      if (e.key === "Escape") handleSkip();
+    },
+    [currentIndex, isAnimating]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+
+  // swipe handlers
+  const handlers = useSwipeable({
+    onSwipedLeft: () => handleNext(),
+    onSwipedRight: () => handleBack(),
+    delta: 50,
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  });
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
       <button
         type="button"
         onClick={handleSkip}
-        className="absolute right-6 top-6 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
+        aria-label="Skip onboarding"
+        className="fixed right-4 top-4 z-50 pointer-events-auto text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-400 dark:hover:text-white"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         Skip
       </button>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 pb-28 pt-20 sm:px-10 lg:px-14">
-        <span className="text-xs uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
-          Step {currentIndex + 1} of {totalSlides}
-        </span>
-        <h1 className="mt-8 text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl">
-          {currentSlide.title}
-        </h1>
-        <p className="mt-4 max-w-xl text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg">
-          {currentSlide.description}
-        </p>
+      <div
+        className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 pb-28 sm:px-10 lg:px-14"
+        style={{ paddingTop: 234 }}
+      >
+        <div {...handlers} className="flex flex-col">
+          <motion.span
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="text-xs uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500"
+          >
+            Step {currentIndex + 1} of {totalSlides}
+          </motion.span>
 
-        <div className="relative mt-auto flex w-full justify-end">
-          <img
-            src={currentSlide.illustration}
-            alt={currentSlide.title}
-            className="w-full max-w-[400px] object-contain sm:max-w-[440px]"
-            loading="lazy"
-          />
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={currentSlide.title}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.45 }}
+              className="mt-8 text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
+            >
+              {currentSlide.title}
+            </motion.h1>
+
+            <motion.p
+              key={currentSlide.description}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, delay: 0.04 }}
+              className="mt-4 max-w-xl text-[18px] font-thin text-slate-600 dark:text-slate-300 sm:text-lg"
+            >
+              {currentSlide.description}
+            </motion.p>
+
+            <div className="relative mt-8 flex w-full justify-end" style={{ marginTop: 120 }}>
+              <motion.img
+                key={currentSlide.illustration}
+                src={currentSlide.illustration}
+                alt={currentSlide.title}
+                loading="lazy"
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 160, damping: 20 }}
+                className="w-full max-w-[400px] object-contain sm:max-w-[440px] will-change-transform"
+                onAnimationComplete={() => setIsAnimating(false)}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.995 }}
+              />
+            </div>
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0">
-        <div className="pointer-events-auto mx-auto flex w-full max-w-4xl items-center justify-between px-6 pb-8 sm:px-10 lg:px-14">
+      {/* fixed bottom controls: back (left), dots (center), next (right) */}
+      <div aria-hidden className="fixed inset-x-0 bottom-6 z-40 flex justify-center pointer-events-none">
+        <div className="w-full max-w-md pointer-events-auto flex items-center justify-between px-4">
           <button
             type="button"
             onClick={handleBack}
             disabled={currentIndex === 0}
-            className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
+            aria-label="Go to previous"
+            className="z-50 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 dark:text-slate-400 dark:hover:text-white bg-white/60 backdrop-blur rounded-md px-3 py-2 shadow-sm"
           >
             back
           </button>
 
           <div className="flex items-center gap-2">
             {ONBOARDING_SLIDES.map((_, idx) => (
-              <span
+              <motion.span
                 key={idx}
-                className={`h-2 w-2 rounded-full transition-all ${
-                  idx === currentIndex
-                    ? "scale-110 bg-slate-900 dark:bg-white"
-                    : "bg-slate-200 dark:bg-slate-700"
-                }`}
+                layout
+                initial={false}
+                animate={{
+                  scale: idx === currentIndex ? 1.15 : 1,
+                  backgroundColor: idx === currentIndex ? "#0f172a" : "#e6e9ee",
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                onClick={() => {
+                  if (isAnimating) return;
+                  setIsAnimating(true);
+                  setCurrentIndex(idx);
+                }}
+                className={`h-2 w-2 rounded-full cursor-pointer dark:cursor-pointer`}
+                aria-label={`Go to step ${idx + 1}`}
               />
             ))}
           </div>
 
-          <button
+          <motion.button
             type="button"
             onClick={handleNext}
-            className="flex h-20 w-20 z-10 items-center justify-center shadow-md rounded-full bg-sky-500 text-lg font-thin text-white transition-colors hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.02 }}
+            className="flex h-20 w-20 z-50 items-center justify-center shadow-md rounded-full bg-sky-500 text-lg font-normal text-white transition-colors hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {currentIndex === totalSlides - 1 ? "Start" : "Next"}
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>
