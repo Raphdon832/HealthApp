@@ -437,31 +437,31 @@ export default function Cart() {
 
       {/* Order Summary Modal */}
       {showOrderSummary && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 dark:bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[20px] font-light font-poppins text-sky-600">
+                <h2 className="text-[20px] font-light font-poppins text-sky-600 dark:text-sky-400">
                   {t("order_summary", "Order Summary")}
                 </h2>
                 <button
                   onClick={() => setShowOrderSummary(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
 
               {/* Order Items */}
               <div className="mb-6">
-                <h3 className="text-[16px] font-medium mb-3">
+                <h3 className="text-[16px] font-medium mb-3 text-gray-900 dark:text-white">
                   {t("items", "Items")} ({harmonizedItems.length})
                 </h3>
                 <div className="space-y-3">
                   {harmonizedItems.map((item) => (
                     <div
                       key={item.product?.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                     >
                       <ProductAvatar
                         name={item.product?.name}
@@ -471,14 +471,14 @@ export default function Cart() {
                         roundedClass="rounded-lg"
                       />
                       <div className="flex-1">
-                        <div className="text-[14px] font-medium truncate">
+                        <div className="text-[14px] font-medium truncate text-gray-900 dark:text-white">
                           {item.product?.name}
                         </div>
-                        <div className="text-[12px] text-gray-600">
+                        <div className="text-[12px] text-gray-600 dark:text-gray-300">
                           {t("qty", "Qty")}: {item.qty}
                         </div>
                       </div>
-                      <div className="text-[14px] font-medium text-sky-600">
+                      <div className="text-[14px] font-medium text-sky-600 dark:text-sky-400">
                         ₦
                         {Number(
                           (item.product?.price || 0) * item.qty
@@ -491,12 +491,12 @@ export default function Cart() {
 
               {/* Delivery Details */}
               <div className="mb-6">
-                <h3 className="text-[16px] font-medium mb-3">
+                <h3 className="text-[16px] font-medium mb-3 text-gray-900 dark:text-white">
                   {t("delivery_details", "Delivery Details")}
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[14px] font-medium text-gray-700 mb-2">
+                    <label className="block text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">
                       {t("delivery_address", "Delivery Address")} *
                     </label>
                     <div className="relative">
@@ -525,7 +525,7 @@ export default function Cart() {
                       </button>
                     </div>
                     {addressSuggestions.length > 0 && (
-                      <div className="mt-2 bg-white border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto relative z-[10000]">
+                      <div className="mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto relative z-[10000]">
                         {addressSuggestions.map((suggestion, index) => (
                           <button
                             key={index}
@@ -533,7 +533,7 @@ export default function Cart() {
                               setDeliveryAddress(suggestion);
                               setAddressSuggestions([]);
                             }}
-                            className="w-full text-left p-3 hover:bg-gray-50 text-[13px] border-b last:border-b-0"
+                            className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-600 text-[13px] border-b last:border-b-0 text-gray-900 dark:text-white"
                           >
                             {suggestion}
                           </button>
@@ -544,7 +544,7 @@ export default function Cart() {
 
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-[14px] font-medium text-gray-700 mb-2">
+                      <label className="block text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {t("phone_number", "Phone Number")} *
                       </label>
                       <input
@@ -559,7 +559,7 @@ export default function Cart() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[14px] font-medium text-gray-700 mb-2">
+                      <label className="block text-[14px] font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {t("email_optional", "Email (Optional)")}
                       </label>
                       <input
@@ -578,30 +578,30 @@ export default function Cart() {
               </div>
 
               {/* Order Total */}
-              <div className="mb-6 p-4 bg-sky-50 rounded-lg">
+              <div className="mb-6 p-4 bg-sky-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-[14px]">
+                  <span className="text-[14px] text-gray-700 dark:text-gray-300">
                     {t("subtotal", "Subtotal")}
                   </span>
-                  <span className="text-[14px] font-medium">
+                  <span className="text-[14px] font-medium text-gray-900 dark:text-white">
                     ₦{Number(total).toLocaleString()}
                   </span>
                 </div>
                 {deliveryFee > 0 && (
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[14px]">
+                    <span className="text-[14px] text-gray-700 dark:text-gray-300">
                       {t("delivery_fee", "Delivery Fee")}
                     </span>
-                    <span className="text-[14px]">
+                    <span className="text-[14px] text-gray-900 dark:text-white">
                       ₦{Number(deliveryFee).toLocaleString()}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center pt-2 border-t border-sky-200">
-                  <span className="text-[16px] font-medium">
+                <div className="flex justify-between items-center pt-2 border-t border-sky-200 dark:border-gray-600">
+                  <span className="text-[16px] font-medium text-gray-900 dark:text-white">
                     {t("total", "Total")}
                   </span>
-                  <span className="text-[16px] font-bold text-sky-600">
+                  <span className="text-[16px] font-bold text-sky-600 dark:text-sky-400">
                     ₦{Number(totalWithDelivery).toLocaleString()}
                   </span>
                 </div>
