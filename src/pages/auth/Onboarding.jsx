@@ -150,7 +150,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.45 }}
-                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-6xl pl-4 sm:pl-6 lg:pl-6"
+                className="mt-8 text-left text-4xl font-light leading-tight sm:text-3xl md:text-4xl lg:text-6xl pl-4 sm:pl-6 lg:pl-6 pr-4 sm:pr-6 lg:pr-6"
               >
                 {currentSlide.title.includes("(for Vendors)") ? (
                   <>
@@ -168,7 +168,7 @@ export default function Onboarding() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.45, delay: 0.04 }}
-                className="mt-4 max-w-xl lg:max-w-none text-left text-[17px] font-normal text-slate-500 dark:text-slate-300 sm:text-lg lg:text-[22px] pl-4 sm:pl-6 lg:pl-6"
+                className="mt-4 max-w-xl lg:max-w-none text-left text-[17px] font-normal text-slate-500 dark:text-slate-300 sm:text-lg lg:text-[22px] pl-4 sm:pl-6 lg:pl-6 pr-4 sm:pr-6 lg:pr-6"
               >
                 {currentSlide.description}
               </motion.p>
