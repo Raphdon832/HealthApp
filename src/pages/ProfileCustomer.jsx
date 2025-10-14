@@ -260,7 +260,7 @@ export default function ProfileCustomer() {
 
       {/* Search modal (click outside to close) */}
       {showSearch && (
-        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30 animate-fadeInScale" role="dialog" aria-modal="true" aria-label="Search modal">
+        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/50 animate-fadeInScale" role="dialog" aria-modal="true" aria-label="Search modal">
           <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-gray-600 max-h-[80vh] overflow-hidden modal-backdrop animate-bounceIn">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
@@ -272,7 +272,7 @@ export default function ProfileCustomer() {
                     onChange={e => setSearchQuery(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') performSearch(); }}
                     placeholder={t('search_placeholder_profile', 'Search prescriptions, orders, drugs...')}
-                    className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate"
+                    className="flex-1 min-w-0 bg-transparent text-sm outline-none truncate dark:text-white dark:placeholder:text-gray-400"
                     aria-label="Search query"
                   />
                 </div>
@@ -291,7 +291,7 @@ export default function ProfileCustomer() {
 
             <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
               {searchResults.length === 0 ? (
-                <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
+                <div className="text-zinc-500 dark:text-gray-300 p-4">No results yet. Enter a query.</div>
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
@@ -317,17 +317,17 @@ export default function ProfileCustomer() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-semibold text-sm text-black truncate">{r.title}</div>
-                          <div className="text-xs text-zinc-500 truncate">{r.subtitle}</div>
+                          <div className="font-semibold text-sm text-black dark:text-white truncate">{r.title}</div>
+                          <div className="text-xs text-zinc-500 dark:text-gray-300 truncate">{r.subtitle}</div>
                         </div>
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {r.type === 'order' ? (
-                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
+                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 dark:hover:bg-gray-600 btn-interactive transition-all duration-200">Open</button>
                         ) : r.type === 'prescription' ? (
-                          <button onClick={() => { navigate(`/prescriptions/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
+                          <button onClick={() => { navigate(`/prescriptions/${r.item.id}`); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 dark:hover:bg-gray-600 btn-interactive transition-all duration-200">Open</button>
                         ) : (
-                          <button onClick={() => { setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">View</button>
+                          <button onClick={() => { setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 dark:hover:bg-gray-600 btn-interactive transition-all duration-200">View</button>
                         )}
                       </div>
                     </li>

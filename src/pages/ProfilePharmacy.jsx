@@ -480,7 +480,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
       {/* Search modal */}
       {showSearch && (
-        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black bg-opacity-30" role="dialog" aria-modal="true" aria-label="Search modal">
+        <div onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }} className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/50" role="dialog" aria-modal="true" aria-label="Search modal">
           <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-800 rounded-3xl w-[min(920px,95%)] p-4 shadow-xl border border-[#9ED3FF] dark:border-gray-600 max-h-[80vh] overflow-hidden">
             <div className="mb-3">
               <div className="flex items-center gap-3 w-full">
@@ -512,7 +512,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
             <div className="mt-4 max-h-[60vh] overflow-auto px-1 py-2">
               {searchResults.length === 0 ? (
-                <div className="text-zinc-500 p-4">No results yet. Enter a query.</div>
+                <div className="text-zinc-500 dark:text-gray-300 p-4">No results yet. Enter a query.</div>
               ) : (
                 <ul className="space-y-2">
                   {searchResults.map((r, idx) => (
@@ -530,15 +530,15 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-semibold text-sm text-black truncate">{r.title}</div>
-                          <div className="text-xs text-zinc-500 truncate">{r.subtitle}</div>
+                          <div className="font-semibold text-sm text-black dark:text-white truncate">{r.title}</div>
+                          <div className="text-xs text-zinc-500 dark:text-gray-300 truncate">{r.subtitle}</div>
                         </div>
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {r.type === 'product' ? (
-                          <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Edit</button>
+                          <button onClick={() => { setEditingProduct(r.item); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 dark:hover:bg-gray-600 btn-interactive transition-all duration-200">Edit</button>
                         ) : (
-                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 btn-interactive transition-all duration-200">Open</button>
+                          <button onClick={() => { navigate('/orders', { state: { highlightOrderId: r.item.id } }); setShowSearch(false); }} className="text-sky-600 rounded-full px-3 py-1 text-sm border border-transparent hover:bg-sky-50 dark:hover:bg-gray-600 btn-interactive transition-all duration-200">Open</button>
                         )}
                       </div>
                     </li>

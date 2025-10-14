@@ -621,16 +621,16 @@ export default function Cart() {
 
       {/* Payment Methods Modal */}
       {showPaymentMethods && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[20px] font-light font-poppins text-sky-600">
+                <h2 className="text-[20px] font-light font-poppins text-sky-600 dark:text-white">
                   {t("payment_method", "Payment Method")}
                 </h2>
                 <button
                   onClick={() => setShowPaymentMethods(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
@@ -642,7 +642,7 @@ export default function Cart() {
                   onClick={() => setSelectedPaymentMethod("cash")}
                   className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
                     selectedPaymentMethod === "cash"
-                      ? "border-sky-500 bg-sky-50"
+                      ? "border-sky-500 bg-sky-50 dark:bg-gray-700"
                       : "border-gray-200 dark:border-gray-600 hover:border-sky-300 dark:border-gray-600"
                   }`}
                 >
@@ -652,7 +652,7 @@ export default function Cart() {
                       <div className="text-[16px] font-medium">
                         {t("pay_on_delivery", "Pay on Delivery")}
                       </div>
-                      <div className="text-[13px] text-gray-600">
+                      <div className="text-[13px] text-gray-600 dark:text-gray-300">
                         {t(
                           "pay_with_cash_on_delivery",
                           "Pay with cash when order arrives"
@@ -667,7 +667,7 @@ export default function Cart() {
                   onClick={() => setSelectedPaymentMethod("online")}
                   className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
                     selectedPaymentMethod === "online"
-                      ? "border-sky-500 bg-sky-50"
+                      ? "border-sky-500 bg-sky-50 dark:bg-gray-700"
                       : "border-gray-200 dark:border-gray-600 hover:border-sky-300 dark:border-gray-600"
                   }`}
                 >
@@ -677,7 +677,7 @@ export default function Cart() {
                       <div className="text-[16px] font-medium">
                         {t("online_payment", "Online Payment")}
                       </div>
-                      <div className="text-[13px] text-gray-600">
+                      <div className="text-[13px] text-gray-600 dark:text-gray-300">
                         {t(
                           "pay_with_card_bank_ussd",
                           "Pay with card, bank transfer, or USSD"
@@ -690,7 +690,7 @@ export default function Cart() {
                 {/* Insurance Payment (Disabled) */}
                 <button
                   disabled
-                  className="w-full p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-gray-100 text-left cursor-not-allowed opacity-60"
+                  className="w-full p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-left cursor-not-allowed opacity-60"
                 >
                   <div className="flex items-center gap-3 justify-between">
                     <div className="flex items-center gap-3">
@@ -714,7 +714,7 @@ export default function Cart() {
                 </button>
               </div>
 
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-[16px] font-medium">
                     {t("total_amount", "Total Amount")}
@@ -728,7 +728,7 @@ export default function Cart() {
               <button
                 onClick={handleFinalCheckout}
                 disabled={!selectedPaymentMethod}
-                className="w-full mt-6 bg-sky-600 text-white py-3 rounded-full text-[16px] font-medium hover:bg-sky-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-full mt-6 bg-sky-600 text-white py-3 rounded-full text-[16px] font-medium hover:bg-sky-700 transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {selectedPaymentMethod === "online"
                   ? t("pay_now", "Pay Now")
