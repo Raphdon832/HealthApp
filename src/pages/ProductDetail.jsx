@@ -700,7 +700,7 @@ export default function ProductDetail({ product, pharmacy }) {
                 <Share2 className="w-4 h-4" /> {t('share_product', 'Share Product')}
               </button>
               <button
-                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 dark:text-black font-poppins font-medium hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 dark:bg-gray-700 dark:text-white dark:border-gray-600 font-poppins font-medium hover:bg-zinc-100 dark:hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all duration-200"
                 onClick={handleMessageVendor}
               >
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
