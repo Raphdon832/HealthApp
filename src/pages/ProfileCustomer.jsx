@@ -657,7 +657,7 @@ export default function ProfileCustomer() {
         </div>
       </div>
        <div>
-            <button onClick={() => { logout(); window.location.href = '/auth/landing'; }} className="mt-10 rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}</button>
+            <button onClick={() => { logout(); window.location.href = '/auth/onboarding'; }} className="mt-10 rounded-full border border-red-300 dark:border-gray-600 text-red-600 px-3 py-1 inline-flex text-[12px] items-center gap-2"><LogOut className="h-4 w-4"/> {t('log_out', 'Log Out')}</button>
           </div>
       </div>
     </>

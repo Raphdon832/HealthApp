@@ -793,7 +793,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
          <button
            onClick={async () => {
              await logout();
-             window.location.href = '/auth/landing';
+             window.location.href = '/auth/onboarding';
            }}
            className="rounded-full border border-red-300 dark:border-gray-600 text-red-600 dark:text-red-400 px-3 py-1 inline-flex text-[12px] items-center gap-2"
          >
