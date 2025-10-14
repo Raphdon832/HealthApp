@@ -132,7 +132,7 @@ export default function MyPrescriptionsSection() {
         {t('my_prescriptions', 'My Prescriptions')}
         {prescriptions.length > 0 && (
           <button
-            className="ml-4 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"
+            className="ml-12 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-normal"
             onClick={() => prescriptions.forEach(p => addToCalendar(p, t))}
           >{t('add_to_calendar', 'Add to Calendar')}</button>
         )}
@@ -149,13 +149,13 @@ export default function MyPrescriptionsSection() {
           />
           {total > 1 && !showAll && (
             <button
-              className="mt-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-medium"
+              className="mt-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-normal"
               onClick={() => setShowAll(true)}
             >{t('see_more', 'See more')}</button>
           )}
           {showAll && total > 1 && (
             <button
-              className="mt-2 px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 text-xs font-medium"
+              className="mt-2 px-3 py-1 rounded-full bg-zinc-100 text-zinc-700 text-xs font-normal dark:text-black/90 dark:bg-black/50"
               onClick={() => setShowAll(false)}
             >{t('see_less', 'See less')}</button>
           )}

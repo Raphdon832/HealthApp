@@ -57,7 +57,7 @@ e.preventDefault();
 setBusy(true);
 try{
 if (!form.address) throw new Error('Address is required');
-const result = await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'customer', address: form.address, lat: selectedAddress?.lat, lon: selectedAddress?.lon });
+const result = await signUp({ email: form.email, password: form.password, displayName: form.name, role: 'customer', address: form.address, lat: selectedAddress?.lat, lon: selectedAddress?.lon, phone: form.phone });
 setSuccess(form.email);
 }catch(err){
 alert(err.message);

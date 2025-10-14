@@ -377,8 +377,10 @@ export default function ProfileCustomer() {
 
             {/* Edit form modal */}
             {editing && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fadeInScale">
-                <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
+              <div className="fixed inset-0 z-50 flex items-center justify-center animate-fadeInScale" role="dialog" aria-modal="true">
+                {/* Backdrop: use 30% opacity and respect dark mode */}
+                <div onClick={() => setEditing(false)} className="absolute inset-0 bg-black/30 dark:bg-black/90" aria-hidden="true" />
+                <div onClick={e => e.stopPropagation()} className="relative bg-white dark:bg-gray-900 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl modal-backdrop animate-bounceIn">
                   <div className="text-[22px] font-light font-poppins text-sky-600 mb-2 tracking-tight animate-slideInLeft">{t('edit_profile', 'Edit Profile')}</div>
                   <form
                     className="flex flex-col gap-4"
@@ -449,7 +451,7 @@ export default function ProfileCustomer() {
                       style={{boxShadow: 'none'}}
                     />
                     <div className="flex gap-2 mt-4">
-                      <button type="button" className="px-4 py-2 rounded-full bg-zinc-100 text-[12px] font-light" onClick={() => setEditing(false)}>{t('cancel', 'Cancel')}</button>
+                      <button type="button" className="px-4 py-2 rounded-full bg-zinc-100 text-[12px] dark:text-white dark:bg-zinc-800 font-light" onClick={() => setEditing(false)}>{t('cancel', 'Cancel')}</button>
                       <button type="submit" className="px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light">{t('save', 'Save')}</button>
                     </div>
                   </form>

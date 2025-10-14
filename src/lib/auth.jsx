@@ -28,13 +28,14 @@ export function AuthProvider({ children }) {
 
   const signIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
-  const signUp = async ({ email, password, displayName, role, address, lat, lon }) => {
+  const signUp = async ({ email, password, displayName, role, address, lat, lon, phone }) => {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     if (displayName) await updateProfile(user, { displayName });
     const userData = { uid: user.uid, email, displayName, role };
     if (address) userData.address = address;
     if (lat) userData.lat = lat;
     if (lon) userData.lon = lon;
+    if (phone) userData.phoneNumber = phone;
     await setDoc(doc(db, 'users', user.uid), userData);
     if (role === 'pharmacy') {
       await setDoc(doc(db, 'pharmacies', user.uid), { id: user.uid, name: displayName || 'Pharmacy', email, address: address || '', etaMins: 30, phone: '' });
