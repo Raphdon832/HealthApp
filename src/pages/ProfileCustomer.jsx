@@ -491,19 +491,19 @@ export default function ProfileCustomer() {
 
             {/* Modal for all drugs bought */}
             {showAllDrugs && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                 <div className="bg-white dark:bg-gray-800 border border-[#36A5FF] dark:border-gray-600 rounded-3xl p-5 w-[90vw] max-w-sm shadow-xl">
-                  <div className="text-[18px] font-light font-poppins text-sky-600 mb-2 tracking-tight">{t('all_drugs_bought', 'All Drugs Bought')}</div>
+                  <div className="text-[18px] font-light font-poppins text-sky-600 dark:text-white mb-2 tracking-tight">{t('all_drugs_bought', 'All Drugs Bought')}</div>
                   <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
                     {drugsBought.map((drug, idx) => (
                       <div key={drug.id || idx} className="w-full flex items-center pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
-                        <span className="text-[12px] text-zinc-500 font-light w-1/3 text-left">{drug.name}</span>
-                        <span className="text-[12px] text-zinc-400 font-light w-1/3 flex justify-center">{drug.date}</span>
-                        <span className="text-[12px] text-zinc-500 font-light w-1/3 text-right">{drug.count ?? 1}</span>
+                        <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-left">{drug.name}</span>
+                        <span className="text-[12px] text-zinc-400 dark:text-gray-400 font-light w-1/3 flex justify-center">{drug.date}</span>
+                        <span className="text-[12px] text-zinc-500 dark:text-gray-300 font-light w-1/3 text-right">{drug.count ?? 1}</span>
                       </div>
                     ))}
                   </div>
-                  <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full" onClick={() => setShowAllDrugs(false)}>{t('close', 'Close')}</button>
+                  <button className="mt-4 px-4 py-2 rounded-full bg-sky-600 text-white text-[12px] font-light w-full hover:bg-sky-700 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowAllDrugs(false)}>{t('close', 'Close')}</button>
                 </div>
               </div>
             )}

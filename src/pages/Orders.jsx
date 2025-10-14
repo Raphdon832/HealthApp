@@ -177,8 +177,8 @@ export default function Orders() {
               <div
                 key={o.id}
                 id={`order-${o.id}`}
-                className={`relative -mx-4 sm:mx-0 rounded-[10px] sm:rounded-[10px] border border-gray-200 dark:border-gray-600 p-4 flex flex-col gap-2 group hover:bg-sky-50 transition-all duration-200 card-interactive animate-fadeInUp ${
-                  highlightOrderId===o.id ? 'ring-4 ring-sky-200 bg-sky-50 scale-102' : ''
+                className={`relative -mx-4 sm:mx-0 rounded-[10px] sm:rounded-[10px] border border-gray-200 dark:border-gray-600 p-4 flex flex-col gap-2 group hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 card-interactive animate-fadeInUp ${
+                  highlightOrderId===o.id ? 'ring-4 ring-sky-200 dark:ring-sky-800 bg-sky-50 dark:bg-sky-900/30 scale-102' : ''
                 }`}
                 style={{ 
                   cursor: 'pointer',
@@ -194,19 +194,19 @@ export default function Orders() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">{t('order_number', 'Order #')}{o.id.slice(0,6)}</div>
-                    <div className="text-gray-500 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
+                    <div className="text-gray-500 dark:text-gray-400 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
                   </div>
                   <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
                 </div>
                 {/* Pharmacy view: show customer info, items, status, and actions */}
                 {profile.role === 'pharmacy' && (
                   <div className="mt-2">
-                    <div className="text-[13px] text-zinc-500 font-light mb-1 flex items-center gap-2">
+                    <div className="text-[13px] text-zinc-500 dark:text-zinc-400 font-light mb-1 flex items-center gap-2">
                       {t('customer', 'Customer')}: {o.customerName || o.customerId || o.customer_id || 'N/A'}
                     </div>
-                    <div className="text-[12px] text-zinc-400 font-light mb-2">{o.customerEmail || ''}</div>
-                    <div className="text-[13px] text-zinc-700 font-medium mb-1">{t('items', 'Items')}:</div>
-                    <ul className="ml-2 list-disc text-[13px] text-zinc-700">
+                    <div className="text-[12px] text-zinc-400 dark:text-zinc-500 font-light mb-2">{o.customerEmail || ''}</div>
+                    <div className="text-[13px] text-zinc-700 dark:text-zinc-300 font-medium mb-1">{t('items', 'Items')}:</div>
+                    <ul className="ml-2 list-disc text-[13px] text-zinc-700 dark:text-zinc-300">
                       {visibleItems.map((item, idx) => (
                         <li key={idx}>
                           <span>{item.name || item.productId}</span>
@@ -226,7 +226,7 @@ export default function Orders() {
                       </button>
                     )}
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[12px] text-zinc-500">{t('status', 'Status')}:</span>
+                      <span className="text-[12px] text-zinc-500 dark:text-zinc-400">{t('status', 'Status')}:</span>
                       <select
                         className="order-status-dropdown border rounded px-2 py-1 text-[12px]"
                         value={o.status || 'pending'}
@@ -244,7 +244,7 @@ export default function Orders() {
                         >{t('reveal_number', 'Reveal Number')}</button>
                       )}
                       {phone && isRevealed && (
-                        <span className="ml-2 text-[13px] text-zinc-700 font-medium">{phone}</span>
+                        <span className="ml-2 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">{phone}</span>
                       )}
                     </div>
                   </div>

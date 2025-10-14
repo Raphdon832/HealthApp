@@ -603,16 +603,16 @@ export default function PharmacyMap() {
                   <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
                     <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
-                      <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
+                      <div className="flex items-center gap-1 bg-white dark:bg-gray-700 rounded-full px-2 py-1">
                         <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
                         <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{selectedPharmacy.eta?.formatted || t('calculating', 'Calculating...')}</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
+                      <div className="flex items-center gap-1 bg-white dark:bg-gray-700 rounded-full px-2 py-1">
                         <MapPin className="h-3 w-3 text-green-500 flex-shrink-0" />
                         <span className="font-normal whitespace-nowrap" style={{ fontSize: '10px !important' }}>{selectedPharmacy.distance?.toFixed(1) || '0'} km</span>
                       </div>
                       {selectedPharmacy.phone && (
-                        <div className="flex items-center gap-1 bg-white rounded-full px-2 py-1">
+                        <div className="flex items-center gap-1 bg-white dark:bg-gray-700 rounded-full px-2 py-1">
                           <Phone className="h-3 w-3 text-purple-500 flex-shrink-0" />
                           <span className="font-normal truncate max-w-[80px]" style={{ fontSize: '10px !important' }}>{selectedPharmacy.phone}</span>
                         </div>
@@ -646,7 +646,7 @@ export default function PharmacyMap() {
               )}
               <button
                 onClick={() => handleViewPharmacy(selectedPharmacy)}
-                className="flex-1 bg-white text-blue-600 py-2 px-3 rounded-full font-normal text-xs hover:bg-blue-50 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
+                className="flex-1 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 py-2 px-3 rounded-full font-normal text-xs hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-200 border border-blue-200 dark:border-gray-600 btn-interactive"
               >
                 <span className="hidden sm:inline" style={{ fontSize: '10px !important' }}>{t('view_products', 'View Products')}</span>
                 <span className="sm:hidden" style={{ fontSize: '10px !important' }}>{t('view_products', 'View Products')}</span>
@@ -755,22 +755,22 @@ export default function PharmacyMap() {
 
         {/* Search Suggestions */}
         {showSuggestions && searchSuggestions.length > 0 && (
-          <div className="absolute z-50 w-full max-w-md mx-auto mt-2 bg-white rounded-lg shadow-lg">
-            <div className="flex flex-col divide-y divide-gray-200">
+          <div className="absolute z-50 w-full max-w-md mx-auto mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600">
+            <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-600">
               {searchSuggestions.map(suggestion => (
                 <button
                   key={suggestion.id}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-900 hover:bg-blue-50 transition-colors"
+                  className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-900 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-blue-600" />
+                    <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <div className="flex flex-col text-sm">
                       <span className="font-medium">{suggestion.name}</span>
-                      <span className="text-gray-500 truncate">{suggestion.address}</span>
+                      <span className="text-gray-500 dark:text-gray-400 truncate">{suggestion.address}</span>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     {sortedPharmacies.findIndex(p => p.id === suggestion.id) + 1}
                   </span>
                 </button>
