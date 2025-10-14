@@ -105,7 +105,7 @@ export default function Onboarding() {
 
       <div
         className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 pb-28 sm:px-10 lg:px-14"
-        style={{ paddingTop: 234 }}
+        style={{ paddingTop: 23 }}
       >
         <div {...handlers} className="flex flex-col">
           <motion.span
@@ -140,25 +140,28 @@ export default function Onboarding() {
               {currentSlide.description}
             </motion.p>
 
-            <div className="relative mt-8 flex w-full justify-end" style={{ marginTop: 120 }}>
-              <motion.img
-                key={currentSlide.illustration}
-                src={currentSlide.illustration}
-                alt={currentSlide.title}
-                loading="lazy"
-                initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 160, damping: 20 }}
-                className="w-full max-w-[400px] object-contain sm:max-w-[440px] will-change-transform"
-                onAnimationComplete={() => setIsAnimating(false)}
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.995 }}
-              />
+            {/* image is rendered fixed at bottom-right to avoid layout shifts */}
+            <div className="relative mt-8 flex w-full justify-end" style={{ bottom: 70 }}>
+              {/* placeholder space to keep layout consistent when image is anchored */}
+              <div className="w-full max-w-[400px] sm:max-w-[440px] h-0" aria-hidden />
             </div>
           </AnimatePresence>
         </div>
       </div>
+
+      {/* fixed illustration at bottom-right */}
+      <motion.img
+        key={currentSlide.illustration}
+        src={currentSlide.illustration}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 24, scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 160, damping: 20 }}
+        className="fixed right-4 bottom-4 pointer-events-none z-10 w-[320px] max-w-[120vw] sm:w-[420px] md:w-[520px] object-contain will-change-transform"
+      />
 
       {/* fixed bottom controls: back (left), dots (center), next (right) */}
       <div aria-hidden className="fixed inset-x-0 bottom-6 z-40 flex justify-center pointer-events-none">
