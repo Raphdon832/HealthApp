@@ -34,6 +34,7 @@ export default function Orders() {
   const navigate = useNavigate();
   const location = useLocation();
   const [highlightOrderId, setHighlightOrderId] = useState(null);
+  
 
   useEffect(() => {
     if (!user || !profile) return;
@@ -49,6 +50,10 @@ export default function Orders() {
     });
     return unsub;
   }, [user, profile]);
+
+  
+
+  
 
   // If navigation included a highlight id (state or query param), set it when component mounts or location changes
   useEffect(() => {
@@ -141,7 +146,7 @@ export default function Orders() {
   <div className="pt-10 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen flex flex-col">
         {/* Filters */}
         <div className="mt-8 -mx-4 sm:mx-0 sticky top-20 pt-8 sm:static z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
-          <div className="flex gap-2 flex-nowrap px-4 sm:px-0 overflow-x-auto scrollbar-hide py-2">
+          <div className="flex gap-2 flex-nowrap px-4 sm:px-0 overflow-x-auto no-scrollbar py-2">
           <button
             className={`px-3 py-1 rounded-full border text-[10px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
             onClick={()=>setStatusFilter('all')}

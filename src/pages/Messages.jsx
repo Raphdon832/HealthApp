@@ -89,7 +89,7 @@ export default function Messages() {
   return (
     <>
       <FixedHeader title="My Conversations" t={t} />
-      <div className="min-h-screen pt-24 w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-0 pb-28">
+  <div className="min-h-screen pt-24 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 pb-28">
         <div className="mt-14 flex items-center gap-3 border-b border-zinc-300 dark:border-gray-600 pb-2">
           <Search className="h-4 w-4 text-zinc-400"/>
           <input
@@ -100,14 +100,14 @@ export default function Messages() {
           />
         </div>
 
-      <div className="mt-12 space-y-4 w-full">
+      <div className="mt-8 space-y-4 w-full">
         {filtered.map((thread, index) => (
-          <button
-            key={thread.id}
-            onClick={() => openThread(thread)}
-            className="w-full rounded-[10px] border border-gray-300 dark:border-gray-600 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
+          <div key={thread.id} className="-mx-4 sm:mx-0">
+            <button
+              onClick={() => openThread(thread)}
+              className="w-full rounded-[10px] sm:rounded-[10px] border border-gray-300 dark:border-gray-600 px-4 py-3 text-left h-[62px] flex items-center gap-3 bg-white hover:bg-zinc-50 transition-all duration-200 card-interactive animate-fadeInUp"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
             <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
               <span className="text-zinc-500 text-xs font-semibold">{(displayName(thread) || 'U')[0]}</span>
             </div>
@@ -125,7 +125,8 @@ export default function Messages() {
                 {lastTime(thread)?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ''}
               </span>
             </div>
-          </button>
+            </button>
+          </div>
         ))}
         {filtered.length === 0 && <div className="text-zinc-500">{t('no_conversations_yet', 'No conversations yet.')}</div>}
       </div>
