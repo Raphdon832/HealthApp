@@ -112,6 +112,29 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       tone: 'bg-amber-100 text-amber-700',
     },
   };
+  const [verificationStep, setVerificationStep] = useState(0);
+  const VERIFICATION_STEPS = [
+    {
+      key: 'business',
+      title: 'Business details',
+      description: 'Introduce your pharmacy and primary point of contact.',
+    },
+    {
+      key: 'compliance',
+      title: 'Compliance documents',
+      description: 'Share your registered address and regulatory identifiers.',
+    },
+    {
+      key: 'extras',
+      title: 'Optional extras',
+      description: 'Add supporting context to speed up approval.',
+    },
+  ];
+  const REQUIRED_FIELDS_BY_STEP = {
+    0: ['pharmacyName', 'contactName', 'contactEmail', 'contactPhone'],
+    1: ['addressLine1', 'city', 'state', 'registrationNumber', 'licenseUrl'],
+  };
+  const totalVerificationSteps = VERIFICATION_STEPS.length;
 
   // Default to searching both products and orders for pharmacy users
   useEffect(() => {
@@ -148,6 +171,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     if (!verificationModalOpen) return;
     setVerificationForm(buildVerificationFormState());
     setVerificationError('');
+    setVerificationStep(0);
   }, [verificationModalOpen, verificationRequest, pharmacyProfile, profile, user]);
 
   const [ordersCache, setOrdersCache] = useState(null);
@@ -217,6 +241,28 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       [field]: value,
     }));
   };
+  const validateVerificationStep = (stepIndex = verificationStep) => {
+    const required = REQUIRED_FIELDS_BY_STEP[stepIndex] || [];
+    const missing = required.filter(
+      (field) => !String(verificationForm[field] || '').trim()
+    );
+    if (missing.length) {
+      setVerificationError('Please fill in all required fields before continuing.');
+      return false;
+    }
+    setVerificationError('');
+    return true;
+  };
+  const handleVerificationNext = () => {
+    if (!validateVerificationStep(verificationStep)) return;
+    setVerificationStep((prev) =>
+      Math.min(prev + 1, totalVerificationSteps - 1)
+    );
+  };
+  const handleVerificationBack = () => {
+    setVerificationError('');
+    setVerificationStep((prev) => Math.max(prev - 1, 0));
+  };
   const buildVerificationAuditEntry = (message, status = 'pending') => ({
     actor:
       pharmacyProfile.displayName ||
@@ -245,6 +291,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const submitVerificationForm = async (event) => {
     if (event?.preventDefault) event.preventDefault();
     if (verificationSubmitting) return;
+    if (!validateVerificationStep(verificationStep)) return;
     const requiredFields = [
       'pharmacyName',
       'contactName',
@@ -338,6 +385,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       }
       setVerificationMessage('Your verification documents have been sent for review.');
       setVerificationModalOpen(false);
+      setVerificationStep(0);
     } catch (error) {
       console.error('[ProfilePharmacy] verification submission failed', error);
       setVerificationError(
@@ -1027,10 +1075,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         onClose={() => {
           if (!verificationSubmitting) {
             setVerificationModalOpen(false);
+            setVerificationStep(0);
+            setVerificationError('');
           }
         }}
       >
-        <form onSubmit={submitVerificationForm} className="flex flex-col gap-4">
+        <form onSubmit={submitVerificationForm} className="flex flex-col gap-5">
           <header className="space-y-1">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
               Pharmacy Verification
@@ -1039,9 +1089,27 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
               {verificationRequest ? 'Update submission' : 'Verify your pharmacy'}
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-300">
-              Provide the regulatory and ownership details required by Pharmasea compliance.
+              {VERIFICATION_STEPS[verificationStep]?.description}
             </p>
           </header>
+
+          <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-semibold">
+              Step {verificationStep + 1} of {totalVerificationSteps}
+            </span>
+            <div className="flex flex-1 items-center gap-1">
+              {VERIFICATION_STEPS.map((step, idx) => (
+                <span
+                  key={step.key}
+                  className={`h-1.5 flex-1 rounded-full transition-all ${
+                    idx <= verificationStep
+                      ? 'bg-sky-500'
+                      : 'bg-slate-200 dark:bg-slate-700'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
 
           {verificationError && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-500/10 dark:text-rose-200">
@@ -1049,209 +1117,214 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
             </div>
           )}
 
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-            Business details
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
-              Pharmacy name *
-              <input
-                type="text"
-                required
-                value={verificationForm.pharmacyName}
-                onChange={(e) => handleVerificationChange('pharmacyName', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-slate-700"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Primary contact *
-              <input
-                type="text"
-                required
-                value={verificationForm.contactName}
-                onChange={(e) => handleVerificationChange('contactName', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Contact email *
-              <input
-                type="email"
-                required
-                value={verificationForm.contactEmail}
-                onChange={(e) => handleVerificationChange('contactEmail', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Contact phone *
-              <input
-                type="tel"
-                required
-                value={verificationForm.contactPhone}
-                onChange={(e) => handleVerificationChange('contactPhone', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-          </div>
-
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-            Registered address
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
-              Street address *
-              <input
-                type="text"
-                required
-                value={verificationForm.addressLine1}
-                onChange={(e) => handleVerificationChange('addressLine1', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              City *
-              <input
-                type="text"
-                required
-                value={verificationForm.city}
-                onChange={(e) => handleVerificationChange('city', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              State / Region *
-              <input
-                type="text"
-                required
-                value={verificationForm.state}
-                onChange={(e) => handleVerificationChange('state', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Postal code
-              <input
-                type="text"
-                value={verificationForm.postalCode}
-                onChange={(e) => handleVerificationChange('postalCode', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-          </div>
-
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-            Compliance
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Pharmacy registration number *
-              <input
-                type="text"
-                required
-                value={verificationForm.registrationNumber}
-                onChange={(e) => handleVerificationChange('registrationNumber', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Tax ID
-              <input
-                type="text"
-                value={verificationForm.taxId}
-                onChange={(e) => handleVerificationChange('taxId', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
-              Pharmacy license URL *
-              <input
-                type="url"
-                required
-                placeholder="https://..."
-                value={verificationForm.licenseUrl}
-                onChange={(e) => handleVerificationChange('licenseUrl', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
-              Owner ID (URL)
-              <input
-                type="url"
-                placeholder="https://..."
-                value={verificationForm.ownerIdUrl}
-                onChange={(e) => handleVerificationChange('ownerIdUrl', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-          </div>
-
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-            Optional extras
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Website
-              <input
-                type="url"
-                placeholder="https://"
-                value={verificationForm.website}
-                onChange={(e) => handleVerificationChange('website', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Owner name
-              <input
-                type="text"
-                value={verificationForm.ownerName}
-                onChange={(e) => handleVerificationChange('ownerName', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-              Years in business
-              <input
-                type="number"
-                min="0"
-                value={verificationForm.yearsInBusiness}
-                onChange={(e) => handleVerificationChange('yearsInBusiness', e.target.value)}
-                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              />
-            </label>
-            <div className="sm:col-span-2">
+          {verificationStep === 0 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+                Pharmacy name *
+                <input
+                  type="text"
+                  value={verificationForm.pharmacyName}
+                  onChange={(e) => handleVerificationChange('pharmacyName', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
               <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
-                Additional notes for compliance
-                <textarea
-                  rows={3}
-                  value={verificationForm.additionalNotes}
-                  onChange={(e) => handleVerificationChange('additionalNotes', e.target.value)}
-                  className="mt-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  placeholder="Add context such as delivery radius, cold-chain handling, etc."
+                Primary contact *
+                <input
+                  type="text"
+                  value={verificationForm.contactName}
+                  onChange={(e) => handleVerificationChange('contactName', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Contact email *
+                <input
+                  type="email"
+                  value={verificationForm.contactEmail}
+                  onChange={(e) => handleVerificationChange('contactEmail', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Contact phone *
+                <input
+                  type="tel"
+                  value={verificationForm.contactPhone}
+                  onChange={(e) => handleVerificationChange('contactPhone', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          {verificationStep === 1 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+                Street address *
+                <input
+                  type="text"
+                  value={verificationForm.addressLine1}
+                  onChange={(e) => handleVerificationChange('addressLine1', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                City *
+                <input
+                  type="text"
+                  value={verificationForm.city}
+                  onChange={(e) => handleVerificationChange('city', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                State / Region *
+                <input
+                  type="text"
+                  value={verificationForm.state}
+                  onChange={(e) => handleVerificationChange('state', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Postal code
+                <input
+                  type="text"
+                  value={verificationForm.postalCode}
+                  onChange={(e) => handleVerificationChange('postalCode', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Pharmacy registration number *
+                <input
+                  type="text"
+                  value={verificationForm.registrationNumber}
+                  onChange={(e) => handleVerificationChange('registrationNumber', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Tax ID
+                <input
+                  type="text"
+                  value={verificationForm.taxId}
+                  onChange={(e) => handleVerificationChange('taxId', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+                Pharmacy license URL *
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={verificationForm.licenseUrl}
+                  onChange={(e) => handleVerificationChange('licenseUrl', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+                Owner ID (URL)
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={verificationForm.ownerIdUrl}
+                  onChange={(e) => handleVerificationChange('ownerIdUrl', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+            </div>
+          )}
+
+          {verificationStep === 2 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Website
+                <input
+                  type="url"
+                  placeholder="https://"
+                  value={verificationForm.website}
+                  onChange={(e) => handleVerificationChange('website', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Owner name
+                <input
+                  type="text"
+                  value={verificationForm.ownerName}
+                  onChange={(e) => handleVerificationChange('ownerName', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Years in business
+                <input
+                  type="number"
+                  min="0"
+                  value={verificationForm.yearsInBusiness}
+                  onChange={(e) => handleVerificationChange('yearsInBusiness', e.target.value)}
+                  className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+              <div className="sm:col-span-2">
+                <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                  Additional notes for compliance
+                  <textarea
+                    rows={3}
+                    value={verificationForm.additionalNotes}
+                    onChange={(e) => handleVerificationChange('additionalNotes', e.target.value)}
+                    className="mt-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    placeholder="Add context such as delivery radius, cold-chain handling, etc."
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => {
                 if (!verificationSubmitting) {
                   setVerificationModalOpen(false);
+                  setVerificationStep(0);
+                  setVerificationError('');
                 }
               }}
               className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={verificationSubmitting}
-              className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:hover:bg-sky-400"
-            >
-              {verificationSubmitting ? 'Submitting...' : verificationRequest ? 'Save updates' : 'Submit for review'}
-            </button>
+            <div className="flex gap-2">
+              {verificationStep > 0 && (
+                <button
+                  type="button"
+                  onClick={handleVerificationBack}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Back
+                </button>
+              )}
+              {verificationStep < totalVerificationSteps - 1 ? (
+                <button
+                  type="button"
+                  onClick={handleVerificationNext}
+                  className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:bg-sky-500 dark:hover:bg-sky-400"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={verificationSubmitting}
+                  className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:hover:bg-sky-400"
+                >
+                  {verificationSubmitting ? 'Submitting...' : verificationRequest ? 'Save updates' : 'Submit for review'}
+                </button>
+              )}
+            </div>
           </div>
           <p className="text-[11px] text-slate-400">
             We review submissions within 1-3 business days. You can close this window after sending your documents.
