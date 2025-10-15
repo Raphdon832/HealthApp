@@ -18,13 +18,58 @@ export async function getPharmaciesContext(limitCount = 20) {
     const pharmacies = [];
     snapshot.forEach(doc => {
       const data = doc.data();
+      const potentialLat =
+        data?.lat ??
+        data?.latitude ??
+        data?.location?.lat ??
+        data?.location?.latitude ??
+        data?.coords?.lat ??
+        data?.coords?.latitude ??
+        data?.coordinates?.lat ??
+        data?.coordinates?.latitude;
+      const potentialLon =
+        data?.lon ??
+        data?.lng ??
+        data?.longitude ??
+        data?.location?.lon ??
+        data?.location?.lng ??
+        data?.location?.longitude ??
+        data?.coords?.lon ??
+        data?.coords?.lng ??
+        data?.coords?.longitude ??
+        data?.coordinates?.lon ??
+        data?.coordinates?.lng ??
+        data?.coordinates?.longitude;
+      const lat =
+        typeof potentialLat === 'number'
+          ? potentialLat
+          : potentialLat !== undefined && potentialLat !== null
+            ? Number(potentialLat)
+            : undefined;
+      const lon =
+        typeof potentialLon === 'number'
+          ? potentialLon
+          : potentialLon !== undefined && potentialLon !== null
+            ? Number(potentialLon)
+            : undefined;
+      const coordinates =
+        data?.coordinates ||
+        data?.coords ||
+        (lat !== undefined && !Number.isNaN(lat) && lon !== undefined && !Number.isNaN(lon)
+          ? { latitude: lat, longitude: lon }
+          : undefined);
       pharmacies.push({
+        id: doc.id,
         name: data.displayName || data.name,
         email: data.email,
         location: data.location,
-        phone: data.phone,
+        phone: data.phone || data.phoneNumber,
         address: data.address,
-        verified: data.verified || false,
+        verified: data.verified || data.isVerified || false,
+        lat: lat !== undefined && !Number.isNaN(lat) ? lat : undefined,
+        lon: lon !== undefined && !Number.isNaN(lon) ? lon : undefined,
+        coordinates,
+        services: data.services,
         url: `/vendor/${doc.id}` // Add pharmacy profile URL for direct linking
       });
     });
@@ -218,6 +263,7 @@ IMPORTANT CAPABILITIES:
 - When users ask about specific drugs or pharmacies, search our database and provide accurate information
 - When listing products, ALWAYS include the product URL so users can click directly to view details
 - When listing pharmacies, ALWAYS include the pharmacy URL so users can click directly to view details
+- You know the user's approximate location when provided and can highlight nearby pharmacies and their distance
 - When searching for pharmacies, if no exact matches are found, suggest similar pharmacies that might be what the user is looking for
 - Always mention that you can help search for pharmacies or products when relevant
 
@@ -226,6 +272,7 @@ IMPORTANT SAFETY GUIDELINES:
 - NEVER suggest specific medications or dosages
 - ALWAYS include disclaimers when discussing health topics
 - ALWAYS recommend consulting healthcare professionals for medical concerns
+- When advising professional care, recommend at least one nearby pharmacy from the provided nearestPharmacies data (prioritize verified options and mention distance when available)
 - If a user asks for medical advice, politely redirect them to speak with a doctor or pharmacist
 
 RESPONSE STYLE:
@@ -235,6 +282,7 @@ RESPONSE STYLE:
 - NEVER include internal IDs, database keys, or technical identifiers in your responses
 - When listing products, embed links in the product names using markdown format: [Product Name](URL) - ₦Price - Description
 - When mentioning pharmacies, embed links in pharmacy names using markdown format: [Pharmacy Name](URL)
+- When mentioning nearby pharmacies, list them as bullet points with distance (e.g., • [PharmCare Pharmacy](URL) — 1.2 km away — Address)
 - Use markdown link format [Name](URL) to make names clickable
 - When suggesting pharmacies, mention if they are similar matches when exact searches don't work
 - Always end medical/health related responses with appropriate disclaimers
@@ -267,10 +315,24 @@ async function getOpenAIResponse(userMessage, context = {}) {
   ];
 
   // Add context if available
+  if (context.userLocation) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User location: ${JSON.stringify(context.userLocation)}`
+    });
+  }
+
   if (context.userInfo) {
     messages.splice(1, 0, {
       role: 'system',
       content: `User context: ${JSON.stringify(context.userInfo)}`
+    });
+  }
+
+  if (context.nearestPharmacies) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Nearest pharmacies to the user: ${JSON.stringify(context.nearestPharmacies)}`
     });
   }
 
@@ -306,8 +368,16 @@ async function getGeminiResponse(userMessage, context = {}) {
   prompt += `User message: ${userMessage}\n\n`;
 
   // Add context if available
+  if (context.userLocation) {
+    prompt += `User location: ${JSON.stringify(context.userLocation)}\n\n`;
+  }
+
   if (context.userInfo) {
     prompt += `User context: ${JSON.stringify(context.userInfo)}\n\n`;
+  }
+
+  if (context.nearestPharmacies) {
+    prompt += `Nearest pharmacies to the user: ${JSON.stringify(context.nearestPharmacies)}\n\n`;
   }
 
   if (context.productInfo) {
@@ -334,10 +404,24 @@ async function getMistralResponse(userMessage, context = {}) {
   ];
 
   // Add context if available
+  if (context.userLocation) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User location: ${JSON.stringify(context.userLocation)}`
+    });
+  }
+
   if (context.userInfo) {
     messages.splice(1, 0, {
       role: 'system',
       content: `User context: ${JSON.stringify(context.userInfo)}`
+    });
+  }
+
+  if (context.nearestPharmacies) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Nearest pharmacies to the user: ${JSON.stringify(context.nearestPharmacies)}`
     });
   }
 
@@ -504,7 +588,8 @@ export function needsMedicalProfessional(query) {
 }
 
 // Function to add medical disclaimer to response
-export function addMedicalDisclaimer(response) {
+export function addMedicalDisclaimer(response, options = {}) {
+  if (!response) return response;
   if (needsMedicalProfessional(response)) {
     return response + '\n\n⚠️ **Medical Disclaimer:** This is general information only and not medical advice. Please consult with a healthcare professional for personalized medical recommendations.';
   }
