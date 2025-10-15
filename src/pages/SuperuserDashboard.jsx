@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
-import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc } from 'firebase/firestore';
+import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNavigate } from 'react-router-dom';
 import Modal from '@/components/Modal';
+import VerificationQueue from '@/components/VerificationQueue';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const drugCategories = [
@@ -24,6 +25,7 @@ const dashboardTabs = [
   { key: 'carts', label: 'Carts' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'moderation', label: 'Moderation' },
+  { key: 'verification', label: 'Verification' },
   { key: 'export', label: 'Export' },
   { key: 'infoCards', label: 'Info Cards' }, // New tab
 ];
@@ -38,6 +40,7 @@ export default function SuperuserDashboard() {
   const [orders, setOrders] = useState([]);
   const [carts, setCarts] = useState([]);
   const [infoCards, setInfoCards] = useState([]);
+  const [verificationQueue, setVerificationQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
@@ -61,6 +64,70 @@ export default function SuperuserDashboard() {
   const tabContainerRef = useRef(null);
   const navigate = useNavigate();
 
+  const appendAuditEntry = (message, statusOverride) => {
+    const entry = {
+      actor: user?.displayName || user?.email || 'System',
+      message,
+      timestamp: serverTimestamp(),
+    };
+    if (statusOverride) entry.status = statusOverride;
+    return entry;
+  };
+
+  const handleVerificationStatusChange = async (item, status, note) => {
+    if (!item?.id) return;
+    try {
+      const docRef = doc(db, 'verificationQueue', item.id);
+      const statusMessage = `Status changed to ${status}${note ? ` - ${note}` : ''}`;
+      await updateDoc(docRef, {
+        status,
+        ...(note ? { reviewerNote: note } : {}),
+        updatedAt: serverTimestamp(),
+        auditTrail: arrayUnion(
+          appendAuditEntry(statusMessage, status)
+        ),
+      });
+    } catch (error) {
+      console.error('[SuperuserDashboard] Failed to update verification status', error);
+    }
+  };
+
+  const handleVerificationAssign = async (item, assignee) => {
+    if (!item?.id) return;
+    const resolvedAssignee =
+      assignee === 'self'
+        ? user?.displayName || user?.email || user?.uid
+        : assignee;
+    try {
+      const docRef = doc(db, 'verificationQueue', item.id);
+      await updateDoc(docRef, {
+        assignedTo: resolvedAssignee,
+        status: item.status === 'pending' ? 'in_review' : item.status,
+        auditTrail: arrayUnion(
+          appendAuditEntry(`Assigned to ${resolvedAssignee}`, 'in_review')
+        ),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[SuperuserDashboard] Failed to assign verification', error);
+    }
+  };
+
+  const handleVerificationAuditEntry = async (item, message) => {
+    if (!item?.id || !message?.trim()) return;
+    try {
+      const docRef = doc(db, 'verificationQueue', item.id);
+      await updateDoc(docRef, {
+        auditTrail: arrayUnion(
+          appendAuditEntry(message.trim(), item.status || 'pending')
+        ),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[SuperuserDashboard] Failed to append verification audit entry', error);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     setLoading(true);
@@ -83,6 +150,9 @@ export default function SuperuserDashboard() {
     const unsubInfoCards = onSnapshot(collection(db, 'infoCards'), (snap) => {
       setInfoCards(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
+    const unsubVerification = onSnapshot(collection(db, 'verificationQueue'), (snap) => {
+      setVerificationQueue(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => {
       unsubUsers();
       unsubProducts();
@@ -90,6 +160,7 @@ export default function SuperuserDashboard() {
       unsubOrders();
       unsubCarts();
       unsubInfoCards();
+      unsubVerification();
     };
   }, [user]);
 
@@ -458,6 +529,16 @@ export default function SuperuserDashboard() {
               }}>Delete Selected</button>
             </div>
           )}
+        </div>
+      )}
+      {activeTab==='verification' && (
+        <div className="mb-8">
+          <VerificationQueue
+            items={verificationQueue}
+            onUpdateStatus={handleVerificationStatusChange}
+            onAssign={handleVerificationAssign}
+            onAddAuditEntry={handleVerificationAuditEntry}
+          />
         </div>
       )}
       {activeTab==='export' && (

@@ -5,8 +5,9 @@ import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import { listenProducts } from '@/lib/db';
 import BulkUploadModal from '@/components/BulkUploadModal';
+import Modal from '@/components/Modal';
 import { LogOut, Download, Trash, MoreVertical, Settings } from 'lucide-react';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, onSnapshot, addDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -77,6 +78,40 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [searchScope, setSearchScope] = useState('products'); // 'products' | 'orders' | 'all'
+  const [verificationRequest, setVerificationRequest] = useState(null);
+  const [verificationLoading, setVerificationLoading] = useState(true);
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [verificationForm, setVerificationForm] = useState({
+    pharmacyName: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    addressLine1: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    registrationNumber: '',
+    taxId: '',
+    licenseUrl: '',
+    ownerIdUrl: '',
+    website: '',
+    ownerName: '',
+    yearsInBusiness: '',
+    additionalNotes: '',
+  });
+  const [verificationError, setVerificationError] = useState('');
+  const [verificationSubmitting, setVerificationSubmitting] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const VERIFICATION_STATUS_COPY = {
+    pending: { label: 'Pending review', tone: 'bg-amber-100 text-amber-700' },
+    in_review: { label: 'In review', tone: 'bg-sky-100 text-sky-700' },
+    approved: { label: 'Verified', tone: 'bg-emerald-100 text-emerald-700' },
+    rejected: { label: 'Rejected', tone: 'bg-rose-100 text-rose-700' },
+    needs_more_info: {
+      label: 'Action required',
+      tone: 'bg-amber-100 text-amber-700',
+    },
+  };
 
   // Default to searching both products and orders for pharmacy users
   useEffect(() => {
@@ -84,11 +119,234 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     if (user.role === 'pharmacy') setSearchScope('all');
   }, [user]);
 
+  useEffect(() => {
+    if (!user?.uid) {
+      setVerificationRequest(null);
+      return;
+    }
+    setVerificationLoading(true);
+    const verificationQuery = query(
+      collection(db, 'verificationQueue'),
+      where('submittedByUid', '==', user.uid)
+    );
+    const unsub = onSnapshot(
+      verificationQuery,
+      (snapshot) => {
+        const docSnap = snapshot.docs[0];
+        setVerificationRequest(docSnap ? { id: docSnap.id, ...docSnap.data() } : null);
+        setVerificationLoading(false);
+      },
+      (error) => {
+        console.error('[ProfilePharmacy] verification listener error', error);
+        setVerificationLoading(false);
+      }
+    );
+    return () => unsub();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!verificationModalOpen) return;
+    setVerificationForm(buildVerificationFormState());
+    setVerificationError('');
+  }, [verificationModalOpen, verificationRequest, pharmacyProfile, profile, user]);
+
   const [ordersCache, setOrdersCache] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [pharmacySnapshot, setPharmacySnapshot] = useState(null);
   const [customerCoords, setCustomerCoords] = useState(null);
   const [etaInfo, setEtaInfo] = useState(null);
+  const buildVerificationFormState = () => {
+    const docs = Array.isArray(verificationRequest?.documents)
+      ? verificationRequest.documents
+      : [];
+    const findDocUrl = (label) => {
+      const lower = label.toLowerCase();
+      const match = docs.find(
+        (doc) => (doc?.name || '').toLowerCase() === lower
+      );
+      return match?.url;
+    };
+    return {
+      pharmacyName:
+        verificationRequest?.entityName ||
+        pharmacyProfile.displayName ||
+        profile?.businessName ||
+        '',
+      contactName:
+        verificationRequest?.contactName || profile?.ownerName || '',
+      contactEmail:
+        verificationRequest?.contactEmail ||
+        pharmacyProfile.email ||
+        user?.email ||
+        '',
+      contactPhone:
+        verificationRequest?.contactPhone || pharmacyProfile.phone || '',
+      addressLine1:
+        verificationRequest?.location?.addressLine1 ||
+        pharmacyProfile.address ||
+        '',
+      city: verificationRequest?.location?.city || '',
+      state: verificationRequest?.location?.state || '',
+      postalCode: verificationRequest?.location?.postalCode || '',
+      registrationNumber:
+        verificationRequest?.registrationNumber ||
+        profile?.registrationNumber ||
+        '',
+      taxId: verificationRequest?.taxId || profile?.taxId || '',
+      licenseUrl:
+        findDocUrl('pharmacy license') ||
+        findDocUrl('license') ||
+        docs[0]?.url ||
+        '',
+      ownerIdUrl:
+        findDocUrl('owner id') ||
+        findDocUrl('owner identification') ||
+        '',
+      website:
+        verificationRequest?.metadata?.website || profile?.website || '',
+      ownerName:
+        verificationRequest?.metadata?.ownerName || profile?.ownerName || '',
+      yearsInBusiness:
+        verificationRequest?.metadata?.yearsInBusiness || '',
+      additionalNotes: verificationRequest?.notes || '',
+    };
+  };
+  const handleVerificationChange = (field, value) => {
+    setVerificationForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  const buildVerificationAuditEntry = (message, status = 'pending') => ({
+    actor:
+      pharmacyProfile.displayName ||
+      user?.displayName ||
+      user?.email ||
+      'Pharmacy',
+    message,
+    status,
+    timestamp: serverTimestamp(),
+  });
+  const getVerificationMeta = (status) =>
+    VERIFICATION_STATUS_COPY[status] || {
+      label: 'Not submitted',
+      tone: 'bg-slate-200 text-slate-600',
+    };
+  const formatVerificationDate = (val) => {
+    try {
+      if (!val) return '';
+      const date = val.toDate ? val.toDate() : new Date(val);
+      if (!date || Number.isNaN(date.getTime())) return '';
+      return date.toLocaleString();
+    } catch (error) {
+      return '';
+    }
+  };
+  const submitVerificationForm = async (event) => {
+    if (event?.preventDefault) event.preventDefault();
+    if (verificationSubmitting) return;
+    const requiredFields = [
+      'pharmacyName',
+      'contactName',
+      'contactEmail',
+      'contactPhone',
+      'addressLine1',
+      'city',
+      'state',
+      'registrationNumber',
+      'licenseUrl',
+    ];
+    const missing = requiredFields.filter(
+      (field) => !String(verificationForm[field] || '').trim()
+    );
+    if (missing.length > 0) {
+      setVerificationError('Please fill in all required fields before submitting.');
+      return;
+    }
+    setVerificationSubmitting(true);
+    setVerificationError('');
+    try {
+      const documents = [
+        verificationForm.licenseUrl?.trim()
+          ? {
+              name: 'Pharmacy License',
+              url: verificationForm.licenseUrl.trim(),
+            }
+          : null,
+        verificationForm.ownerIdUrl?.trim()
+          ? {
+              name: 'Owner Identification',
+              url: verificationForm.ownerIdUrl.trim(),
+            }
+          : null,
+      ].filter(Boolean);
+      const location = {
+        addressLine1: verificationForm.addressLine1.trim(),
+        city: verificationForm.city.trim(),
+        state: verificationForm.state.trim(),
+        postalCode: verificationForm.postalCode.trim(),
+      };
+      const metadata = {
+        website: verificationForm.website?.trim() || null,
+        ownerName: verificationForm.ownerName?.trim() || null,
+        yearsInBusiness: verificationForm.yearsInBusiness?.trim() || null,
+      };
+      const baseUpdate = {
+        entityName: verificationForm.pharmacyName.trim(),
+        contactName: verificationForm.contactName.trim(),
+        contactEmail: verificationForm.contactEmail.trim(),
+        contactPhone: verificationForm.contactPhone.trim(),
+        location,
+        documents,
+        registrationNumber: verificationForm.registrationNumber.trim(),
+        taxId: verificationForm.taxId?.trim() || '',
+        metadata,
+        notes: verificationForm.additionalNotes?.trim() || '',
+        status: 'pending',
+        updatedAt: serverTimestamp(),
+      };
+      if (verificationRequest?.id) {
+        const verificationRef = doc(db, 'verificationQueue', verificationRequest.id);
+        await updateDoc(verificationRef, {
+          ...baseUpdate,
+          auditTrail: arrayUnion(
+            buildVerificationAuditEntry('Pharmacy updated verification submission')
+          ),
+        });
+      } else {
+        await addDoc(collection(db, 'verificationQueue'), {
+          ...baseUpdate,
+          applicantType: 'pharmacy',
+          submittedBy:
+            pharmacyProfile.displayName ||
+            user?.displayName ||
+            user?.email ||
+            'Pharmacy',
+          submittedByUid: user?.uid || '',
+          priority: 'medium',
+          submittedAt: serverTimestamp(),
+          auditTrail: [
+            buildVerificationAuditEntry('Pharmacy submitted verification request'),
+          ],
+          checklist: {
+            licenseValidated: false,
+            addressVerified: false,
+            taxIdVerified: false,
+            phoneVerified: false,
+          },
+        });
+      }
+      setVerificationMessage('Your verification documents have been sent for review.');
+      setVerificationModalOpen(false);
+    } catch (error) {
+      console.error('[ProfilePharmacy] verification submission failed', error);
+      setVerificationError(
+        error?.message || 'Unable to submit verification right now. Please try again.'
+      );
+    } finally {
+      setVerificationSubmitting(false);
+    }
+  };
   // estimated travel speed in km/h for straight-line ETA calculation (configurable)
   const DEFAULT_SPEED_KMH = 40;
 
@@ -439,6 +697,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
     URL.revokeObjectURL(url);
   }
 
+  const verificationStatus = (verificationRequest?.status || '').toLowerCase();
+  const verificationStatusMeta = getVerificationMeta(verificationStatus);
+  const canSubmitVerification =
+    !verificationRequest ||
+    ['rejected', 'needs_more_info'].includes(verificationStatus);
+
   if (!user) {
     return <LoadingSkeleton lines={4} className="my-8" />;
   }
@@ -594,6 +858,83 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
 
         {/* RIGHT: Storefront preview, controls and product list (scrollable on desktop) */}
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
+          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col gap-4 relative overflow-hidden">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-2 max-w-xl">
+                <div className="text-[18px] font-light font-poppins text-black dark:text-white tracking-tight">
+                  Account Verification
+                </div>
+                {verificationLoading ? (
+                  <LoadingSkeleton lines={2} className="max-w-sm" />
+                ) : (
+                  <p className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light leading-relaxed">
+                    {verificationRequest
+                      ? 'We\'ll notify you as soon as compliance completes the review of your documents.'
+                      : 'Submit your regulatory documents to unlock order fulfillment, payouts, and marketplace visibility.'}
+                  </p>
+                )}
+                {verificationMessage && (
+                  <p className="text-[12px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    {verificationMessage}
+                  </p>
+                )}
+              </div>
+              {!verificationLoading && (
+                <span
+                  className={`self-start rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${verificationStatusMeta.tone}`}
+                >
+                  {verificationStatusMeta.label}
+                </span>
+              )}
+            </div>
+
+            {!verificationLoading && verificationStatus === 'needs_more_info' && (
+              <p className="text-[12px] text-amber-600 dark:text-amber-400">
+                Compliance requested additional information. Please update your submission below.
+              </p>
+            )}
+            {!verificationLoading && verificationStatus === 'rejected' && (
+              <p className="text-[12px] text-rose-600 dark:text-rose-400">
+                Your previous submission was rejected. Review the notes and try again.
+              </p>
+            )}
+            {!verificationLoading && verificationRequest?.reviewerNote && (
+              <p className="text-[12px] text-slate-500 dark:text-slate-300">
+                Note from reviewer:&nbsp;
+                <span className="font-medium text-slate-700 dark:text-slate-100">
+                  {verificationRequest.reviewerNote}
+                </span>
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              {!verificationLoading && canSubmitVerification ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVerificationMessage('');
+                    setVerificationModalOpen(true);
+                  }}
+                  className="rounded-full bg-sky-600 text-white text-[12px] font-medium px-5 py-2 shadow hover:bg-sky-700 transition"
+                >
+                  {verificationRequest ? 'Update Verification' : 'Verify my Account'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-full bg-slate-200 text-slate-500 text-[12px] font-medium px-5 py-2 cursor-not-allowed"
+                >
+                  {verificationLoading ? 'Checking status...' : 'Submission received'}
+                </button>
+              )}
+              {verificationRequest?.updatedAt && !verificationLoading && (
+                <span className="text-[12px] text-zinc-500 dark:text-zinc-400">
+                  Last updated {formatVerificationDate(verificationRequest.updatedAt)}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Storefront Preview Section */}
           <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative overflow-hidden">
             <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('storefront_preview', 'Storefront Preview')}</div>
@@ -681,6 +1022,242 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
         </section>
       </div>
 
+      <Modal
+        open={verificationModalOpen}
+        onClose={() => {
+          if (!verificationSubmitting) {
+            setVerificationModalOpen(false);
+          }
+        }}
+      >
+        <form onSubmit={submitVerificationForm} className="flex flex-col gap-4">
+          <header className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Pharmacy Verification
+            </p>
+            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
+              {verificationRequest ? 'Update submission' : 'Verify your pharmacy'}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-300">
+              Provide the regulatory and ownership details required by Pharmasea compliance.
+            </p>
+          </header>
+
+          {verificationError && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-500/10 dark:text-rose-200">
+              {verificationError}
+            </div>
+          )}
+
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            Business details
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+              Pharmacy name *
+              <input
+                type="text"
+                required
+                value={verificationForm.pharmacyName}
+                onChange={(e) => handleVerificationChange('pharmacyName', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-slate-700"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Primary contact *
+              <input
+                type="text"
+                required
+                value={verificationForm.contactName}
+                onChange={(e) => handleVerificationChange('contactName', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Contact email *
+              <input
+                type="email"
+                required
+                value={verificationForm.contactEmail}
+                onChange={(e) => handleVerificationChange('contactEmail', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Contact phone *
+              <input
+                type="tel"
+                required
+                value={verificationForm.contactPhone}
+                onChange={(e) => handleVerificationChange('contactPhone', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+          </div>
+
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            Registered address
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+              Street address *
+              <input
+                type="text"
+                required
+                value={verificationForm.addressLine1}
+                onChange={(e) => handleVerificationChange('addressLine1', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              City *
+              <input
+                type="text"
+                required
+                value={verificationForm.city}
+                onChange={(e) => handleVerificationChange('city', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              State / Region *
+              <input
+                type="text"
+                required
+                value={verificationForm.state}
+                onChange={(e) => handleVerificationChange('state', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Postal code
+              <input
+                type="text"
+                value={verificationForm.postalCode}
+                onChange={(e) => handleVerificationChange('postalCode', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+          </div>
+
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            Compliance
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Pharmacy registration number *
+              <input
+                type="text"
+                required
+                value={verificationForm.registrationNumber}
+                onChange={(e) => handleVerificationChange('registrationNumber', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Tax ID
+              <input
+                type="text"
+                value={verificationForm.taxId}
+                onChange={(e) => handleVerificationChange('taxId', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+              Pharmacy license URL *
+              <input
+                type="url"
+                required
+                placeholder="https://..."
+                value={verificationForm.licenseUrl}
+                onChange={(e) => handleVerificationChange('licenseUrl', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300 sm:col-span-2">
+              Owner ID (URL)
+              <input
+                type="url"
+                placeholder="https://..."
+                value={verificationForm.ownerIdUrl}
+                onChange={(e) => handleVerificationChange('ownerIdUrl', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+          </div>
+
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            Optional extras
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Website
+              <input
+                type="url"
+                placeholder="https://"
+                value={verificationForm.website}
+                onChange={(e) => handleVerificationChange('website', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Owner name
+              <input
+                type="text"
+                value={verificationForm.ownerName}
+                onChange={(e) => handleVerificationChange('ownerName', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+              Years in business
+              <input
+                type="number"
+                min="0"
+                value={verificationForm.yearsInBusiness}
+                onChange={(e) => handleVerificationChange('yearsInBusiness', e.target.value)}
+                className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </label>
+            <div className="sm:col-span-2">
+              <label className="flex flex-col text-xs font-semibold text-slate-500 dark:text-slate-300">
+                Additional notes for compliance
+                <textarea
+                  rows={3}
+                  value={verificationForm.additionalNotes}
+                  onChange={(e) => handleVerificationChange('additionalNotes', e.target.value)}
+                  className="mt-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  placeholder="Add context such as delivery radius, cold-chain handling, etc."
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                if (!verificationSubmitting) {
+                  setVerificationModalOpen(false);
+                }
+              }}
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={verificationSubmitting}
+              className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:hover:bg-sky-400"
+            >
+              {verificationSubmitting ? 'Submitting...' : verificationRequest ? 'Save updates' : 'Submit for review'}
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            We review submissions within 1-3 business days. You can close this window after sending your documents.
+          </p>
+        </form>
+      </Modal>
 
       {showBulk && <BulkUploadModal pharmacyId={profile?.uid || user?.uid} onClose={()=>setShowBulk(false)} />}
 
