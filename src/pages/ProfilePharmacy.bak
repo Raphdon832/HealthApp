@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -873,12 +873,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const verificationStatusMeta = getVerificationMeta(verificationStatus);
   const canSubmitVerification =
     !verificationRequest ||
-    ['rejected', 'needs_more_info', 'draft', ''].includes(verificationStatus);
-  const verificationCtaLabel = verificationRequest
-    ? verificationStatus === 'draft'
-      ? 'Continue Verification'
-      : 'Update Verification'
-    : 'Verify my Account';
+    ['rejected', 'needs_more_info'].includes(verificationStatus);
 
   if (!user) {
     return <LoadingSkeleton lines={4} className="my-8" />;
@@ -1093,7 +1088,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   }}
                   className="rounded-full bg-sky-600 text-white text-[12px] font-medium px-5 py-2 shadow hover:bg-sky-700 transition"
                 >
-                  {verificationCtaLabel}
+                  {verificationRequest ? 'Update Verification' : 'Verify my Account'}
                 </button>
               ) : (
                 <button
@@ -1421,26 +1416,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
-              onClick={async () => {
-                if (verificationSubmitting) return;
-                const shouldPersist =
-                  autoSaveTimeoutRef.current ||
-                  verificationRequest?.id ||
-                  draftDocIdRef.current;
-                if (autoSaveTimeoutRef.current) {
-                  clearTimeout(autoSaveTimeoutRef.current);
-                  autoSaveTimeoutRef.current = null;
+              onClick={() => {
+                if (!verificationSubmitting) {
+                  setVerificationModalOpen(false);
+                  setVerificationStep(0);
+                  setVerificationError('');
                 }
-                if (shouldPersist) {
-                  await runVerificationAutoSave(
-                    latestFormRef.current,
-                    latestStepRef.current
-                  );
-                }
-                setVerificationModalOpen(false);
-                setVerificationStep(0);
-                latestStepRef.current = 0;
-                setVerificationError('');
               }}
               className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
             >
