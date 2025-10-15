@@ -89,8 +89,8 @@ export default function AddProduct() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 p-4">
-      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-[#9ED3FF] overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8">
+      <div className="max-w-lg md:max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-[#9ED3FF] dark:border-gray-700 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-sky-500 to-blue-600 p-6 text-white">
           <div className="flex items-center gap-3">
@@ -110,9 +110,9 @@ export default function AddProduct() {
         <div className="p-6 space-y-4">
           {/* Product Name */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_name', 'Product Name')} *</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_name', 'Product Name')} *</label>
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder={t('product_name_placeholder', 'Enter product name')}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -121,9 +121,9 @@ export default function AddProduct() {
 
           {/* Price */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_price', 'Price')} *</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_price', 'Price')} *</label>
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder={t('product_price_placeholder', 'Enter price')}
               type="number"
               value={form.price}
@@ -133,9 +133,9 @@ export default function AddProduct() {
 
           {/* Category */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_category', 'Category')} *</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_category', 'Category')} *</label>
             <select
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none bg-white focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
             >
@@ -150,9 +150,9 @@ export default function AddProduct() {
 
           {/* Stock */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('stock_quantity', 'Stock Quantity')}</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('stock_quantity', 'Stock Quantity')}</label>
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder={t('stock_placeholder', 'Enter stock quantity')}
               type="number"
               value={form.stock}
@@ -162,9 +162,9 @@ export default function AddProduct() {
 
           {/* SKU */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_sku', 'SKU')}</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_sku', 'SKU')}</label>
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder={t('sku_placeholder', 'Enter SKU (optional)')}
               value={form.sku}
               onChange={(e) => setForm({ ...form, sku: e.target.value })}
@@ -173,9 +173,9 @@ export default function AddProduct() {
 
           {/* Tags */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_tags', 'Tags')}</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_tags', 'Tags')}</label>
             <input
-              className="w-full border-b border-[#9ED3FF] text-[13px] font-light py-3 outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+              className="w-full border-b border-[#9ED3FF] dark:border-gray-600 text-[13px] font-light py-3 outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder={t('tags_placeholder', 'Add tags separated by commas')}
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
@@ -184,17 +184,17 @@ export default function AddProduct() {
 
           {/* Product Image */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">{t('product_image', 'Product Image')}</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_image', 'Product Image')}</label>
             <div className="space-y-2">
               <input
                 type="file"
                 accept="image/*"
-                className="w-full border border-[#9ED3FF] rounded-lg p-3 text-[13px] font-light focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+                className="w-full border border-[#9ED3FF] dark:border-gray-600 rounded-lg p-3 text-[13px] font-light focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
-              <div className="text-center text-xs text-gray-500">or</div>
+              <div className="text-center text-xs text-gray-500 dark:text-gray-400">or</div>
               <input
-                className="w-full border border-[#9ED3FF] rounded-lg p-3 text-[13px] font-light outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400"
+                className="w-full border border-[#9ED3FF] dark:border-gray-600 rounded-lg p-3 text-[13px] font-light outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 placeholder={t('image_url_placeholder', 'Or enter image URL')}
                 value={form.image}
                 onChange={(e) => setForm({ ...form, image: e.target.value })}
@@ -204,13 +204,13 @@ export default function AddProduct() {
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">{t('product_description', 'Description')}</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('product_description', 'Description')}</label>
             <textarea
               rows={4}
               placeholder={t('description_placeholder', 'Enter product description')}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full border border-[#9ED3FF] rounded-lg p-3 text-[13px] font-light outline-none focus:border-sky-500 transition-colors duration-200 hover:border-sky-400 resize-none"
+              className="w-full border border-[#9ED3FF] dark:border-gray-600 rounded-lg p-3 text-[13px] font-light outline-none focus:border-sky-500 dark:focus:border-sky-400 transition-colors duration-200 hover:border-sky-400 dark:hover:border-sky-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function AddProduct() {
               }
             </button>
             <button
-              className="flex-1 rounded-full border border-gray-300 text-gray-700 text-sm font-medium py-3 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium py-3 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate(-1)}
               disabled={busy}
             >
