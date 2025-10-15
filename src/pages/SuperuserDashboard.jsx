@@ -68,7 +68,7 @@ const appendAuditEntry = (message, statusOverride) => {
   const entry = {
     actor: user?.displayName || user?.email || 'System',
     message,
-    timestamp: serverTimestamp(),
+    timestamp: new Date(),
   };
   if (statusOverride) entry.status = statusOverride;
   return entry;

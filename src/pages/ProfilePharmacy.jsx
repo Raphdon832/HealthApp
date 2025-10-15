@@ -419,16 +419,16 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       return nextStep;
     });
   };
-  const buildVerificationAuditEntry = (message, status = 'pending') => ({
-    actor:
-      pharmacyProfile.displayName ||
-      user?.displayName ||
-      user?.email ||
-      'Pharmacy',
-    message,
-    status,
-    timestamp: serverTimestamp(),
-  });
+const buildVerificationAuditEntry = (message, status = 'pending') => ({
+  actor:
+    pharmacyProfile.displayName ||
+    user?.displayName ||
+    user?.email ||
+    'Pharmacy',
+  message,
+  status,
+  timestamp: new Date(),
+});
   const getVerificationMeta = (status) =>
     VERIFICATION_STATUS_COPY[status] || {
       label: 'Not submitted',
