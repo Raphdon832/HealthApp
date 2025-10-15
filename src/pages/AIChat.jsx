@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { ArrowLeft, Send, Bot, User } from 'lucide-react';
+import { ArrowLeft, Send, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
@@ -10,6 +10,15 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 // Use the SVG placed in the `public/` folder so production (Netlify) serves it at root
 const ChatBgUrl = "/ChatBg.svg";
+
+// PharmAI Icon Component
+const PharmAIIcon = ({ className = "w-5 h-5" }) => (
+  <img 
+    src="/PharmAI.svg" 
+    alt="PharmAI" 
+    className={className}
+  />
+);
 
 export default function AIChat() {
   const { user, profile } = useAuth();
@@ -205,7 +214,7 @@ export default function AIChat() {
           </button>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5 text-sky-600" />
+              <PharmAIIcon className="w-5 h-5 text-sky-600" />
             </div>
             <div>
               <div className="font-semibold text-gray-900">PharmAI</div>
@@ -236,7 +245,7 @@ export default function AIChat() {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mb-4">
-              <Bot className="w-8 h-8 text-sky-600" />
+              <PharmAIIcon className="w-8 h-8 text-sky-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {t('welcome_to_pharmai', 'Welcome to PharmAI!')}
@@ -262,12 +271,12 @@ export default function AIChat() {
                 >
                   <div className="flex items-start gap-2">
                     {message.role === 'assistant' && (
-                      <Bot className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <PharmAIIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
                     {message.role === 'user' && (
                       <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
-                    <div className="flex-1 whitespace-pre-wrap text-sm">
+                    <div className="flex-1 whitespace-pre-wrap text-sm break-words overflow-hidden">
                       {message.content}
                     </div>
                   </div>
@@ -287,7 +296,7 @@ export default function AIChat() {
               <div className="flex justify-start">
                 <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 max-w-[80%]">
                   <div className="flex items-center gap-2">
-                    <Bot className="w-4 h-4" />
+                    <PharmAIIcon className="w-4 h-4" />
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>

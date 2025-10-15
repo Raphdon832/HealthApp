@@ -1,6 +1,15 @@
 // Fab.jsx
 import { createPortal } from 'react-dom';
 
+// PharmAI Icon Component
+const PharmAIIcon = ({ className = "w-6 h-6" }) => (
+  <img 
+    src="/PharmAI.svg" 
+    alt="PharmAI" 
+    className={className}
+  />
+);
+
 export default function Fab({ onClick, disabled }) {
   return createPortal(
     <button
@@ -10,7 +19,7 @@ export default function Fab({ onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
     >
-      <span className="text-3xl font-bold leading-none">+</span>
+      <PharmAIIcon className="w-6 h-6" />
     </button>,
     document.body
   );

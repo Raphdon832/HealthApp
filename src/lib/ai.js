@@ -55,7 +55,8 @@ export async function getProductsContext(limitCount = 50) {
         pharmacyId: data.pharmacyId,
         pharmacyName: data.pharmacyName,
         stock: data.stock,
-        tags: data.tags || []
+        tags: data.tags || [],
+        url: `/product/${doc.id}` // Add product URL for direct linking
       });
     });
     return products;
@@ -71,15 +72,77 @@ export async function searchPharmacies(searchTerm, limitCount = 10) {
     const pharmacies = await getPharmaciesContext(100);
     const lowerSearch = searchTerm.toLowerCase();
     
-    return pharmacies.filter(pharmacy => 
+    // First, try exact matches
+    const exactMatches = pharmacies.filter(pharmacy => 
       pharmacy.name?.toLowerCase().includes(lowerSearch) ||
       pharmacy.location?.toLowerCase().includes(lowerSearch) ||
       pharmacy.address?.toLowerCase().includes(lowerSearch)
-    ).slice(0, limitCount);
+    );
+    
+    if (exactMatches.length > 0) {
+      return exactMatches.slice(0, limitCount);
+    }
+    
+    // If no exact matches, find similar pharmacies using fuzzy matching
+    const similarMatches = pharmacies.filter(pharmacy => {
+      const name = pharmacy.name?.toLowerCase() || '';
+      const location = pharmacy.location?.toLowerCase() || '';
+      const address = pharmacy.address?.toLowerCase() || '';
+      
+      // Calculate similarity scores
+      const nameSimilarity = getSimilarityScore(lowerSearch, name);
+      const locationSimilarity = getSimilarityScore(lowerSearch, location);
+      const addressSimilarity = getSimilarityScore(lowerSearch, address);
+      
+      // Consider it a match if any similarity score is above threshold
+      return nameSimilarity > 0.3 || locationSimilarity > 0.3 || addressSimilarity > 0.3;
+    }).sort((a, b) => {
+      // Sort by best similarity score
+      const aScore = Math.max(
+        getSimilarityScore(lowerSearch, a.name?.toLowerCase() || ''),
+        getSimilarityScore(lowerSearch, a.location?.toLowerCase() || ''),
+        getSimilarityScore(lowerSearch, a.address?.toLowerCase() || '')
+      );
+      const bScore = Math.max(
+        getSimilarityScore(lowerSearch, b.name?.toLowerCase() || ''),
+        getSimilarityScore(lowerSearch, b.location?.toLowerCase() || ''),
+        getSimilarityScore(lowerSearch, b.address?.toLowerCase() || '')
+      );
+      return bScore - aScore;
+    });
+    
+    return similarMatches.slice(0, limitCount);
   } catch (error) {
     console.error('Error searching pharmacies:', error);
     return [];
   }
+}
+
+// Simple string similarity function (Levenshtein distance approximation)
+function getSimilarityScore(str1, str2) {
+  if (!str1 || !str2) return 0;
+  
+  // Simple substring matching with length consideration
+  if (str2.includes(str1)) return 0.9;
+  if (str1.includes(str2)) return 0.8;
+  
+  // Check for common words
+  const words1 = str1.split(' ');
+  const words2 = str2.split(' ');
+  const commonWords = words1.filter(word => words2.some(w2 => w2.includes(word) || word.includes(w2)));
+  
+  if (commonWords.length > 0) {
+    return Math.min(0.7, commonWords.length / Math.max(words1.length, words2.length));
+  }
+  
+  // Character-level similarity for short strings
+  if (str1.length < 5 && str2.length < 5) {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    if (longer.includes(shorter)) return 0.6;
+  }
+  
+  return 0;
 }
 
 export async function searchProducts(searchTerm, limitCount = 20) {
@@ -155,6 +218,8 @@ IMPORTANT CAPABILITIES:
 - You have access to our pharmacy network and can search for pharmacies by location, name, or services
 - You have access to our product catalog and can search for medications, supplements, and health products
 - When users ask about specific drugs or pharmacies, search our database and provide accurate information
+- When listing products, ALWAYS include the product URL so users can click directly to view details
+- When searching for pharmacies, if no exact matches are found, suggest similar pharmacies that might be what the user is looking for
 - Always mention that you can help search for pharmacies or products when relevant
 
 IMPORTANT SAFETY GUIDELINES:
@@ -168,6 +233,8 @@ RESPONSE STYLE:
 - Be friendly, helpful, and professional
 - Use clear, simple language
 - Keep responses concise but informative
+- When listing products, format them with names, prices, and clickable links like: "[Product Name]($URL) - $Price - Description"
+- When suggesting pharmacies, mention if they are similar matches when exact searches don't work
 - Always end medical/health related responses with appropriate disclaimers
 - Be culturally sensitive and inclusive
 
