@@ -19,13 +19,13 @@ export async function getPharmaciesContext(limitCount = 20) {
     snapshot.forEach(doc => {
       const data = doc.data();
       pharmacies.push({
-        id: doc.id,
         name: data.displayName || data.name,
         email: data.email,
         location: data.location,
         phone: data.phone,
         address: data.address,
-        verified: data.verified || false
+        verified: data.verified || false,
+        url: `/vendor/${doc.id}` // Add pharmacy profile URL for direct linking
       });
     });
     return pharmacies;
@@ -47,12 +47,10 @@ export async function getProductsContext(limitCount = 50) {
     snapshot.forEach(doc => {
       const data = doc.data();
       products.push({
-        id: doc.id,
         name: data.name,
         description: data.description,
         category: data.category,
         price: data.price,
-        pharmacyId: data.pharmacyId,
         pharmacyName: data.pharmacyName,
         stock: data.stock,
         tags: data.tags || [],
@@ -219,6 +217,7 @@ IMPORTANT CAPABILITIES:
 - You have access to our product catalog and can search for medications, supplements, and health products
 - When users ask about specific drugs or pharmacies, search our database and provide accurate information
 - When listing products, ALWAYS include the product URL so users can click directly to view details
+- When listing pharmacies, ALWAYS include the pharmacy URL so users can click directly to view details
 - When searching for pharmacies, if no exact matches are found, suggest similar pharmacies that might be what the user is looking for
 - Always mention that you can help search for pharmacies or products when relevant
 
@@ -233,7 +232,10 @@ RESPONSE STYLE:
 - Be friendly, helpful, and professional
 - Use clear, simple language
 - Keep responses concise but informative
-- When listing products, format them with names, prices, and clickable links like: "[Product Name]($URL) - $Price - Description"
+- NEVER include internal IDs, database keys, or technical identifiers in your responses
+- When listing products, embed links in the product names using markdown format: [Product Name](URL) - $Price - Description
+- When mentioning pharmacies, embed links in pharmacy names using markdown format: [Pharmacy Name](URL)
+- Use markdown link format [Name](URL) to make names clickable
 - When suggesting pharmacies, mention if they are similar matches when exact searches don't work
 - Always end medical/health related responses with appropriate disclaimers
 - Be culturally sensitive and inclusive
