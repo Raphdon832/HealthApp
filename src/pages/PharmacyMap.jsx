@@ -248,8 +248,8 @@ export default function PharmacyMap() {
 
   if (loading || locationLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 py-6">
-        <div className="max-w-md mx-auto">
+      <div className="min-h-screen bg-gray-50 w-full px-0 py-6">
+        <div className="w-full md:max-w-md md:mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => navigate(-1)}
@@ -319,7 +319,7 @@ export default function PharmacyMap() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-6">
+      <div className="w-full px-0 py-6 md:max-w-md md:mx-auto md:px-4">
         {/* Current Location with improved status */}
         <div className="bg-gray dark:bg-transparent rounded-lg p-4 mb-4 border border-sky-300 dark:border-gray-600 dark:border-gray-600">
           <div className="flex items-center gap-3">
