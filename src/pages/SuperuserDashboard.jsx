@@ -535,31 +535,42 @@ const handleVerificationAssign = async (item, assignee) => {
       {activeTab==='carts' && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xl font-semibold">Carts</div>
+            <div className="text-xl font-semibold">Cart Items</div>
           </div>
           <div className="space-y-2">
-            {carts.map(cart => (
-              <div key={cart.id} className="border border-sky-100 rounded-lg p-3 flex items-center justify-between bg-white group hover:shadow-md transition cursor-pointer">
-                <input type="checkbox" checked={selectedItems.includes(cart.id)} onChange={e=>setSelectedItems(sel=>e.target.checked?[...sel,cart.id]:sel.filter(id=>id!==cart.id))} />
-                <div className="flex-1" onClick={()=>{/* open cart modal */}}>
-                  <div className="font-bold">Cart #{cart.id}</div>
-                  <div className="text-xs text-zinc-500">{cart.updatedAt ? new Date(cart.updatedAt.seconds*1000).toLocaleString() : ''}</div>
-                  <div className="text-xs text-zinc-400">Products: {Array.isArray(cart.products) ? cart.products.map(p=>p.name).join(', ') : ''}</div>
+            {carts.flatMap(cart => 
+              Array.isArray(cart.products) ? cart.products.map((product, productIndex) => ({
+                ...product,
+                cartId: cart.id,
+                userId: cart.userId,
+                cartUpdatedAt: cart.updatedAt
+              })) : []
+            ).map((item, index) => (
+              <div key={`${item.cartId}-${index}`} className="border border-sky-100 rounded-lg p-3 flex items-center justify-between bg-white group hover:shadow-md transition">
+                <div className="flex-1">
+                  <div className="font-bold text-sm">{item.name || 'Unnamed Product'}</div>
+                  <div className="text-xs text-zinc-500">
+                    Quantity: {item.quantity || 1} | 
+                    Cart: {item.cartId?.slice(-8) || 'Unknown'} | 
+                    User: {item.userId?.slice(-8) || 'Unknown'}
+                  </div>
+                  <div className="text-xs text-zinc-400">
+                    {item.cartUpdatedAt ? new Date(item.cartUpdatedAt.seconds*1000).toLocaleString() : ''}
+                  </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'carts',cart.id));}}>Delete</button>
+                  <span className="px-2 py-1 rounded bg-sky-100 text-sky-700 text-xs">
+                    ${(item.price || 0) * (item.quantity || 1)}
+                  </span>
                 </div>
               </div>
             ))}
+            {carts.flatMap(cart => 
+              Array.isArray(cart.products) ? cart.products : []
+            ).length === 0 && (
+              <div className="text-center text-zinc-500 py-8">No items in any carts</div>
+            )}
           </div>
-          {selectedItems.length>0 && (
-            <div className="flex gap-2 mt-2">
-              <button className="px-3 py-1 rounded bg-red-600 text-white text-xs" onClick={async()=>{
-                for(const id of selectedItems){await deleteDoc(doc(db,'carts',id));}
-                setSelectedItems([]);
-              }}>Delete Selected</button>
-            </div>
-          )}
         </div>
       )}
       {/* Add more tabs for analytics, moderation, etc. */}
@@ -584,8 +595,8 @@ const handleVerificationAssign = async (item, assignee) => {
               <div className="text-xs text-zinc-600">Orders</div>
             </div>
             <div className="bg-yellow-100 rounded p-4 text-center">
-              <div className="text-2xl font-bold">{carts.length}</div>
-              <div className="text-xs text-zinc-600">Carts</div>
+              <div className="text-2xl font-bold">{carts.reduce((sum, cart) => sum + (Array.isArray(cart.products) ? cart.products.reduce((cartSum, p) => cartSum + (p.quantity || 1), 0) : 0), 0)}</div>
+              <div className="text-xs text-zinc-600">Cart Items</div>
             </div>
           </div>
           {/* Placeholder for charts, can use chart libraries for more advanced analytics */}

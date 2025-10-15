@@ -380,7 +380,7 @@ export default function ProductDetail({ product, pharmacy }) {
                       src={product.image}
                       alt={product.name}
                       onError={() => setImageError(true)}
-                      className="w-full h-[48vw] md:h-auto md:max-h-[160px] lg:max-h-[360px] object-cover md:object-contain hover:scale-105 transition-transform duration-300"
+                      className="w-[68vw] h-[58vw] md:h-auto md:max-h-[160px] lg:max-h-[360px] object-cover md:object-contain hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 dark:bg-gray-700 rounded-md text-3xl font-semibold text-zinc-800 dark:text-zinc-200 animate-bounce-gentle">
