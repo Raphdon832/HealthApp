@@ -16,6 +16,7 @@ export default function FloatingAIChatButton() {
   const location = useLocation();
   const { t } = useTranslation();
   const buttonRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   
   // Default position - higher up to avoid bottom navbar
   const defaultPosition = { x: window.innerWidth - 80, y: window.innerHeight - 160 };
@@ -58,6 +59,15 @@ export default function FloatingAIChatButton() {
     document.head.appendChild(styleEl);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Load position from localStorage on mount
   useEffect(() => {
     const savedPosition = localStorage.getItem('aiButtonPosition');
@@ -93,6 +103,7 @@ export default function FloatingAIChatButton() {
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
+    if (!isMobile) return;
     
     dragOccurredRef.current = true;
     
@@ -123,7 +134,7 @@ export default function FloatingAIChatButton() {
 
   // Add global mouse event listeners when dragging
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging && isMobile) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -131,15 +142,72 @@ export default function FloatingAIChatButton() {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragStart]);
+  }, [isDragging, dragStart, isMobile]);
+  const isTouchDragging = useRef(false);
+
+  const handleTouchStart = (e) => {
+    if (!isMobile) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    isTouchDragging.current = true;
+    dragOccurredRef.current = false;
+    setDragStart({
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging || !isTouchDragging.current || !isMobile) return;
+
+    const touch = e.touches[0];
+    dragOccurredRef.current = true;
+
+    const newX = touch.clientX - dragStart.x;
+    const newY = touch.clientY - dragStart.y;
+
+    const maxX = window.innerWidth - 56;
+    const maxY = window.innerHeight - 56;
+    const minX = 0;
+    const minY = 0;
+
+    setPosition({
+      x: Math.max(minX, Math.min(maxX, newX)),
+      y: Math.max(minY, Math.min(maxY, newY))
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (!isMobile) return;
+    setIsDragging(false);
+    isTouchDragging.current = false;
+  };
+
+  useEffect(() => {
+    if (isDragging && isMobile) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+      document.addEventListener('touchcancel', handleTouchEnd);
+      return () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+        document.removeEventListener('touchcancel', handleTouchEnd);
+      };
+    }
+  }, [isDragging, dragStart, isMobile]);
 
   return (
     <button
       ref={buttonRef}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
       className={`fixed z-50 w-14 h-14 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
-        isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
+        isMobile
+          ? isDragging
+            ? 'cursor-grabbing scale-110'
+            : 'cursor-grab'
+          : ''
       }`}
       style={{
         left: position.x,
