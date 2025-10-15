@@ -3,7 +3,7 @@ import { ArrowLeft, Send, Bot, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
-import { getAIResponse, addMedicalDisclaimer, needsMedicalProfessional } from '@/lib/ai';
+import { getAIResponse, addMedicalDisclaimer, needsMedicalProfessional, getPharmaciesContext, getProductsContext } from '@/lib/ai';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -19,6 +19,8 @@ export default function AIChat() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [pharmacies, setPharmacies] = useState([]);
+  const [products, setProducts] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -60,6 +62,24 @@ export default function AIChat() {
     inputRef.current?.focus();
   }, []);
 
+  // Load pharmacy and product data for AI context
+  useEffect(() => {
+    const loadAppData = async () => {
+      try {
+        const [pharmacyData, productData] = await Promise.all([
+          getPharmaciesContext(20),
+          getProductsContext(50)
+        ]);
+        setPharmacies(pharmacyData);
+        setProducts(productData);
+      } catch (error) {
+        console.error('Error loading app data for AI:', error);
+      }
+    };
+
+    loadAppData();
+  }, []);
+
   const saveMessage = async (message) => {
     try {
       await addDoc(collection(db, 'ai_conversations'), {
@@ -97,7 +117,9 @@ export default function AIChat() {
         userInfo: {
           role: profile?.role,
           language: t('current_language', 'en')
-        }
+        },
+        productInfo: products.slice(0, 20), // Limit to 20 most recent products
+        pharmacyInfo: pharmacies.slice(0, 10) // Limit to 10 pharmacies
       };
 
       let aiResponse = await getAIResponse(userMessage, context);

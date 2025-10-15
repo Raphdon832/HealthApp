@@ -1,8 +1,104 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { db } from './firebase';
 
 // AI Provider configuration
 const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || 'gemini'; // 'openai', 'gemini', or 'mistral'
+
+// Helper functions to fetch app data for AI context
+export async function getPharmaciesContext(limitCount = 20) {
+  try {
+    const q = query(
+      collection(db, 'users'),
+      where('role', '==', 'pharmacy'),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    const pharmacies = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      pharmacies.push({
+        id: doc.id,
+        name: data.displayName || data.name,
+        email: data.email,
+        location: data.location,
+        phone: data.phone,
+        address: data.address,
+        verified: data.verified || false
+      });
+    });
+    return pharmacies;
+  } catch (error) {
+    console.error('Error fetching pharmacies:', error);
+    return [];
+  }
+}
+
+export async function getProductsContext(limitCount = 50) {
+  try {
+    const q = query(
+      collection(db, 'products'),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    const products = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      products.push({
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        price: data.price,
+        pharmacyId: data.pharmacyId,
+        pharmacyName: data.pharmacyName,
+        stock: data.stock,
+        tags: data.tags || []
+      });
+    });
+    return products;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+export async function searchPharmacies(searchTerm, limitCount = 10) {
+  try {
+    // Get all pharmacies first (since Firestore doesn't support text search easily)
+    const pharmacies = await getPharmaciesContext(100);
+    const lowerSearch = searchTerm.toLowerCase();
+    
+    return pharmacies.filter(pharmacy => 
+      pharmacy.name?.toLowerCase().includes(lowerSearch) ||
+      pharmacy.location?.toLowerCase().includes(lowerSearch) ||
+      pharmacy.address?.toLowerCase().includes(lowerSearch)
+    ).slice(0, limitCount);
+  } catch (error) {
+    console.error('Error searching pharmacies:', error);
+    return [];
+  }
+}
+
+export async function searchProducts(searchTerm, limitCount = 20) {
+  try {
+    // Get all products first
+    const products = await getProductsContext(200);
+    const lowerSearch = searchTerm.toLowerCase();
+    
+    return products.filter(product => 
+      product.name?.toLowerCase().includes(lowerSearch) ||
+      product.description?.toLowerCase().includes(lowerSearch) ||
+      product.category?.toLowerCase().includes(lowerSearch) ||
+      (product.tags && product.tags.some(tag => tag.toLowerCase().includes(lowerSearch)))
+    ).slice(0, limitCount);
+  } catch (error) {
+    console.error('Error searching products:', error);
+    return [];
+  }
+}
 
 // Initialize OpenAI client
 const getOpenAIClient = () => {
@@ -49,9 +145,17 @@ const getAIMLConfig = () => {
 const SYSTEM_PROMPT = `You are PharmAI, a helpful AI assistant for a pharmacy app called Pharmasea. You help users with:
 
 1. GENERAL HEALTH INFORMATION - Provide general wellness tips, explain common health concepts, and answer basic health questions
-2. PRODUCT INFORMATION - Help users understand medications, supplements, and health products
+2. PRODUCT INFORMATION - Help users understand medications, supplements, and health products available in our app
 3. PHARMACY SERVICES - Explain how pharmacy services work, prescription processes, etc.
-4. WELLNESS ADVICE - Give general lifestyle and wellness recommendations
+4. PHARMACY SEARCH - Help users find pharmacies in our network based on location, name, or services
+5. PRODUCT SEARCH - Help users find specific medications, health products, or alternatives available in our app
+6. WELLNESS ADVICE - Give general lifestyle and wellness recommendations
+
+IMPORTANT CAPABILITIES:
+- You have access to our pharmacy network and can search for pharmacies by location, name, or services
+- You have access to our product catalog and can search for medications, supplements, and health products
+- When users ask about specific drugs or pharmacies, search our database and provide accurate information
+- Always mention that you can help search for pharmacies or products when relevant
 
 IMPORTANT SAFETY GUIDELINES:
 - NEVER give medical advice, diagnoses, or treatment recommendations
@@ -104,7 +208,14 @@ async function getOpenAIResponse(userMessage, context = {}) {
   if (context.productInfo) {
     messages.splice(1, 0, {
       role: 'system',
-      content: `Available products: ${JSON.stringify(context.productInfo)}`
+      content: `Available products in our app: ${JSON.stringify(context.productInfo)}`
+    });
+  }
+
+  if (context.pharmacyInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Available pharmacies in our network: ${JSON.stringify(context.pharmacyInfo)}`
     });
   }
 
@@ -131,7 +242,11 @@ async function getGeminiResponse(userMessage, context = {}) {
   }
 
   if (context.productInfo) {
-    prompt += `Available products: ${JSON.stringify(context.productInfo)}\n\n`;
+    prompt += `Available products in our app: ${JSON.stringify(context.productInfo)}\n\n`;
+  }
+
+  if (context.pharmacyInfo) {
+    prompt += `Available pharmacies in our network: ${JSON.stringify(context.pharmacyInfo)}\n\n`;
   }
 
   prompt += 'Please provide a helpful response:';
@@ -160,7 +275,14 @@ async function getMistralResponse(userMessage, context = {}) {
   if (context.productInfo) {
     messages.splice(1, 0, {
       role: 'system',
-      content: `Available products: ${JSON.stringify(context.productInfo)}`
+      content: `Available products in our app: ${JSON.stringify(context.productInfo)}`
+    });
+  }
+
+  if (context.pharmacyInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Available pharmacies in our network: ${JSON.stringify(context.pharmacyInfo)}`
     });
   }
 
