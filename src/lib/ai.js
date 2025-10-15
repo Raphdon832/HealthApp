@@ -233,7 +233,7 @@ RESPONSE STYLE:
 - Use clear, simple language
 - Keep responses concise but informative
 - NEVER include internal IDs, database keys, or technical identifiers in your responses
-- When listing products, embed links in the product names using markdown format: [Product Name](URL) - $Price - Description
+- When listing products, embed links in the product names using markdown format: [Product Name](URL) - ₦Price - Description
 - When mentioning pharmacies, embed links in pharmacy names using markdown format: [Pharmacy Name](URL)
 - Use markdown link format [Name](URL) to make names clickable
 - When suggesting pharmacies, mention if they are similar matches when exact searches don't work

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { ArrowLeft, Send, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -20,26 +20,97 @@ const PharmAIIcon = ({ className = "w-5 h-5" }) => (
   />
 );
 
-// Function to parse and render markdown links
-const renderMessageWithLinks = (content, navigate) => {
-  // Regex to match markdown links: [text](url)
+const escapeRegExp = (str = '') =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const createProductMatcher = (product) => {
+  const name = product?.name?.trim();
+  const url = product?.url;
+  if (!name || !url) return null;
+
+  const escaped = escapeRegExp(name);
+  const useWordBoundaries =
+    /\w/.test(name[0]) && /\w/.test(name[name.length - 1]);
+  const pattern = useWordBoundaries ? `\\b${escaped}\\b` : escaped;
+
+  return { name, url, pattern };
+};
+
+const enhanceSegmentsWithProducts = (
+  segments,
+  productMatchers,
+  navigate,
+  getKey
+) => {
+  if (!Array.isArray(segments)) segments = [segments];
+  if (!productMatchers?.length) return segments;
+
+  return segments.flatMap((segment) => {
+    if (typeof segment !== 'string') return [segment];
+
+    return productMatchers.reduce((acc, matcher) => {
+      return acc.flatMap((piece) => {
+        if (typeof piece !== 'string') return [piece];
+
+        const regex = new RegExp(matcher.pattern, 'gi');
+        let lastIndex = 0;
+        let match;
+        const result = [];
+
+        while ((match = regex.exec(piece)) !== null) {
+          if (match.index > lastIndex) {
+            result.push(piece.slice(lastIndex, match.index));
+          }
+
+          const matchedText = match[0];
+          result.push(
+            <span
+              key={getKey()}
+              onClick={() => navigate(matcher.url)}
+              className="text-sky-600 hover:text-sky-800 underline font-normal cursor-pointer"
+            >
+              {matchedText}
+            </span>
+          );
+
+          lastIndex = regex.lastIndex;
+        }
+
+        if (result.length === 0) {
+          return [piece];
+        }
+
+        if (lastIndex < piece.length) {
+          result.push(piece.slice(lastIndex));
+        }
+
+        return result;
+      });
+    }, [segment]);
+  });
+};
+
+// Function to parse and render markdown links, enhancing drug names
+const renderMessageWithLinks = (content, navigate, productMatchers = []) => {
+  if (!content) return null;
+
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts = [];
   let lastIndex = 0;
   let match;
+  let autoKey = 0;
+  const getKey = () => `ai-link-${autoKey++}`;
 
   while ((match = linkRegex.exec(content)) !== null) {
-    // Add text before the link
     if (match.index > lastIndex) {
       parts.push(content.slice(lastIndex, match.index));
     }
 
-    // Add the link
     const linkText = match[1];
     const linkUrl = match[2];
     parts.push(
       <span
-        key={match.index}
+        key={getKey()}
         onClick={() => navigate(linkUrl)}
         className="text-sky-600 hover:text-sky-800 underline font-normal cursor-pointer"
       >
@@ -50,12 +121,19 @@ const renderMessageWithLinks = (content, navigate) => {
     lastIndex = match.index + match[0].length;
   }
 
-  // Add remaining text
   if (lastIndex < content.length) {
     parts.push(content.slice(lastIndex));
   }
 
-  return parts.length > 0 ? parts : content;
+  const segments = parts.length ? parts : [content];
+  const enhanced = enhanceSegmentsWithProducts(
+    segments,
+    productMatchers,
+    navigate,
+    getKey
+  );
+
+  return enhanced.length === 1 ? enhanced[0] : enhanced;
 };
 
 export default function AIChat() {
@@ -70,6 +148,14 @@ export default function AIChat() {
   const [products, setProducts] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const productMatchers = useMemo(
+    () =>
+      (products || [])
+        .map(createProductMatcher)
+        .filter(Boolean)
+        .sort((a, b) => b.name.length - a.name.length),
+    [products]
+  );
 
   // Load conversation history
   useEffect(() => {
@@ -315,7 +401,7 @@ export default function AIChat() {
                       <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1 whitespace-pre-wrap text-sm break-words overflow-hidden">
-                      {renderMessageWithLinks(message.content, navigate)}
+                      {renderMessageWithLinks(message.content, navigate, productMatchers)}
                     </div>
                   </div>
                   <div className={`text-xs mt-1 ${
@@ -382,3 +468,5 @@ export default function AIChat() {
     </div>
   );
 }
+
+
