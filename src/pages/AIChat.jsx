@@ -140,15 +140,17 @@ export default function AIChat() {
     }
   };
 
-  const clearConversation = async () => {
+  const startNewChat = async () => {
     if (!user?.uid) return;
 
     try {
-      // In a real app, you'd want to delete messages from Firestore
-      // For now, just clear the local state
+      // Clear the current conversation messages
       setMessages([]);
+      setInputMessage('');
+      // Focus the input for the new chat
+      inputRef.current?.focus();
     } catch (error) {
-      console.error('Error clearing conversation:', error);
+      console.error('Error starting new chat:', error);
     }
   };
 
@@ -192,16 +194,16 @@ export default function AIChat() {
           </div>
         </div>
         <button
-          onClick={clearConversation}
+          onClick={startNewChat}
           className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded border"
         >
-          {t('clear_chat', 'Clear Chat')}
+          {t('new_chat', 'New Chat')}
         </button>
       </div>
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto px-4 py-4"
+        className="flex-1 overflow-y-auto px-4 py-4 pb-24"
         style={{
           backgroundImage: `url(${ChatBgUrl})`,
           backgroundSize: 'contain',
@@ -278,8 +280,8 @@ export default function AIChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-gray-100 bg-white px-4 py-3">
+      {/* Input - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-100 bg-white px-4 py-3 z-20">
         <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
