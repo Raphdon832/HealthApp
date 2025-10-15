@@ -43,26 +43,19 @@ export default function Messages() {
     );
   }, [user?.uid, profile?.role]);
 
-  const openThread = async (t) => {
-    try { 
-      await markThreadRead(t.id, user.uid); 
-    } catch (e) { 
-      console.error(e); 
+  const openThread = (thread) => {
+    const vendorId = resolveVendorId(thread);
+    const state = { thread };
+
+    if (profile?.role === 'customer' && vendorId) {
+      navigate(`/chat/${vendorId}`, { state });
+    } else {
+      navigate(`/thread/${thread.id}`, { state });
     }
 
-    // Navigate to the thread page based on user role
-    if (profile?.role === 'customer') {
-      // For customers, we can either go to the existing thread or start a new chat
-      const vendorId = t.vendorId || (t.id && t.id.includes('__') ? t.id.split('__')[0] : '');
-      if (vendorId) {
-        navigate(`/chat/${vendorId}`);
-      } else {
-        navigate(`/thread/${t.id}`);
-      }
-    } else {
-      // For vendors, always go to the specific thread
-      navigate(`/thread/${t.id}`);
-    }
+    markThreadRead(thread.id, user.uid).catch((error) =>
+      console.error('markThreadRead error:', error)
+    );
   };
 
   if (!user) {

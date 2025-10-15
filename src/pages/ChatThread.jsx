@@ -145,12 +145,16 @@ export default function ChatThread() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
+  const threadFromStateRef = useRef(location.state?.thread || null);
+  const initialThread = threadFromStateRef.current;
 
   // Get vendorId and threadId from URL parameters
   const vendorIdFromUrl = params.vendorId;
   const threadIdFromUrl = params.threadId;
 
-  const [threadId, setThreadId] = useState(threadIdFromUrl || null);
+  const [threadId, setThreadId] = useState(
+    threadIdFromUrl || initialThread?.id || null
+  );
 
   // 🔹 What to show in the sticky header
   const [otherName, setOtherName] = useState("");
@@ -178,7 +182,34 @@ export default function ChatThread() {
   const productImage = queryParams.get("productImage");
   const vendorName = queryParams.get("vendorName");
   const productPrice = queryParams.get("productPrice"); // <-- Add this line
-  const prefillMsg = queryParams.get("prefillMsg");
+  const prefillMsg = queryParams.get("prefillMsg");  useEffect(() => {
+    if (!initialThread) return;
+
+    if (profile?.role === "customer") {
+      setOtherName(initialThread.vendorName || t("pharmacy", "Pharmacy"));
+      setOtherSubline(
+        initialThread.vendorAddress ||
+          initialThread.vendorEmail ||
+          ""
+      );
+      const verified =
+        typeof initialThread.vendorIsVerified === "boolean"
+          ? initialThread.vendorIsVerified
+          : initialThread.vendorVerificationStatus === "approved";
+      setOtherVerified(verified);
+      if (initialThread.vendorPhone) {
+        setPharmacyPhone(initialThread.vendorPhone);
+      }
+    } else {
+      setOtherName(initialThread.customerName || t("customer", "Customer"));
+      setOtherSubline(
+        initialThread.customerAddress ||
+          initialThread.customerEmail ||
+          ""
+      );
+      setOtherVerified(false);
+    }
+  }, [initialThread, profile?.role, t]);
 
   // Resolve thread:
   // - customer + vendorId from URL => create/get thread
@@ -187,13 +218,16 @@ export default function ChatThread() {
     if (!user) return;
 
     (async () => {
-      // If we have a direct threadId from URL, use it
       if (threadIdFromUrl) {
         setThreadId(threadIdFromUrl);
         return;
       }
 
-      // Otherwise, if customer with vendorId, create/get thread
+      if (initialThread?.id) {
+        setThreadId(initialThread.id);
+        return;
+      }
+
       if (profile?.role === "customer" && vendorIdFromUrl) {
         const id = await getOrCreateThread({
           vendorId: vendorIdFromUrl,
@@ -207,7 +241,7 @@ export default function ChatThread() {
         return;
       }
     })().catch(console.error);
-  }, [user?.uid, profile?.role, vendorIdFromUrl, threadIdFromUrl, navigate]);
+  }, [user?.uid, profile?.role, vendorIdFromUrl, threadIdFromUrl, navigate, initialThread]);
 
   // 🔹 Load the thread doc and derive the "other party" name/subline
   useEffect(() => {
@@ -846,4 +880,5 @@ export default function ChatThread() {
     </div>
   );
 }
+
 
