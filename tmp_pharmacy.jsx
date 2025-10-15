@@ -16,8 +16,6 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
 import VerifiedName from '@/components/VerifiedName';
-import ProfilePharmacySkeletonMobile from '@/components/ProfilePharmacySkeletonMobile';
-import ProfilePharmacySkeletonDesktop from '@/components/ProfilePharmacySkeletonDesktop';
 
 // Fixed Header Component
 const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
@@ -57,7 +55,6 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const { user, logout, profile } = useAuth();
   const { t } = useTranslation();
   const [inventory, setInventory] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [showBulk, setShowBulk] = useState(false);
   const [productsSold, setProductsSold] = useState(0);
@@ -625,49 +622,29 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
 
   useEffect(() => {
     const pharmacyId = profile?.uid || user?.uid;
-    if (!pharmacyId) {
-      setLoading(false);
-      return () => {};
-    }
+    if (!pharmacyId) return;
+    // Fetch products sold
+    getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId))).then(snapshot => {
+      let sold = 0;
+      snapshot.forEach(docSnap => {
+        const order = docSnap.data();
+        sold += (order.items || []).reduce((sum, item) => sum + (item.count || item.qty || item.quantity || 1), 0);
+      });
+      setProductsSold(sold);
+    }).catch(() => {});
 
-    let isMounted = true;
+    // Fetch active chats
+    getDocs(query(collection(db, 'threads'), where('vendorId', '==', pharmacyId))).then(snapshot => {
+      setActiveChats(snapshot.size);
+    }).catch(() => {});
 
-    const fetchMetrics = async () => {
-      setLoading(true);
-      try {
-        const [ordersSnap, chatsSnap, reviewsSnap] = await Promise.all([
-          getDocs(query(collection(db, 'orders'), where('pharmacyId', '==', pharmacyId))),
-          getDocs(query(collection(db, 'threads'), where('vendorId', '==', pharmacyId))),
-          getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', pharmacyId))),
-        ]);
+    // Fetch reviews
+    getDocs(query(collection(db, 'reviews'), where('pharmacyId', '==', pharmacyId))).then(snapshot => {
+      setReviews(snapshot.size);
+    }).catch(() => {});
 
-        if (!isMounted) return;
-
-        let sold = 0;
-        ordersSnap.forEach((docSnap) => {
-          const order = docSnap.data();
-          sold += (order.items || []).reduce(
-            (sum, item) => sum + (item.count || item.qty || item.quantity || 1),
-            0
-          );
-        });
-        setProductsSold(sold);
-        setActiveChats(chatsSnap.size);
-        setReviews(reviewsSnap.size);
-      } catch (error) {
-        console.error('Error loading pharmacy metrics:', error);
-        if (isMounted) {
-          setProductsSold(0);
-          setActiveChats(0);
-          setReviews(0);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
+    // Subscribe to both 'pharmacies' and 'users' documents for real-time profile updates
+    // This ensures we pick up live changes whichever doc the app stores profile data in.
     const pharmRef = doc(db, 'pharmacies', pharmacyId);
     const userRef = doc(db, 'users', pharmacyId);
 
@@ -675,77 +652,70 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
     let userData = null;
 
     const refreshProfile = () => {
-      if (!isMounted) return;
-
+      // helper to avoid mistakenly showing emails as phone numbers and to ensure sensible phone values
       const sanitizePhone = (val) => {
         if (!val) return '';
         const s = String(val).trim();
         if (!s) return '';
+        // if it looks like an email, ignore
         if (s.includes('@')) return '';
+        // require at least 6 digits to be considered a phone number
         const digits = s.replace(/\D/g, '');
         if (digits.length < 6) return '';
         return s;
       };
 
-      setPharmacyProfile((prev) => {
-        const displayName =
-          (pharmData && pharmData.displayName) ||
-          (userData && userData.displayName) ||
-          user.displayName ||
-          prev.displayName;
-        const address =
-          (pharmData && pharmData.address) ||
-          (userData && userData.address) ||
-          prev.address ||
-          '';
-        const rawPhone =
-          (pharmData && pharmData.phone) || (userData && userData.phone) || prev.phone || '';
-        const phone = sanitizePhone(rawPhone);
-        const email =
-          (pharmData && pharmData.email) ||
-          (userData && userData.email) ||
-          user.email ||
-          prev.email ||
-          '';
-        const isVerified =
-          (pharmData && pharmData.isVerified) ??
-          (userData && userData.isVerified) ??
-          prev.isVerified ??
-          false;
+      // DEBUG: log incoming Firestore data to help diagnose missing address/phone
+      try {
+        console.debug('[ProfilePharmacy] refreshProfile - pharmData:', pharmData, 'userData:', userData);
+      } catch (e) {}
 
-        return { displayName, address, phone, email, isVerified };
-      });
-    };
+      setPharmacyProfile(prev => {
+        const displayName = (pharmData && pharmData.displayName) || (userData && userData.displayName) || user.displayName || prev.displayName;
+        // Use only the explicit 'address' field from Firestore documents (no fallbacks)
+      const address = (pharmData && pharmData.address) || (userData && userData.address) || prev.address || '';
+      // Use only the explicit 'phone' field from Firestore documents (no fallbacks)
+      const rawPhone = (pharmData && pharmData.phone) || (userData && userData.phone) || prev.phone || '';
+      const phone = sanitizePhone(rawPhone);
+      const email = (pharmData && pharmData.email) || (userData && userData.email) || user.email || prev.email || '';
+      const isVerified =
+        (pharmData && pharmData.isVerified) ??
+        (userData && userData.isVerified) ??
+        prev.isVerified ??
+        false;
 
-    const unsubscribePharm = onSnapshot(
-      pharmRef,
-      (snap) => {
-        pharmData = snap && snap.exists ? snap.data() : null;
-        refreshProfile();
-      },
-      () => {}
-    );
+      // DEBUG: log computed values
+      try {
+        console.debug('[ProfilePharmacy] computed profile ->', {
+          displayName,
+          address,
+          rawPhone,
+          phone,
+          email,
+          isVerified,
+        });
+      } catch (e) {}
 
-    const unsubscribeUser = onSnapshot(
-      userRef,
-      (snap) => {
-        userData = snap && snap.exists ? snap.data() : null;
-        refreshProfile();
-      },
-      () => {}
-    );
+      return { displayName, address, phone, email, isVerified };
+    });
+  };
 
-    fetchMetrics();
+    const unsubPharm = onSnapshot(pharmRef, snap => {
+      pharmData = snap && snap.exists ? snap.data() : null;
+      refreshProfile();
+    }, () => {});
+
+    const unsubUser = onSnapshot(userRef, snap => {
+      userData = snap && snap.exists ? snap.data() : null;
+      refreshProfile();
+    }, () => {});
+
+    // initial populate
     refreshProfile();
 
     return () => {
-      isMounted = false;
-      try {
-        unsubscribePharm && unsubscribePharm();
-      } catch (e) {}
-      try {
-        unsubscribeUser && unsubscribeUser();
-      } catch (e) {}
+      try { unsubPharm && unsubPharm(); } catch (e) {}
+      try { unsubUser && unsubUser(); } catch (e) {}
     };
   }, [profile, user]);
 
@@ -936,30 +906,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
         : 'Submission received';
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
-        <button
-          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
-          onClick={() => navigate('/auth/landing')}
-        >
-          Sign In / Sign Up
-        </button>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="px-4 md:px-6 lg:px-10 xl:px-14 py-8">
-        <div className="lg:hidden">
-          <ProfilePharmacySkeletonMobile />
-        </div>
-        <div className="hidden lg:block">
-          <ProfilePharmacySkeletonDesktop />
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton lines={4} className="my-8" />;
   }
 
   // Superuser Dashboard Entry (for demonstration)
@@ -1673,3 +1620,4 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
     </>
   );
 }
+

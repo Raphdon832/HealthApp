@@ -6,7 +6,8 @@ import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/ProductCard';
 import { useNavigate } from 'react-router-dom';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import HomeSkeletonMobile from '@/components/HomeSkeletonMobile';
+import HomeSkeletonDesktop from '@/components/HomeSkeletonDesktop';
 import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -471,7 +472,16 @@ export default function Home() {
   };
 
   if (!products.length) {
-    return <LoadingSkeleton lines={6} className="my-8" />;
+    return (
+      <div className="px-4 md:px-6 lg:px-8 py-8">
+        <div className="md:hidden">
+          <HomeSkeletonMobile />
+        </div>
+        <div className="hidden md:block">
+          <HomeSkeletonDesktop />
+        </div>
+      </div>
+    );
   }
 
   return (

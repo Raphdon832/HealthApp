@@ -67,94 +67,76 @@ export default function ProfileCustomer() {
   const [ordersCache, setOrdersCache] = useState(null);
   const [prescriptionsCache, setPrescriptionsCache] = useState(null);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
+    // Fetch cart items (actual count from user's cart subcollection)
+    getDocs(collection(db, 'users', user.uid, 'cart')).then(snapshot => {
+      setCartCount(snapshot.size);
+    });
+    // Fetch active chats (threads where customerId == user.uid)
+    getDocs(query(collection(db, 'threads'), where('customerId', '==', user.uid))).then(snapshot => {
+      setActiveChats(snapshot.size);
+    });
 
-    let isMounted = true;
+    // Listen to user's wishlist
+    const unsubscribeWishlist = listenUserWishlist(user.uid, (wishlistItems) => {
+      setWishlist(wishlistItems);
+    });
 
-    const fetchInitial = async () => {
-      setLoading(true);
-      try {
-        const [cartSnap, chatsSnap, ordersSnap] = await Promise.all([
-          getDocs(collection(db, 'users', user.uid, 'cart')),
-          getDocs(query(collection(db, 'threads'), where('customerId', '==', user.uid))),
-          getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))),
-        ]);
+    // Listen to user's bookmarked vendors
+    const unsubscribeBookmarks = listenUserBookmarkedVendors(user.uid, (bookmarks) => {
+      setBookmarkedVendors(bookmarks);
+    });
 
-        if (!isMounted) return;
-
-        setCartCount(cartSnap.size);
-        setActiveChats(chatsSnap.size);
-
-        const drugs = {};
-        for (const docSnap of ordersSnap.docs) {
-          const order = docSnap.data();
-          const orderDate = order.createdAt?.toDate?.() || null;
-
-          for (const item of order.items || []) {
-            const key = item.productId;
-            if (!key) continue;
-
-            if (!drugs[key]) {
-              let name = item.name;
-              if (!name) {
-                try {
-                  const prodSnap = await getDoc(doc(db, 'products', key));
-                  name = prodSnap.exists() ? prodSnap.data().name : key;
-                } catch (error) {
-                  console.error('Error fetching product:', error);
-                  name = key;
-                }
+    // Fetch drugs bought (harmonized by productId, using product name from products collection)
+    getDocs(query(collection(db, 'orders'), where('customerId', '==', user.uid))).then(async snapshot => {
+      console.log('Orders fetched:', snapshot.docs.length);
+      const drugs = {};
+      for (const docSnap of snapshot.docs) {
+        const order = docSnap.data();
+        console.log('Processing order:', docSnap.id, order);
+        for (const item of (order.items || [])) {
+          console.log('Processing item:', item);
+          const key = item.productId;
+          if (!drugs[key]) {
+            // Try to get product name from products collection
+            let name = item.name;
+            if (!name && key) {
+              try {
+                const prodSnap = await getDoc(doc(db, 'products', key));
+                name = prodSnap.exists() ? prodSnap.data().name : key;
+                console.log('Product name fetched:', name);
+              } catch (error) {
+                console.error('Error fetching product:', error);
+                name = key;
               }
-              drugs[key] = { id: key, name, count: 0, date: orderDate };
             }
-
-            drugs[key].count += Number(item.qty || item.quantity || 1);
-            if (orderDate && (!drugs[key].date || orderDate > drugs[key].date)) {
-              drugs[key].date = orderDate;
-            }
+            drugs[key] = { id: key, name, count: 0, date: order.createdAt?.toDate?.() || null };
+          }
+          drugs[key].count += Number(item.qty || item.quantity || 1);
+          // Use latest date
+          const orderDate = order.createdAt?.toDate?.() || null;
+          if (orderDate && (!drugs[key].date || orderDate > drugs[key].date)) {
+            drugs[key].date = orderDate;
           }
         }
-
-        const sortedDrugs = Object.values(drugs).sort(
-          (a, b) => (b.date?.getTime?.() || 0) - (a.date?.getTime?.() || 0)
-        );
-
-        if (isMounted) {
-          setDrugsBought(sortedDrugs);
-        }
-      } catch (error) {
-        console.error('Error loading customer profile data:', error);
-        if (isMounted) {
-          setDrugsBought([]);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
       }
-    };
-
-    const unsubscribeWishlist = listenUserWishlist(user.uid, (wishlistItems) => {
-      if (isMounted) setWishlist(wishlistItems);
+      // Sort by date desc
+      const drugsArr = Object.values(drugs).sort((a, b) => (b.date || 0) - (a.date || 0));
+      console.log('Drugs bought:', drugsArr);
+      setDrugsBought(drugsArr);
+    }).catch(error => {
+      console.error('Error fetching drugs bought:', error);
+      setDrugsBought([]);
     });
-
-    const unsubscribeBookmarks = listenUserBookmarkedVendors(user.uid, (bookmarks) => {
-      if (isMounted) setBookmarkedVendors(bookmarks);
-    });
-
+  // Subscribe to real-time user profile document
     const userDocRef = doc(db, 'users', user.uid);
-    const unsubscribeProfile = onSnapshot(
-      userDocRef,
-      (snap) => {
-        if (!isMounted || !snap?.exists()) return;
+    const unsub = onSnapshot(userDocRef, snap => {
+      if (snap && snap.exists()) {
         const d = snap.data();
-        setCustomerProfile((prev) => {
+        setCustomerProfile(prev => {
+          // Prefer explicit phoneNumber/phone fields, but guard against data mistakes (e.g. an email accidentally stored in phone)
           let phoneVal = d.phoneNumber ?? d.phone ?? prev.phone ?? '';
           if (typeof phoneVal === 'string' && phoneVal.includes('@')) {
             phoneVal = prev.phone ?? '';
@@ -163,20 +145,17 @@ export default function ProfileCustomer() {
             displayName: d.displayName || user.displayName || prev.displayName,
             address: d.address || prev.address || '',
             phone: phoneVal,
-            email: d.email || user.email || prev.email || '',
+            email: d.email || user.email || prev.email || ''
           };
         });
-      },
-      () => {}
-    );
+      }
+    }, () => {});
 
-    fetchInitial();
-
+    // Consolidated cleanup for all listeners
     return () => {
-      isMounted = false;
-      unsubscribeWishlist?.();
-      unsubscribeBookmarks?.();
-      unsubscribeProfile?.();
+      if (unsubscribeWishlist) unsubscribeWishlist();
+      if (unsubscribeBookmarks) unsubscribeBookmarks();
+      if (unsub) unsub();
     };
   }, [user]);
 
@@ -280,19 +259,6 @@ export default function ProfileCustomer() {
         >
           Sign In / Sign Up
         </button>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="px-4 md:px-6 lg:px-12 py-8">
-        <div className="md:hidden">
-          <ProfileCustomerSkeletonMobile />
-        </div>
-        <div className="hidden md:block">
-          <ProfileCustomerSkeletonDesktop />
-        </div>
       </div>
     );
   }
@@ -725,3 +691,4 @@ export default function ProfileCustomer() {
     </>
   );
 }
+

@@ -202,10 +202,10 @@ export default function FloatingAIChatButton() {
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      className={`fixed z-50 w-14 h-14 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
+      className={`fixed z-50 w-16 h-16 rounded-[22px] backdrop-blur-xl shadow-[0_20px_45px_-20px_rgba(14,116,144,0.6)] hover:shadow-[0_25px_55px_-18px_rgba(14,116,144,0.7)] transition-all duration-300 flex items-center justify-center overflow-hidden group cursor-pointer ${
         isMobile
           ? isDragging
-            ? 'cursor-grabbing scale-110'
+            ? 'cursor-grabbing scale-105'
             : 'cursor-grab'
           : ''
       }`}
@@ -222,22 +222,23 @@ export default function FloatingAIChatButton() {
         }`}
       >
         <span
-          className={`absolute inset-0 rounded-full bg-sky-300/35 blur-xl pointer-events-none transition-opacity duration-500 ${
-            isDragging ? 'opacity-0' : 'opacity-70 group-hover:opacity-90 ai-chat-soft-glow'
+          className={`absolute inset-0 bg-gradient-to-br from-white/35 via-white/10 to-white/5 blur-xl pointer-events-none transition-opacity duration-500 ${
+            isDragging ? 'opacity-0' : 'opacity-80 group-hover:opacity-95 ai-chat-soft-glow'
           }`}
         />
         {!isDragging && (
           <>
-            <span className="ai-chat-pulse-ring absolute inset-0 rounded-full border border-sky-300/45 pointer-events-none" />
+            <span className="ai-chat-pulse-ring absolute inset-1 rounded-[10px] border border-white/35 pointer-events-none" />
             <span
-              className="ai-chat-pulse-ring absolute inset-0 rounded-full border border-sky-300/25 pointer-events-none"
+              className="ai-chat-pulse-ring absolute inset-1 rounded-[20px] border border-sky-200/35 pointer-events-none"
               style={{ animationDelay: '1.6s' }}
             />
           </>
         )}
-        <PharmAIIcon className="w-10 h-10 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+        <span className="absolute inset-0 bg-gradient-to-br from-sky-400/35 to-sky-600/25 opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+        <PharmAIIcon className="w-9 h-9 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
       </div>
-      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap border border-white/20 shadow-lg">
         {t('ai_chat', 'AI Chat')}
       </div>
     </button>

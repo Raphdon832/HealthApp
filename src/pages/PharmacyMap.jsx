@@ -5,7 +5,7 @@ import { ArrowLeft, MapPin, Clock, Phone, Navigation, Search } from 'lucide-reac
 import { getAllPharmacies } from '@/lib/db';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA, getDistance } from '@/lib/eta';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import PharmacyMapSkeleton from '@/components/PharmacyMapSkeleton';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import FilterIcon from '@/icons/react/FilterIcon';
@@ -259,7 +259,7 @@ export default function PharmacyMap() {
             </button>
             <h1 className="text-[25px] font-light text-gray-900 dark:text-white">{t('nearby_pharmacies', 'Nearby Pharmacies')}</h1>
           </div>
-          <LoadingSkeleton lines={8} className="space-y-4 justify-center" />
+          <PharmacyMapSkeleton />
         </div>
       </div>
     );
