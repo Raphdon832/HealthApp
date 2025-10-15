@@ -330,7 +330,7 @@ export default function ProductDetail({ product, pharmacy }) {
       {createPortal(<FixedHeader />, document.body)}
       <div className="min-h-screen bg-white dark:bg-gray-900 pt-24 md:pt-0">
         {/* Page container */}
-        <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0">
+        <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 md:px-8 lg:px-12 xl:px-0">
           {/* Sticky back button + share icon */}
           <div className="pt-6 sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md pb-2 animate-slide-down-fade items-center justify-between hidden md:flex">
           <button
@@ -366,21 +366,21 @@ export default function ProductDetail({ product, pharmacy }) {
 
         {/* Grey details sheet (border/rounded only on md+; mobile is full-bleed) */}
         <div className="mt-1 md:border md:rounded-t-3xl md:max-w-4xl md:border-zinc-100 dark:md:border-gray-700 animate-fade-in-up">
-          <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-2 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
+          <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-0 md:px-8 lg:px-12 xl:px-0 pt-6 pb-36">
 
             {/* CENTRAL CONTENT: two-column on desktop, stacked on mobile */}
             <div className="mx-auto w-full">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
                 {/* LEFT: Product image (widget-style) */}
-                <div className="rounded-2xl p-4 border flex flex-col items-center justify-center w-full card-interactive hover:shadow-lg transition-all duration-300 animate-fade-in-left">
+                <div className="md:rounded-2xl md:p-4 md:border flex flex-col items-center justify-center w-full card-interactive hover:shadow-lg transition-all duration-300 animate-fade-in-left">
                   {/* show image when available and not errored; otherwise show initials avatar */}
                   {product?.image && !imageError ? (
                     <img
                       src={product.image}
                       alt={product.name}
                       onError={() => setImageError(true)}
-                      className="max-h-[160px] lg:max-h-[360px] w-full object-contain hover:scale-105 transition-transform duration-300"
+                      className="w-full h-[48vw] md:h-auto md:max-h-[160px] lg:max-h-[360px] object-cover md:object-contain hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="h-[100px] lg:h-[200px] w-full flex items-center justify-center bg-zinc-100 dark:bg-gray-700 rounded-md text-3xl font-semibold text-zinc-800 dark:text-zinc-200 animate-bounce-gentle">
