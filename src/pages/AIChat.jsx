@@ -21,7 +21,7 @@ const PharmAIIcon = ({ className = "w-5 h-5" }) => (
 );
 
 // Function to parse and render markdown links
-const renderMessageWithLinks = (content) => {
+const renderMessageWithLinks = (content, navigate) => {
   // Regex to match markdown links: [text](url)
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts = [];
@@ -38,15 +38,13 @@ const renderMessageWithLinks = (content) => {
     const linkText = match[1];
     const linkUrl = match[2];
     parts.push(
-      <a
+      <span
         key={match.index}
-        href={linkUrl}
-        className="text-sky-600 hover:text-sky-800 underline font-normal"
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={() => navigate(linkUrl)}
+        className="text-sky-600 hover:text-sky-800 underline font-normal cursor-pointer"
       >
         {linkText}
-      </a>
+      </span>
     );
 
     lastIndex = match.index + match[0].length;
@@ -317,7 +315,7 @@ export default function AIChat() {
                       <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1 whitespace-pre-wrap text-sm break-words overflow-hidden">
-                      {renderMessageWithLinks(message.content)}
+                      {renderMessageWithLinks(message.content, navigate)}
                     </div>
                   </div>
                   <div className={`text-xs mt-1 ${
