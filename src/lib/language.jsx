@@ -28,7 +28,7 @@ const translations = {
     'online': 'Online',
     'clear_chat': 'Clear Chat',
     'ai_error_message': 'Sorry, I\'m having trouble connecting. Please try again later.',
-    'ai_disclaimer': '⚠️ This AI provides general information only. Not medical advice. Consult professionals for health concerns.',
+    'ai_disclaimer': '⚠️ PharmAI provides general information only. Not medical advice. Consult professionals for health concerns.',
     'message': 'Message',
     'sent': 'Sent',
     'delivered': 'Delivered',

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import { getAIResponse, addMedicalDisclaimer, needsMedicalProfessional, getPharmaciesContext, getProductsContext } from '@/lib/ai';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
@@ -543,26 +543,10 @@ export default function AIChat() {
     if (!user?.uid) return;
 
     try {
-      setIsTyping(false);
-      setIsLoading(false);
+      // Clear the current conversation messages
       setMessages([]);
       setInputMessage('');
-
-      const userMessagesQuery = query(
-        collection(db, 'ai_conversations'),
-        where('userId', '==', user.uid)
-      );
-
-      const snapshot = await getDocs(userMessagesQuery);
-
-      if (!snapshot.empty) {
-        const batch = writeBatch(db);
-        snapshot.forEach((docSnap) => {
-          batch.delete(docSnap.ref);
-        });
-        await batch.commit();
-      }
-
+      // Focus the input for the new chat
       inputRef.current?.focus();
     } catch (error) {
       console.error('Error starting new chat:', error);
@@ -701,7 +685,7 @@ export default function AIChat() {
 
       {/* Input - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-gray-100 bg-white px-4 py-3 z-20">
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
@@ -726,7 +710,7 @@ export default function AIChat() {
 
         {/* Disclaimer */}
         <div className="text-xs text-gray-500 mt-2 text-center">
-          {t('ai_disclaimer', '⚠️ This AI provides general information only. Not medical advice. Consult professionals for health concerns.')}
+          {t('ai_disclaimer', '⚠️ PharmAI provides general information only. Not medical advice. Consult professionals for health concerns.')}
         </div>
       </div>
     </div>

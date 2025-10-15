@@ -19,11 +19,44 @@ export default function FloatingAIChatButton() {
   
   // Default position - higher up to avoid bottom navbar
   const defaultPosition = { x: window.innerWidth - 80, y: window.innerHeight - 160 };
-  
+
   const [position, setPosition] = useState(defaultPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const dragOccurredRef = useRef(false);
+
+  useEffect(() => {
+    const styleId = 'ai-chat-floating-animations';
+    if (document.getElementById(styleId)) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.id = styleId;
+    styleEl.textContent = `
+      @keyframes aiChatFloat {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(0, -6px, 0); }
+      }
+      @keyframes aiChatPulseRing {
+        0% { transform: scale(0.85); opacity: 0.28; }
+        60% { transform: scale(1.25); opacity: 0; }
+        100% { transform: scale(1.45); opacity: 0; }
+      }
+      @keyframes aiChatGlow {
+        0%, 100% { opacity: 0.2; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(1.08); }
+      }
+      .ai-chat-float {
+        animation: aiChatFloat 6s ease-in-out infinite;
+      }
+      .ai-chat-soft-glow {
+        animation: aiChatGlow 5.8s ease-in-out infinite;
+      }
+      .ai-chat-pulse-ring {
+        animation: aiChatPulseRing 3.8s ease-out infinite;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }, []);
 
   // Load position from localStorage on mount
   useEffect(() => {
@@ -115,7 +148,27 @@ export default function FloatingAIChatButton() {
       }}
       aria-label={t('ai_chat', 'AI Chat')}
     >
-      <PharmAIIcon className="w-10 h-10 group-hover:scale-110 transition-transform duration-200" />
+      <div
+        className={`relative flex items-center justify-center w-full h-full ${
+          isDragging ? '' : 'ai-chat-float'
+        }`}
+      >
+        <span
+          className={`absolute inset-0 rounded-full bg-sky-300/35 blur-xl pointer-events-none transition-opacity duration-500 ${
+            isDragging ? 'opacity-0' : 'opacity-70 group-hover:opacity-90 ai-chat-soft-glow'
+          }`}
+        />
+        {!isDragging && (
+          <>
+            <span className="ai-chat-pulse-ring absolute inset-0 rounded-full border border-sky-300/45 pointer-events-none" />
+            <span
+              className="ai-chat-pulse-ring absolute inset-0 rounded-full border border-sky-300/25 pointer-events-none"
+              style={{ animationDelay: '1.6s' }}
+            />
+          </>
+        )}
+        <PharmAIIcon className="w-10 h-10 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+      </div>
       <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         {t('ai_chat', 'AI Chat')}
       </div>
