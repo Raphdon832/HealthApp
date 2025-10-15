@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { ArrowLeft, Send, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Send, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
@@ -341,7 +341,11 @@ export default function AIChat() {
               <PharmAIIcon className="w-5 h-5 text-sky-600" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">PharmAI</div>
+              <div className="flex items-center gap-1">
+                <span className="font-semibold text-gray-900">PharmAI</span>
+                <CheckCircle2 className="w-4 h-4 text-sky-500" aria-hidden="true" />
+                <span className="sr-only">{t('verified_account', 'Verified account')}</span>
+              </div>
               <div className="text-xs text-gray-500">
                 {isTyping ? t('typing', 'Typing...') : t('online', 'Online')}
               </div>
