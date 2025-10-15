@@ -114,7 +114,7 @@ async function fetchProductsMap(productIds = []) {
     new Set(
       (productIds || [])
         .filter(Boolean)
-        .map((id) => id.trim?.() || id)
+        .map((id) => (typeof id === 'string' ? id.trim() : id))
     )
   );
   if (uniqueIds.length === 0) return {};
@@ -131,6 +131,37 @@ async function fetchProductsMap(productIds = []) {
   });
   return map;
 }
+
+const toDateObject = (value) => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value.toDate === 'function') {
+    const date = value.toDate();
+    return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null;
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (typeof value.toISOString === 'function') {
+    const iso = value.toISOString();
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+};
+
+const toISODateString = (value) => {
+  const date = toDateObject(value);
+  return date ? date.toISOString() : null;
+};
 
 export async function getUserCartContext(userId, { limitItems = 25 } = {}) {
   if (!userId) return [];
@@ -206,10 +237,7 @@ export async function getUserOrdersContext(userId, { limitCount = 10 } = {}) {
     const productMap = await fetchProductsMap(Array.from(productIds));
 
     return orders.map((order) => {
-      const createdAt =
-        order.createdAt?.toDate?.()?.toISOString?.() ||
-        order.createdAt?.toISOString?.?.() ||
-        null;
+      const createdAt = toISODateString(order.createdAt);
 
       const items = (order.items || []).map((item) => {
         const product = productMap[item.productId] || {};
@@ -257,19 +285,13 @@ export async function getUserPrescriptionsContext(userId, { limitCount = 15 } = 
 
     prescriptions.sort((a, b) => {
       const aDate =
-        a.startDate instanceof Date
-          ? a.startDate
-          : a.startDate?.toDate?.?.() ||
-            (a.startDate ? new Date(a.startDate) : null) ||
-            a.createdAt?.toDate?.?.() ||
-            new Date(0);
+        toDateObject(a.startDate) ||
+        toDateObject(a.createdAt) ||
+        new Date(0);
       const bDate =
-        b.startDate instanceof Date
-          ? b.startDate
-          : b.startDate?.toDate?.?.() ||
-            (b.startDate ? new Date(b.startDate) : null) ||
-            b.createdAt?.toDate?.?.() ||
-            new Date(0);
+        toDateObject(b.startDate) ||
+        toDateObject(b.createdAt) ||
+        new Date(0);
       return (bDate?.getTime?.() || 0) - (aDate?.getTime?.() || 0);
     });
 
@@ -278,13 +300,7 @@ export async function getUserPrescriptionsContext(userId, { limitCount = 15 } = 
       : prescriptions;
 
     return limited.map((prescription) => {
-      const startDate =
-        prescription.startDate instanceof Date
-          ? prescription.startDate.toISOString()
-          : prescription.startDate?.toDate?.?.()?.toISOString?.() ||
-            (typeof prescription.startDate === 'string'
-              ? prescription.startDate
-              : null);
+      const startDate = toISODateString(prescription.startDate) || toISODateString(prescription.createdAt);
 
       return {
         id: prescription.id,
