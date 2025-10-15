@@ -4,6 +4,8 @@ import { Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import VerifiedName from '@/components/VerifiedName';
@@ -25,6 +27,7 @@ export default function Messages() {
   const { t } = useTranslation();
   const [threads, setThreads] = useState([]);
   const [search, setSearch] = useState('');
+  const [vendorMeta, setVendorMeta] = useState({});
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,10 +82,19 @@ export default function Messages() {
   const me = user?.uid;
   const myUnread = (t) => t?.unread?.[me] || 0;
   const displayName = (t) => (profile?.role === 'customer' ? t.vendorName : t.customerName) || '';
-  const isPartnerVerified = (t) =>
-    profile?.role === 'customer'
-      ? !!t.vendorIsVerified || t.vendorVerificationStatus === 'approved'
-      : false;
+  const resolveVendorId = (thread) =>
+    thread.vendorId ||
+    (thread.id && thread.id.includes('__') ? thread.id.split('__')[0] : null);
+
+  const isPartnerVerified = (thread) => {
+    if (profile?.role !== 'customer') return false;
+    if (typeof thread.vendorIsVerified === 'boolean') return thread.vendorIsVerified;
+    if (typeof thread.vendorVerificationStatus === 'string') {
+      return thread.vendorVerificationStatus === 'approved';
+    }
+    const vendorId = resolveVendorId(thread);
+    return vendorId ? !!vendorMeta[vendorId] : false;
+  };
   const lastTime = (t) => (t.lastAt?.seconds ? new Date(t.lastAt.seconds * 1000) : null);
 
   const filtered = threads.filter(t => {
@@ -90,6 +102,68 @@ export default function Messages() {
     const q = search.toLowerCase();
     return !q || name.includes(q) || (t.lastMessage || '').toLowerCase().includes(q);
   });
+
+  useEffect(() => {
+    if (profile?.role !== 'customer' || !threads.length) return;
+
+    const baseUpdates = {};
+    const vendorIds = new Set();
+
+    threads.forEach((thread) => {
+      const vendorId = resolveVendorId(thread);
+      if (!vendorId) return;
+      vendorIds.add(vendorId);
+      if (typeof thread.vendorIsVerified === 'boolean') {
+        baseUpdates[vendorId] = thread.vendorIsVerified;
+      } else if (typeof thread.vendorVerificationStatus === 'string') {
+        baseUpdates[vendorId] = thread.vendorVerificationStatus === 'approved';
+      }
+    });
+
+    const hasImmediateUpdates = Object.entries(baseUpdates).some(
+      ([id, value]) => vendorMeta[id] !== value
+    );
+
+    if (hasImmediateUpdates) {
+      setVendorMeta((prev) => ({ ...prev, ...baseUpdates }));
+    }
+
+    const missing = Array.from(vendorIds).filter(
+      (id) =>
+        baseUpdates[id] === undefined && vendorMeta[id] === undefined
+    );
+    if (!missing.length) return;
+
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        missing.map(async (id) => {
+          try {
+            const snap = await getDoc(doc(db, 'pharmacies', id));
+            return [id, snap.exists() ? !!snap.data()?.isVerified : false];
+          } catch (error) {
+            console.error('[Messages] Failed to fetch pharmacy verification status', error);
+            return [id, false];
+          }
+        })
+      );
+      if (!cancelled) {
+        setVendorMeta((prev) => {
+          const next = { ...prev };
+          results.forEach(([id, verified]) => {
+            if (next[id] === undefined) {
+              next[id] = verified;
+            }
+          });
+          return next;
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [threads, profile?.role, vendorMeta]);
 
   return (
     <>
@@ -145,3 +219,4 @@ export default function Messages() {
     </>
   );
 }
+
