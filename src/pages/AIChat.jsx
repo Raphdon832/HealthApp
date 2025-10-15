@@ -3,7 +3,16 @@ import { ArrowLeft, CheckCircle2, Send, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
-import { getAIResponse, addMedicalDisclaimer, needsMedicalProfessional, getPharmaciesContext, getProductsContext } from '@/lib/ai';
+import {
+  getAIResponse,
+  addMedicalDisclaimer,
+  needsMedicalProfessional,
+  getPharmaciesContext,
+  getProductsContext,
+  getUserCartContext,
+  getUserOrdersContext,
+  getUserPrescriptionsContext
+} from '@/lib/ai';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -230,6 +239,9 @@ export default function AIChat() {
   const [isTyping, setIsTyping] = useState(false);
   const [pharmacies, setPharmacies] = useState([]);
   const [products, setProducts] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const productMatchers = useMemo(
@@ -413,6 +425,41 @@ export default function AIChat() {
     loadAppData();
   }, []);
 
+  useEffect(() => {
+    if (!user?.uid) {
+      setCartItems([]);
+      setOrders([]);
+      setPrescriptions([]);
+      return;
+    }
+
+    let isCurrent = true;
+
+    const loadUserContextData = async () => {
+      try {
+        const [cartData, orderData, prescriptionData] = await Promise.all([
+          getUserCartContext(user.uid, { limitItems: 25 }),
+          getUserOrdersContext(user.uid, { limitCount: 10 }),
+          getUserPrescriptionsContext(user.uid, { limitCount: 15 })
+        ]);
+
+        if (!isCurrent) return;
+
+        setCartItems(cartData);
+        setOrders(orderData);
+        setPrescriptions(prescriptionData);
+      } catch (error) {
+        console.error('Error loading user data for AI context:', error);
+      }
+    };
+
+    loadUserContextData();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [user?.uid]);
+
   const saveMessage = async (message) => {
     try {
       await addDoc(collection(db, 'ai_conversations'), {
@@ -449,16 +496,24 @@ export default function AIChat() {
       const context = {
         userInfo: {
           role: profile?.role,
-          language: t('current_language', 'en')
+          language: t('current_language', 'en'),
+          platformName: 'Pharmasea'
         },
         productInfo: products.slice(0, 20), // Limit to 20 most recent products
         pharmacyInfo: pharmacyContextData,
-        nearestPharmacies: nearestPharmaciesData
+        nearestPharmacies: nearestPharmaciesData,
+        cartInfo: cartItems,
+        orderInfo: orders,
+        prescriptionInfo: prescriptions
       };
 
       if (profile?.displayName || user?.displayName) {
         context.userInfo.displayName = profile?.displayName || user?.displayName;
       }
+
+      context.userInfo.cartItemCount = cartItems.length;
+      context.userInfo.orderCount = orders.length;
+      context.userInfo.prescriptionCount = prescriptions.length;
 
       if (userLocationContext) {
         context.userInfo.location = userLocationContext;

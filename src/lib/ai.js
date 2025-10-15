@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 // AI Provider configuration
@@ -105,6 +105,206 @@ export async function getProductsContext(limitCount = 50) {
     return products;
   } catch (error) {
     console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+async function fetchProductsMap(productIds = []) {
+  const uniqueIds = Array.from(
+    new Set(
+      (productIds || [])
+        .filter(Boolean)
+        .map((id) => id.trim?.() || id)
+    )
+  );
+  if (uniqueIds.length === 0) return {};
+
+  const snapshots = await Promise.all(
+    uniqueIds.map((id) => getDoc(doc(db, 'products', id)))
+  );
+
+  const map = {};
+  snapshots.forEach((snap, index) => {
+    if (snap.exists()) {
+      map[uniqueIds[index]] = { id: snap.id, ...snap.data() };
+    }
+  });
+  return map;
+}
+
+export async function getUserCartContext(userId, { limitItems = 25 } = {}) {
+  if (!userId) return [];
+
+  try {
+    const cartSnapshot = await getDocs(collection(db, 'users', userId, 'cart'));
+    let items = cartSnapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+
+    if (items.length === 0) return [];
+
+    if (typeof limitItems === 'number' && limitItems > 0) {
+      items = items.slice(0, limitItems);
+    }
+
+    const productIds = items
+      .map((item) => item.productId)
+      .filter(Boolean);
+
+    const productMap = await fetchProductsMap(productIds);
+
+    return items.map((item) => {
+      const product = productMap[item.productId] || {};
+      return {
+        id: item.id,
+        productId: item.productId || null,
+        quantity: item.qty || item.quantity || 1,
+        productName: product.name,
+        price: product.price,
+        currency: product.currency || 'NGN',
+        pharmacyName: product.pharmacyName,
+        stock: product.stock,
+        productUrl: product.id ? `/product/${product.id}` : null,
+        cartUrl: '/cart',
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching user cart for AI context:', error);
+    return [];
+  }
+}
+
+export async function getUserOrdersContext(userId, { limitCount = 10 } = {}) {
+  if (!userId) return [];
+
+  try {
+    const q = query(
+      collection(db, 'orders'),
+      where('customerId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return [];
+
+    const orders = [];
+    const productIds = new Set();
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      orders.push({
+        id: docSnap.id,
+        ...data,
+      });
+      (data.items || []).forEach((item) => {
+        if (item?.productId) productIds.add(item.productId);
+      });
+    });
+
+    const productMap = await fetchProductsMap(Array.from(productIds));
+
+    return orders.map((order) => {
+      const createdAt =
+        order.createdAt?.toDate?.()?.toISOString?.() ||
+        order.createdAt?.toISOString?.?.() ||
+        null;
+
+      const items = (order.items || []).map((item) => {
+        const product = productMap[item.productId] || {};
+        return {
+          productId: item.productId || null,
+          productName: product.name,
+          quantity: item.quantity || item.qty || 1,
+          price: item.price ?? product.price,
+          productUrl: product.id ? `/product/${product.id}` : null,
+        };
+      });
+
+      return {
+        id: order.id,
+        status: order.status || 'pending',
+        total: order.total,
+        createdAt,
+        pharmacyId: order.pharmacyId || null,
+        orderUrl: `/orders?highlight=${order.id}`,
+        items,
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching user orders for AI context:', error);
+    return [];
+  }
+}
+
+export async function getUserPrescriptionsContext(userId, { limitCount = 15 } = {}) {
+  if (!userId) return [];
+
+  try {
+    const q = query(
+      collection(db, 'prescriptions'),
+      where('customerId', '==', userId)
+    );
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) return [];
+
+    const prescriptions = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+
+    prescriptions.sort((a, b) => {
+      const aDate =
+        a.startDate instanceof Date
+          ? a.startDate
+          : a.startDate?.toDate?.?.() ||
+            (a.startDate ? new Date(a.startDate) : null) ||
+            a.createdAt?.toDate?.?.() ||
+            new Date(0);
+      const bDate =
+        b.startDate instanceof Date
+          ? b.startDate
+          : b.startDate?.toDate?.?.() ||
+            (b.startDate ? new Date(b.startDate) : null) ||
+            b.createdAt?.toDate?.?.() ||
+            new Date(0);
+      return (bDate?.getTime?.() || 0) - (aDate?.getTime?.() || 0);
+    });
+
+    const limited = typeof limitCount === 'number' && limitCount > 0
+      ? prescriptions.slice(0, limitCount)
+      : prescriptions;
+
+    return limited.map((prescription) => {
+      const startDate =
+        prescription.startDate instanceof Date
+          ? prescription.startDate.toISOString()
+          : prescription.startDate?.toDate?.?.()?.toISOString?.() ||
+            (typeof prescription.startDate === 'string'
+              ? prescription.startDate
+              : null);
+
+      return {
+        id: prescription.id,
+        pharmacyId: prescription.pharmacyId || null,
+        status: prescription.status || 'active',
+        startDate,
+        duration: prescription.duration,
+        notes: prescription.notes,
+        drugs: (prescription.drugs || []).map((drug) => ({
+          name: drug.name,
+          dosage: drug.dosage,
+          frequency: drug.frequency,
+          instructions: drug.instructions,
+        })),
+        prescriptionUrl: '/profile',
+        relatedChatThreadId: prescription.chatThreadId || null,
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching user prescriptions for AI context:', error);
     return [];
   }
 }
@@ -260,6 +460,7 @@ const SYSTEM_PROMPT = `You are PharmAI, a helpful AI assistant for a pharmacy ap
 IMPORTANT CAPABILITIES:
 - You have access to our pharmacy network and can search for pharmacies by location, name, or services
 - You have access to our product catalog and can search for medications, supplements, and health products
+- You can review the user's current cart items, recent orders, and prescriptions (when provided) to give contextual assistance—never invent entries that are not in the supplied data
 - When users ask about specific drugs or pharmacies, search our database and provide accurate information
 - When listing products, ALWAYS include the product URL so users can click directly to view details
 - When listing pharmacies, ALWAYS include the pharmacy URL so users can click directly to view details
@@ -267,6 +468,7 @@ IMPORTANT CAPABILITIES:
 - When searching for pharmacies, if no exact matches are found, suggest similar pharmacies that might be what the user is looking for
 - Always mention that you can help search for pharmacies or products when relevant
 - Only recommend pharmacies that exist in the provided pharmacy lists; never invent locations or references outside the supplied data
+- Use any provided navigation URLs (e.g., cartUrl, orderUrl, productUrl, prescriptionUrl) so users can quickly open the relevant screen inside Pharmasea
 - Always refer to our platform as "Pharmasea" (never shorten it to "Pharmacy" or any other name)
 
 IMPORTANT SAFETY GUIDELINES:
@@ -288,6 +490,7 @@ RESPONSE STYLE:
 - Use markdown link format [Name](URL) to make names clickable
 - When suggesting pharmacies, mention if they are similar matches when exact searches don't work
 - If no suitable pharmacy exists in the provided data, state that clearly instead of recommending an unknown location
+- When referencing cart items, orders, or prescriptions, acknowledge their current state and include the relevant navigation link (cartUrl, orderUrl, prescriptionUrl) so the user can jump straight to that view
 - When referencing the app or experience, call it "Pharmasea" to reinforce branding
 - Always end medical/health related responses with appropriate disclaimers
 - Be culturally sensitive and inclusive
@@ -340,6 +543,48 @@ async function getOpenAIResponse(userMessage, context = {}) {
     });
   }
 
+  if (context.cartInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User cart snapshot: ${JSON.stringify(context.cartInfo)}`
+    });
+  }
+
+  if (context.orderInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Recent user orders: ${JSON.stringify(context.orderInfo)}`
+    });
+  }
+
+  if (context.prescriptionInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User prescriptions: ${JSON.stringify(context.prescriptionInfo)}`
+    });
+  }
+
+  if (context.cartInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User cart snapshot: ${JSON.stringify(context.cartInfo)}`
+    });
+  }
+
+  if (context.orderInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Recent user orders: ${JSON.stringify(context.orderInfo)}`
+    });
+  }
+
+  if (context.prescriptionInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User prescriptions: ${JSON.stringify(context.prescriptionInfo)}`
+    });
+  }
+
   if (context.productInfo) {
     messages.splice(1, 0, {
       role: 'system',
@@ -382,6 +627,18 @@ async function getGeminiResponse(userMessage, context = {}) {
 
   if (context.nearestPharmacies) {
     prompt += `Nearest pharmacies to the user: ${JSON.stringify(context.nearestPharmacies)}\n\n`;
+  }
+
+  if (context.cartInfo) {
+    prompt += `User cart snapshot: ${JSON.stringify(context.cartInfo)}\n\n`;
+  }
+
+  if (context.orderInfo) {
+    prompt += `Recent user orders: ${JSON.stringify(context.orderInfo)}\n\n`;
+  }
+
+  if (context.prescriptionInfo) {
+    prompt += `User prescriptions: ${JSON.stringify(context.prescriptionInfo)}\n\n`;
   }
 
   if (context.productInfo) {
