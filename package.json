@@ -10,6 +10,7 @@
     "seed": "node --env-file=.env scripts/seed.mjs"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.2.7",
     "@paystack/inline-js": "^2.22.7",
     "axios": "^1.12.2",
@@ -20,6 +21,7 @@
     "jspdf": "^3.0.2",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.452.0",
+    "openai": "^6.3.0",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

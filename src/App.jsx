@@ -39,6 +39,7 @@ import PharmacyMap from '@/pages/PharmacyMap';
 import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import AppBootstrapLoader from '@/components/AppBootstrapLoader';
+import FloatingAIChatButton from '@/components/FloatingAIChatButton';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -55,6 +56,7 @@ import AddProduct from '@/pages/AddProduct';
 // Extra
 import VendorProfile from '@/pages/VendorProfile';
 import ProductPreview from '@/pages/ProductPreview';
+import AIChat from '@/pages/AIChat';
 
 /* ---------------------------
    LAYOUTS
@@ -191,6 +193,7 @@ function AppLayout() {
             unreadMessages={unreadMessages}
             ordersCount={ordersCount}
           />
+          <FloatingAIChatButton />
         </>
       )}
 
@@ -341,6 +344,14 @@ function Shell() {
           element={
             <RequireAuth>
               <ChatThread />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/ai-chat"
+          element={
+            <RequireAuth>
+              <AIChat />
             </RequireAuth>
           }
         />
