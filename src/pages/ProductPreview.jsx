@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ProductAvatar from '@/components/ProductAvatar';
+import VerifiedName from '@/components/VerifiedName';
 import { MapPin, Clock, Phone, ArrowLeft, Star } from 'lucide-react';
 
 export default function ProductPreview() {
@@ -69,7 +70,12 @@ export default function ProductPreview() {
             </div>
             <div className="mb-2">
               {pharmacy ? (
-                <span className="text-sky-600 underline font-poppins text-[15px] font-light">{pharmacy.name}</span>
+                <VerifiedName
+                  name={pharmacy.name}
+                  isVerified={pharmacy.isVerified}
+                  className="text-sky-600 underline font-poppins text-[15px] font-light"
+                  iconClassName="h-3.5 w-3.5 text-sky-500"
+                />
               ) : (
                 <span className="text-zinc-400 font-poppins text-[15px] font-light">Pharmacy info unavailable</span>
               )}

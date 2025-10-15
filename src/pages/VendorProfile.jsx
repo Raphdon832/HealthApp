@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Phone, MessageCircle, ArrowLeft, Search, Bookmark } from 'lucide-react';
-import { getDoc, doc } from 'firebase/firestore';
+import { onSnapshot, doc } from 'firebase/firestore';
 import { listenProducts, getOrCreateThread, addVendorBookmark, removeVendorBookmark, isVendorBookmarked } from '@/lib/db'; // ⬅︎ use new helper
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
@@ -12,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 import ProductAvatar from '@/components/ProductAvatar';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA } from '@/lib/eta';
+import VerifiedName from '@/components/VerifiedName';
 
 export default function VendorProfile() {
   const { id } = useParams();                  // pharmacyId (vendorId)
@@ -50,12 +51,15 @@ export default function VendorProfile() {
   const { user, profile } = useAuth();         // need role to enforce “customer-only”
 
   useEffect(() => {
-    async function fetchVendor() {
-      const snap = await getDoc(doc(db, 'pharmacies', id));
-      setVendor(snap.data());
-    }
-    fetchVendor();
-    return listenProducts(setProducts, id);
+    const vendorRef = doc(db, 'pharmacies', id);
+    const unsubscribeVendor = onSnapshot(vendorRef, (snap) =>
+      setVendor(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+    );
+    const unsubscribeProducts = listenProducts(setProducts, id);
+    return () => {
+      unsubscribeVendor();
+      if (typeof unsubscribeProducts === 'function') unsubscribeProducts();
+    };
   }, [id]);
 
   // Check bookmark status when vendor and user are available
@@ -83,6 +87,7 @@ export default function VendorProfile() {
           address: vendor.address,
           phone: vendor.phone,
           email: vendor.email,
+          isVerified: !!vendor.isVerified,
         });
         setIsBookmarked(true);
       }
@@ -341,7 +346,15 @@ export default function VendorProfile() {
             {/* Products header (moved out of scrollable area) - sticky and aligned with vendor aside on md+ */}
             <div className={`border border-zinc-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-4 mb-4 flex items-center justify-between ${!useMobileLayout ? 'md:sticky md:top-20 md:bg-white/90 md:dark:bg-gray-800/90 md:backdrop-blur-sm md:z-20' : ''} animate-slide-down-fade`}>
               <div>
-                <div className="text-[18px] font-poppins font-medium text-gray-900 dark:text-white">{t('products_by', 'Products by')}<br/>{vendor?.name || t('vendor', 'Vendor')}</div>
+                <div className="text-[18px] font-poppins font-medium text-gray-900 dark:text-white">
+                  {t('products_by', 'Products by')}<br />
+                  <VerifiedName
+                    name={vendor?.name || t('vendor', 'Vendor')}
+                    isVerified={vendor?.isVerified}
+                    className="inline-flex items-center gap-1"
+                    iconClassName="h-4 w-4 text-sky-500 dark:text-sky-400"
+                  />
+                </div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light">{searchTerm ? filteredProducts.length : products.length} {searchTerm && filteredProducts.length !== products.length ? `${t('of', 'of')} ${products.length}` : ''} {t('items', 'items')}</div>
               </div>
               <div>
@@ -402,7 +415,12 @@ export default function VendorProfile() {
               <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-gray-700 flex items-center justify-center mb-2 animate-bounce-gentle hover:scale-110 transition-transform duration-200">
                 <span className="text-[32px] font-poppins font-light text-sky-600 dark:text-sky-400">{vendor?.name?.charAt(0) || 'V'}</span>
               </div>
-              <div className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 dark:text-sky-400 mb-1 animate-text-reveal">{vendor?.name || 'Vendor'}</div>
+              <VerifiedName
+                name={vendor?.name || 'Vendor'}
+                isVerified={vendor?.isVerified}
+                className="text-[22px] font-poppins font-medium tracking-tight text-sky-600 dark:text-sky-400 mb-1 animate-text-reveal"
+                iconClassName="h-4 w-4 text-sky-500 dark:text-sky-400"
+              />
               <div className="text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>{vendor?.email || ''}</div>
                <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[13px] font-poppins font-light mb-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                  <MapPin className="h-3 w-3" /> {vendor?.address || ''}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
-import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNavigate } from 'react-router-dom';
@@ -64,54 +64,111 @@ export default function SuperuserDashboard() {
   const tabContainerRef = useRef(null);
   const navigate = useNavigate();
 
-  const appendAuditEntry = (message, statusOverride) => {
-    const entry = {
-      actor: user?.displayName || user?.email || 'System',
-      message,
-      timestamp: serverTimestamp(),
+const appendAuditEntry = (message, statusOverride) => {
+  const entry = {
+    actor: user?.displayName || user?.email || 'System',
+    message,
+    timestamp: serverTimestamp(),
+  };
+  if (statusOverride) entry.status = statusOverride;
+  return entry;
+};
+
+const syncVerificationStatusToProfile = async (submission, status) => {
+  if (!submission?.submittedByUid) return;
+  const verified = status === 'approved';
+  const timestamp = serverTimestamp();
+  const payload = {
+    verificationStatus: status,
+    verificationUpdatedAt: timestamp,
+    isVerified: verified,
+    ...(verified ? { verifiedAt: timestamp } : { verifiedAt: deleteField() }),
+  };
+  try {
+    await Promise.all([
+      updateDoc(doc(db, 'pharmacies', submission.submittedByUid), payload).catch((error) =>
+        console.error('[SuperuserDashboard] Failed to sync pharmacy verification status', error)
+      ),
+      updateDoc(doc(db, 'users', submission.submittedByUid), payload).catch((error) =>
+        console.error('[SuperuserDashboard] Failed to sync user verification status', error)
+      ),
+    ]);
+  } catch (error) {
+    console.error('[SuperuserDashboard] Verification sync failed', error);
+  }
+};
+
+const handleVerificationStatusChange = async (item, status, note) => {
+  if (!item?.id) return;
+  try {
+    const docRef = doc(db, 'verificationQueue', item.id);
+    const noteText = note?.trim() || '';
+    const timestamp = serverTimestamp();
+    const isDraft = status === 'draft';
+    const updates = {
+      status,
+      updatedAt: timestamp,
+      draft: isDraft,
+      draftStep: isDraft ? item?.draftStep ?? 0 : null,
+      ...(noteText ? { reviewerNote: noteText } : {}),
+      auditTrail: arrayUnion(
+        appendAuditEntry(
+          `Status changed to ${status}${noteText ? ` - ${noteText}` : ''}`,
+          status
+        )
+      ),
     };
-    if (statusOverride) entry.status = statusOverride;
-    return entry;
-  };
-
-  const handleVerificationStatusChange = async (item, status, note) => {
-    if (!item?.id) return;
-    try {
-      const docRef = doc(db, 'verificationQueue', item.id);
-      const statusMessage = `Status changed to ${status}${note ? ` - ${note}` : ''}`;
-      await updateDoc(docRef, {
-        status,
-        ...(note ? { reviewerNote: note } : {}),
-        updatedAt: serverTimestamp(),
-        auditTrail: arrayUnion(
-          appendAuditEntry(statusMessage, status)
-        ),
-      });
-    } catch (error) {
-      console.error('[SuperuserDashboard] Failed to update verification status', error);
+    if (!isDraft) {
+      updates.submittedAt = item?.submittedAt || timestamp;
     }
-  };
-
-  const handleVerificationAssign = async (item, assignee) => {
-    if (!item?.id) return;
-    const resolvedAssignee =
-      assignee === 'self'
-        ? user?.displayName || user?.email || user?.uid
-        : assignee;
-    try {
-      const docRef = doc(db, 'verificationQueue', item.id);
-      await updateDoc(docRef, {
-        assignedTo: resolvedAssignee,
-        status: item.status === 'pending' ? 'in_review' : item.status,
-        auditTrail: arrayUnion(
-          appendAuditEntry(`Assigned to ${resolvedAssignee}`, 'in_review')
-        ),
-        updatedAt: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error('[SuperuserDashboard] Failed to assign verification', error);
+    if (status === 'approved') {
+      updates.approvedAt = timestamp;
+      updates.draft = false;
+      updates.draftStep = null;
+    } else if (status === 'rejected') {
+      updates.rejectedAt = timestamp;
+      updates.draft = false;
+      updates.draftStep = null;
+    } else if (status === 'needs_more_info' || status === 'pending' || status === 'in_review') {
+      updates.draft = false;
+      updates.draftStep = null;
     }
-  };
+    if (!noteText && note !== undefined) {
+      updates.reviewerNote = deleteField();
+    }
+    await updateDoc(docRef, updates);
+    await syncVerificationStatusToProfile(item, status);
+  } catch (error) {
+    console.error('[SuperuserDashboard] Failed to update verification status', error);
+  }
+};
+
+const handleVerificationAssign = async (item, assignee) => {
+  if (!item?.id) return;
+  const resolvedAssignee =
+    assignee === 'self'
+      ? user?.displayName || user?.email || user?.uid
+      : assignee;
+  try {
+    const docRef = doc(db, 'verificationQueue', item.id);
+    const newStatus =
+      item.status === 'pending' || item.status === 'draft'
+        ? 'in_review'
+        : item.status || 'in_review';
+    await updateDoc(docRef, {
+      assignedTo: resolvedAssignee,
+      status: newStatus,
+      draft: false,
+      draftStep: null,
+      auditTrail: arrayUnion(
+        appendAuditEntry(`Assigned to ${resolvedAssignee}`, 'in_review')
+      ),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('[SuperuserDashboard] Failed to assign verification', error);
+  }
+};
 
   const handleVerificationAuditEntry = async (item, message) => {
     if (!item?.id || !message?.trim()) return;

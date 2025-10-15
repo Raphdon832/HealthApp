@@ -9,6 +9,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import FilterIcon from '@/icons/react/FilterIcon';
+import VerifiedName from '@/components/VerifiedName';
 
 export default function PharmacyMap() {
   const navigate = useNavigate();
@@ -547,7 +548,12 @@ export default function PharmacyMap() {
                     {/* Tooltip on hover */}
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                       <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap shadow-lg">
-                        <div className="font-medium">{pharmacy.name}</div>
+                        <VerifiedName
+                          name={pharmacy.name}
+                          isVerified={pharmacy.isVerified}
+                          className="font-medium"
+                          iconClassName="h-3.5 w-3.5 text-emerald-400"
+                        />
                         <div className="text-gray-300">{pharmacy.eta?.formatted} • {pharmacy.distance?.toFixed(1)}km</div>
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
                       </div>
@@ -599,7 +605,12 @@ export default function PharmacyMap() {
                   {sortedPharmacies.findIndex(p => p.id === selectedPharmacy.id) + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{selectedPharmacy.name}</h3>
+                  <VerifiedName
+                    name={selectedPharmacy.name}
+                    isVerified={selectedPharmacy.isVerified}
+                    className="font-semibold text-gray-900 dark:text-white text-sm truncate"
+                    iconClassName="h-4 w-4 text-emerald-500"
+                  />
                   <p className="text-xs text-gray-600 mb-2 truncate">{selectedPharmacy.address}</p>
                   
                     <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
@@ -715,7 +726,12 @@ export default function PharmacyMap() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{pharmacy.name}</h3>
+                        <VerifiedName
+                          name={pharmacy.name}
+                          isVerified={pharmacy.isVerified}
+                          className="font-semibold text-gray-900 dark:text-white text-sm truncate"
+                          iconClassName="h-3.5 w-3.5 text-emerald-500"
+                        />
                         {index === 0 && (
                           <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs px-2 py-0.5 rounded-full font-normal flex-shrink-0">
                             {t('closest', 'Closest')}

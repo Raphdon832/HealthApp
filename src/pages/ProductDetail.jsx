@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/language';
 import { useNavigate } from 'react-router-dom';
 import DirectionsIcon from '@/icons/react/DirectionsIcon';
 import ProductAvatar from '@/components/ProductAvatar';
+import VerifiedName from '@/components/VerifiedName';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA } from '@/lib/eta';
 
@@ -429,10 +430,16 @@ export default function ProductDetail({ product, pharmacy }) {
                   {/* Pharmacy name (always under the product name on mobile) */}
                   <div className="mb-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <button
-                      onClick={() => navigate(`/vendor/${pharmacy?.id || product.pharmacyId}`)}
-                      className="text-sky-600 dark:text-sky-400 underline font-poppins text-[15px] font-light hover:text-sky-700 dark:hover:text-sky-300 transition-colors duration-200 hover:scale-105"
-                    >
-                      {pharmacy?.name}
+                    onClick={() => navigate(`/vendor/${pharmacy?.id || product.pharmacyId}`)}
+                    className="text-sky-600 dark:text-sky-400 underline font-poppins text-[15px] font-light hover:text-sky-700 dark:hover:text-sky-300 transition-colors duration-200 hover:scale-105"
+                  >
+                      <VerifiedName
+                        name={pharmacy?.name || t('pharmacy', 'Pharmacy')}
+                        isVerified={pharmacy?.isVerified}
+                        className="inline-flex items-center gap-1"
+                        nameClassName="underline decoration-inherit underline-offset-2"
+                        iconClassName="h-3.5 w-3.5 text-sky-500 dark:text-sky-400"
+                      />
                     </button>
                   </div>
 

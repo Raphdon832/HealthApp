@@ -15,6 +15,7 @@ import { generatePharmacyReport } from '@/lib/pdfReport';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import ProductAvatar from '@/components/ProductAvatar';
+import VerifiedName from '@/components/VerifiedName';
 
 // Fixed Header Component
 const FixedHeader = ({ title, searchValue, onSearchChange, onSearchSubmit, onSettingsClick }) => {
@@ -73,7 +74,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
   const [brokenImages, setBrokenImages] = useState(new Set());
   const handleImageError = (id) => setBrokenImages(prev => { const s = new Set(prev); s.add(id); return s; });
   const handleImageLoad = (id) => setBrokenImages(prev => { const s = new Set(prev); s.delete(id); return s; });
-  const [pharmacyProfile, setPharmacyProfile] = useState({ displayName: user?.displayName || 'Pharmacy', address: '', phone: '', email: user?.email || '' });
+  const [pharmacyProfile, setPharmacyProfile] = useState({
+    displayName: user?.displayName || 'Pharmacy',
+    address: '',
+    phone: '',
+    email: user?.email || '',
+    isVerified: profile?.isVerified ?? false,
+  });
   const [editDesc, setEditDesc] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -666,20 +673,32 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       setPharmacyProfile(prev => {
         const displayName = (pharmData && pharmData.displayName) || (userData && userData.displayName) || user.displayName || prev.displayName;
         // Use only the explicit 'address' field from Firestore documents (no fallbacks)
-        const address = (pharmData && pharmData.address) || (userData && userData.address) || prev.address || '';
-        // Use only the explicit 'phone' field from Firestore documents (no fallbacks)
-        const rawPhone = (pharmData && pharmData.phone) || (userData && userData.phone) || prev.phone || '';
-        const phone = sanitizePhone(rawPhone);
-        const email = (pharmData && pharmData.email) || (userData && userData.email) || user.email || prev.email || '';
+      const address = (pharmData && pharmData.address) || (userData && userData.address) || prev.address || '';
+      // Use only the explicit 'phone' field from Firestore documents (no fallbacks)
+      const rawPhone = (pharmData && pharmData.phone) || (userData && userData.phone) || prev.phone || '';
+      const phone = sanitizePhone(rawPhone);
+      const email = (pharmData && pharmData.email) || (userData && userData.email) || user.email || prev.email || '';
+      const isVerified =
+        (pharmData && pharmData.isVerified) ??
+        (userData && userData.isVerified) ??
+        prev.isVerified ??
+        false;
 
-        // DEBUG: log computed values
-        try {
-          console.debug('[ProfilePharmacy] computed profile ->', { displayName, address, rawPhone, phone, email });
-        } catch (e) {}
+      // DEBUG: log computed values
+      try {
+        console.debug('[ProfilePharmacy] computed profile ->', {
+          displayName,
+          address,
+          rawPhone,
+          phone,
+          email,
+          isVerified,
+        });
+      } catch (e) {}
 
-        return { displayName, address, phone, email };
-      });
-    };
+      return { displayName, address, phone, email, isVerified };
+    });
+  };
 
     const unsubPharm = onSnapshot(pharmRef, snap => {
       pharmData = snap && snap.exists ? snap.data() : null;
@@ -879,6 +898,12 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
       ? 'Continue Verification'
       : 'Update Verification'
     : 'Verify my Account';
+  const disabledVerificationCtaLabel =
+    verificationStatus === 'approved'
+      ? 'Verified'
+      : verificationStatus === 'in_review'
+        ? 'In review'
+        : 'Submission received';
 
   if (!user) {
     return <LoadingSkeleton lines={4} className="my-8" />;
@@ -1005,7 +1030,13 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 </div>
               )}
             </div>
-            <div className="text-3xl font-light font-poppins text-sky-600 dark:text-sky-400 mb-1 tracking-tight truncate w-full">{pharmacyProfile.displayName || 'Pharmacy'}</div>
+            <VerifiedName
+              name={pharmacyProfile.displayName || 'Pharmacy'}
+              isVerified={pharmacyProfile.isVerified}
+              className="text-3xl font-light font-poppins text-sky-600 dark:text-sky-400 mb-1 tracking-tight truncate w-full"
+              nameClassName="truncate"
+              iconClassName="h-5 w-5 text-sky-500 dark:text-sky-400"
+            />
             <div className="w-full border-b dark:border-gray-600 mb-2" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}></div>
             <div className="text-[13px] text-zinc-500 font-light mb-1 truncate w-full">{pharmacyProfile.email || user?.email}</div>
             {pharmacyProfile.address && (
@@ -1075,6 +1106,11 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                 Your previous submission was rejected. Review the notes and try again.
               </p>
             )}
+            {!verificationLoading && verificationStatus === 'approved' && (
+              <p className="text-[12px] text-emerald-600 dark:text-emerald-400">
+                Your pharmacy is verified. Customers will now see a verification badge across Pharmasea.
+              </p>
+            )}
             {!verificationLoading && verificationRequest?.reviewerNote && (
               <p className="text-[12px] text-slate-500 dark:text-slate-300">
                 Note from reviewer:&nbsp;
@@ -1101,7 +1137,7 @@ export default function ProfilePharmacy({ onSwitchToCustomer }) {
                   disabled
                   className="rounded-full bg-slate-200 text-slate-500 text-[12px] font-medium px-5 py-2 cursor-not-allowed"
                 >
-                  {verificationLoading ? 'Checking status...' : 'Submission received'}
+                  {verificationLoading ? 'Checking status...' : disabledVerificationCtaLabel}
                 </button>
               )}
               {verificationRequest?.updatedAt && !verificationLoading && (

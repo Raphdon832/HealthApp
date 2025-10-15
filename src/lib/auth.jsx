@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { sendVerification } from './email';
 
 const AuthCtx = createContext();
@@ -13,17 +13,30 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, async (u) => {
+    let unsubscribeProfile;
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+        unsubscribeProfile = undefined;
+      }
       if (u) {
         const ref = doc(db, 'users', u.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) setProfile(snap.data());
+        unsubscribeProfile = onSnapshot(ref, (snap) => {
+          if (snap.exists()) {
+            setProfile(snap.data());
+          }
+        });
       } else {
         setProfile(null);
       }
       setLoading(false);
     });
+
+    return () => {
+      if (unsubscribeProfile) unsubscribeProfile();
+      unsubscribeAuth();
+    };
   }, []);
 
   const signIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
