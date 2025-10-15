@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // AI Provider configuration
-const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || 'gemini'; // 'openai' or 'gemini'
+const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || 'gemini'; // 'openai', 'gemini', or 'mistral'
 
 // Initialize OpenAI client
 const getOpenAIClient = () => {
@@ -30,6 +30,19 @@ const getGeminiClient = () => {
       maxOutputTokens: 1000,
     }
   });
+};
+
+// Initialize AIML API client for Mistral
+const getAIMLConfig = () => {
+  const apiKey = import.meta.env.VITE_AIML_API_KEY;
+  if (!apiKey) {
+    throw new Error('AIML API key not configured. Please add VITE_AIML_API_KEY to your .env file. Get a key at: https://aimlapi.com/');
+  }
+  return {
+    apiKey,
+    baseURL: 'https://api.aimlapi.com/v1/chat/completions',
+    model: 'mistralai/Mistral-7B-Instruct-v0.3'
+  };
 };
 
 // System prompt for health/pharmacy AI assistant
@@ -61,6 +74,8 @@ export async function getAIResponse(userMessage, context = {}) {
   try {
     if (AI_PROVIDER === 'gemini') {
       return await getGeminiResponse(userMessage, context);
+    } else if (AI_PROVIDER === 'mistral') {
+      return await getMistralResponse(userMessage, context);
     } else {
       return await getOpenAIResponse(userMessage, context);
     }
@@ -126,11 +141,58 @@ async function getGeminiResponse(userMessage, context = {}) {
   return response.text();
 }
 
+// Mistral implementation via AIML API
+async function getMistralResponse(userMessage, context = {}) {
+  const config = getAIMLConfig();
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: userMessage }
+  ];
+
+  // Add context if available
+  if (context.userInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `User context: ${JSON.stringify(context.userInfo)}`
+    });
+  }
+
+  if (context.productInfo) {
+    messages.splice(1, 0, {
+      role: 'system',
+      content: `Available products: ${JSON.stringify(context.productInfo)}`
+    });
+  }
+
+  const response = await fetch(config.baseURL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${config.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: config.model,
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AIML API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 // Function to get product recommendations based on user query
 export async function getProductRecommendations(query, products = []) {
   try {
     if (AI_PROVIDER === 'gemini') {
       return await getGeminiProductRecommendations(query, products);
+    } else if (AI_PROVIDER === 'mistral') {
+      return await getMistralProductRecommendations(query, products);
     } else {
       return await getOpenAIProductRecommendations(query, products);
     }
@@ -192,6 +254,49 @@ Suggest relevant products if any match the query.`;
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
+}
+
+// Mistral product recommendations via AIML API
+async function getMistralProductRecommendations(query, products = []) {
+  const config = getAIMLConfig();
+  const productContext = products.map(p => ({
+    name: p.name,
+    description: p.description,
+    category: p.category,
+    price: p.price
+  }));
+
+  const messages = [
+    {
+      role: 'system',
+      content: `You are a product recommendation assistant. Based on the user's query and available products, suggest relevant products. Only recommend products that actually exist in the provided list. If no relevant products exist, suggest consulting a pharmacist. Keep recommendations brief and helpful.`
+    },
+    {
+      role: 'user',
+      content: `User query: "${query}"\n\nAvailable products: ${JSON.stringify(productContext)}\n\nSuggest relevant products if any match the query.`
+    }
+  ];
+
+  const response = await fetch(config.baseURL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${config.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: config.model,
+      messages: messages,
+      max_tokens: 300,
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AIML API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
 // Function to check if query needs medical professional

@@ -15,6 +15,7 @@ export default function FloatingAIChatButton() {
   const [position, setPosition] = useState(defaultPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const dragOccurredRef = useRef(false);
 
   // Load position from localStorage on mount
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function FloatingAIChatButton() {
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
+    dragOccurredRef.current = false;
     setDragStart({
       x: e.clientX - position.x,
       y: e.clientY - position.y
@@ -50,6 +52,8 @@ export default function FloatingAIChatButton() {
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
+    
+    dragOccurredRef.current = true;
     
     const newX = e.clientX - dragStart.x;
     const newY = e.clientY - dragStart.y;
@@ -70,6 +74,12 @@ export default function FloatingAIChatButton() {
     setIsDragging(false);
   };
 
+  const handleClick = (e) => {
+    if (!dragOccurredRef.current) {
+      navigate('/ai-chat');
+    }
+  };
+
   // Add global mouse event listeners when dragging
   useEffect(() => {
     if (isDragging) {
@@ -85,11 +95,7 @@ export default function FloatingAIChatButton() {
   return (
     <button
       ref={buttonRef}
-      onClick={(e) => {
-        if (!isDragging) {
-          navigate('/ai-chat');
-        }
-      }}
+      onClick={handleClick}
       onMouseDown={handleMouseDown}
       className={`fixed z-50 w-14 h-14 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
         isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
