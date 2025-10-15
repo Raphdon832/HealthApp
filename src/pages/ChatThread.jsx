@@ -27,6 +27,7 @@ import { Menu } from "@headlessui/react";
 import Modal from "@/components/Modal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useTranslation } from "@/lib/language";
+import VerifiedName from "@/components/VerifiedName";
 
 /* Prescription */
 import PrescriptionPreview from "@/components/PrescriptionPreview";
@@ -154,6 +155,7 @@ export default function ChatThread() {
   // 🔹 What to show in the sticky header
   const [otherName, setOtherName] = useState("");
   const [otherSubline, setOtherSubline] = useState(""); // e.g., address or email
+  const [otherVerified, setOtherVerified] = useState(false);
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -211,46 +213,61 @@ export default function ChatThread() {
   useEffect(() => {
     if (!threadId || !profile?.role) return;
 
-    (async () => {
-      const tSnap = await getDoc(doc(db, "threads", threadId));
+    const threadRef = doc(db, "threads", threadId);
+    const unsubscribe = onSnapshot(threadRef, async (tSnap) => {
       if (!tSnap.exists()) return;
       const t = tSnap.data();
       const [vId, cId] = threadId.split("__");
       if (profile.role === "customer") {
-        // show the PHARMACY name to the customer
+        const ensureVendorInfo = async () => {
+          const pSnap = await getDoc(doc(db, "pharmacies", vId));
+          return pSnap.exists() ? pSnap.data() : {};
+        };
         const name = t.vendorName || "";
         const address = t.vendorAddress || "";
+        let vendorInfo = null;
+
         if (name) {
           setOtherName(name);
+        } else {
+          vendorInfo = await ensureVendorInfo();
+          setOtherName(vendorInfo.name || t("pharmacy", "Pharmacy"));
+        }
+
+        if (address) {
           setOtherSubline(address);
         } else {
-          // fallback: fetch from pharmacies
-          const pSnap = await getDoc(doc(db, "pharmacies", vId));
-          const pdata = pSnap.exists() ? pSnap.data() : {};
-          setOtherName(pdata.name || t("pharmacy", "Pharmacy"));
-          setOtherSubline(pdata.address || pdata.email || "");
+          if (!vendorInfo) vendorInfo = await ensureVendorInfo();
+          setOtherSubline(vendorInfo.address || vendorInfo.email || "");
         }
-        // Always fetch pharmacy phone for call button
-        const pSnap = await getDoc(doc(db, "pharmacies", vId));
-        const pdata = pSnap.exists() ? pSnap.data() : {};
-        setPharmacyPhone(pdata.phone || "");
+
+        if (typeof t.vendorIsVerified === "boolean") {
+          setOtherVerified(t.vendorIsVerified);
+        } else {
+          if (!vendorInfo) vendorInfo = await ensureVendorInfo();
+          setOtherVerified(!!vendorInfo.isVerified);
+        }
+
+        if (!vendorInfo) vendorInfo = await ensureVendorInfo();
+        setPharmacyPhone(vendorInfo.phone || "");
       } else {
-        // vendor is chatting with the CUSTOMER
         const name = t.customerName || "";
         const sub = t.customerAddress || t.customerEmail || "";
         if (name) {
           setOtherName(name);
           setOtherSubline(sub);
         } else {
-          // fallback: fetch from users
           const uSnap = await getDoc(doc(db, "users", cId));
           const u = uSnap.exists() ? uSnap.data() : {};
           setOtherName(u.displayName || t("customer", "Customer"));
           setOtherSubline(u.email || "");
         }
+        setOtherVerified(false);
       }
-    })().catch(console.error);
-  }, [threadId, profile?.role]);
+    });
+
+    return () => unsubscribe();
+  }, [threadId, profile?.role, t]);
 
   // Live messages + mark read - using paginated listener for better performance
   useEffect(() => {
@@ -537,12 +554,12 @@ export default function ChatThread() {
                   }}
                   title={otherName}
                 >
-                  {otherName || "..."}
+                  <VerifiedName name={otherName || "..."} isVerified={otherVerified} className="inline-flex items-center gap-1" iconClassName="h-4 w-4 text-sky-500 dark:text-sky-400" />
                 </button>
               ) : (
                 <div className="min-w-0">
                   <div className="font-light text-[15px] sm:text-[17px] truncate text-gray-900 dark:text-white">
-                    {otherName || "..."}
+                    <VerifiedName name={otherName || "..."} isVerified={otherVerified} className="inline-flex items-center gap-1" iconClassName="h-4 w-4 text-sky-500 dark:text-sky-400" />
                   </div>
                   <div className="text-[9px] text-zinc-500 dark:text-zinc-400 truncate">
                     {otherSubline}
@@ -829,3 +846,4 @@ export default function ChatThread() {
     </div>
   );
 }
+

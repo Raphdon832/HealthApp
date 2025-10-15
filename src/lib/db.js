@@ -74,14 +74,20 @@ export const getOrCreateThread = async ({ vendorId, customerId, role }) => {
       getDoc(doc(db, "pharmacies", vendorId)),
       getDoc(doc(db, "users", customerId)),
     ]);
-    const vendorName = vSnap.exists() ? vSnap.data().name : "Pharmacy";
-    const customerName = cSnap.exists() ? cSnap.data().displayName : "Customer";
+    const vendorData = vSnap.exists() ? vSnap.data() : {};
+    const customerData = cSnap.exists() ? cSnap.data() : {};
+    const vendorName = vendorData.name || "Pharmacy";
+    const vendorAddress = vendorData.address || "";
+    const vendorIsVerified = !!vendorData.isVerified;
+    const customerName = customerData.displayName || "Customer";
 
     await setDoc(ref, {
       id: threadId,
       vendorId,
       customerId,
       vendorName,
+      vendorAddress,
+      vendorIsVerified,
       customerName,
       lastMessage: "",
       lastBy: null,

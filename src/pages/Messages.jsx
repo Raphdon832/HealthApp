@@ -6,6 +6,7 @@ import { useTranslation } from '@/lib/language';
 import { listenUserThreads, markThreadRead } from '@/lib/db';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import VerifiedName from '@/components/VerifiedName';
 
 // Fixed Header Component
 const FixedHeader = ({ title, t }) => {
@@ -78,6 +79,10 @@ export default function Messages() {
   const me = user?.uid;
   const myUnread = (t) => t?.unread?.[me] || 0;
   const displayName = (t) => (profile?.role === 'customer' ? t.vendorName : t.customerName) || '';
+  const isPartnerVerified = (t) =>
+    profile?.role === 'customer'
+      ? !!t.vendorIsVerified || t.vendorVerificationStatus === 'approved'
+      : false;
   const lastTime = (t) => (t.lastAt?.seconds ? new Date(t.lastAt.seconds * 1000) : null);
 
   const filtered = threads.filter(t => {
@@ -112,7 +117,13 @@ export default function Messages() {
               <span className="text-zinc-500 text-xs font-semibold">{(displayName(thread) || 'U')[0]}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm truncate">{displayName(thread)}</div>
+              <VerifiedName
+                name={displayName(thread) || t('conversation_partner', 'Conversation')}
+                isVerified={isPartnerVerified(thread)}
+                className="text-sm truncate inline-flex items-center gap-1"
+                nameClassName="truncate"
+                iconClassName="h-3.5 w-3.5 text-sky-500"
+              />
               <div className="text-zinc-500 text-[10px] truncate">{thread.lastMessage || t('no_messages_yet', 'No messages yet.')}</div>
             </div>
             <div className="flex flex-col items-end justify-between h-full min-w-[48px]">

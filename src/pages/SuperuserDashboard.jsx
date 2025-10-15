@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
-import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp, deleteField } from 'firebase/firestore';
+import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp, deleteField, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNavigate } from 'react-router-dom';
@@ -98,6 +98,25 @@ const syncVerificationStatusToProfile = async (submission, status) => {
   }
 };
 
+const updateVendorThreadsVerification = async (vendorId, status) => {
+  if (!vendorId) return;
+  try {
+    const q = query(collection(db, 'threads'), where('vendorId', '==', vendorId));
+    const snap = await getDocs(q);
+    const verified = status === 'approved';
+    await Promise.all(
+      snap.docs.map((threadDoc) =>
+        updateDoc(threadDoc.ref, {
+          vendorIsVerified: verified,
+          vendorVerificationStatus: status,
+        })
+      )
+    );
+  } catch (error) {
+    console.error('[SuperuserDashboard] Failed to update vendor thread verification flag', error);
+  }
+};
+
 const handleVerificationStatusChange = async (item, status, note) => {
   if (!item?.id) return;
   try {
@@ -138,6 +157,7 @@ const handleVerificationStatusChange = async (item, status, note) => {
     }
     await updateDoc(docRef, updates);
     await syncVerificationStatusToProfile(item, status);
+    await updateVendorThreadsVerification(item.submittedByUid, status);
   } catch (error) {
     console.error('[SuperuserDashboard] Failed to update verification status', error);
   }
