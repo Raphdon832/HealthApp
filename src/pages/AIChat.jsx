@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 import { getAIResponse, addMedicalDisclaimer, needsMedicalProfessional, getPharmaciesContext, getProductsContext } from '@/lib/ai';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
@@ -543,10 +543,26 @@ export default function AIChat() {
     if (!user?.uid) return;
 
     try {
-      // Clear the current conversation messages
+      setIsTyping(false);
+      setIsLoading(false);
       setMessages([]);
       setInputMessage('');
-      // Focus the input for the new chat
+
+      const userMessagesQuery = query(
+        collection(db, 'ai_conversations'),
+        where('userId', '==', user.uid)
+      );
+
+      const snapshot = await getDocs(userMessagesQuery);
+
+      if (!snapshot.empty) {
+        const batch = writeBatch(db);
+        snapshot.forEach((docSnap) => {
+          batch.delete(docSnap.ref);
+        });
+        await batch.commit();
+      }
+
       inputRef.current?.focus();
     } catch (error) {
       console.error('Error starting new chat:', error);
