@@ -203,7 +203,7 @@ export default function AIChat() {
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto px-4 py-4 pb-24"
+        className="flex-1 overflow-y-auto px-4 py-4 pb-32"
         style={{
           backgroundImage: `url(${ChatBgUrl})`,
           backgroundSize: 'contain',
@@ -229,7 +229,7 @@ export default function AIChat() {
             {messages.map((message, index) => (
               <div
                 key={message.id || index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} ${index === messages.length - 1 ? 'pb-6' : ''}`}
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-3 ${
