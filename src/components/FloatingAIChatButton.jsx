@@ -211,12 +211,12 @@ export default function FloatingAIChatButton() {
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      className={`fixed z-50 w-16 h-16 rounded-[22px] backdrop-blur-xl shadow-[0_20px_45px_-20px_rgba(14,116,144,0.6)] hover:shadow-[0_25px_55px_-18px_rgba(14,116,144,0.7)] transition-all duration-300 flex items-center justify-center overflow-hidden group cursor-pointer ${
+      className={`fixed z-50 w-16 h-16 rounded-2xl backdrop-blur-2xl shadow-[0_8px_32px_-8px_rgba(14,116,144,0.4),0_0_0_1px_rgba(255,255,255,0.1)] hover:shadow-[0_16px_48px_-12px_rgba(14,116,144,0.6),0_0_0_1px_rgba(255,255,255,0.2)] active:shadow-[0_4px_16px_-4px_rgba(14,116,144,0.8),0_0_0_1px_rgba(255,255,255,0.3)] transition-all duration-500 flex items-center justify-center overflow-hidden group cursor-pointer border border-white/20 ${
         isMobile
           ? isDragging
-            ? 'cursor-grabbing scale-105'
-            : 'cursor-grab'
-          : ''
+            ? 'cursor-grabbing scale-110 shadow-[0_20px_60px_-12px_rgba(14,116,144,0.8)]'
+            : 'cursor-grab hover:scale-105'
+          : 'hover:scale-110'
       }`}
       style={{
         left: position.x,
@@ -230,25 +230,52 @@ export default function FloatingAIChatButton() {
           isDragging ? '' : 'ai-chat-float'
         }`}
       >
-        <span
-          className={`absolute inset-0 bg-gradient-to-br from-white/35 via-white/10 to-white/5 blur-xl pointer-events-none transition-opacity duration-500 ${
-            isDragging ? 'opacity-0' : 'opacity-80 group-hover:opacity-95 ai-chat-soft-glow'
-          }`}
-        />
+        {/* Background gradient layers */}
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-400/20 via-blue-500/15 to-indigo-600/20 rounded-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-tl from-cyan-300/10 via-transparent to-purple-400/10 rounded-2xl" />
+        
+        {/* Animated glow effect */}
+        {!isDragging && (
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-400/30 to-blue-600/20 rounded-2xl ai-chat-soft-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        )}
+
+        {/* Pulse rings */}
         {!isDragging && (
           <>
-            <span className="ai-chat-pulse-ring absolute inset-1 rounded-[10px] border border-white/35 pointer-events-none" />
-            <span
-              className="ai-chat-pulse-ring absolute inset-1 rounded-[20px] border border-sky-200/35 pointer-events-none"
-              style={{ animationDelay: '1.6s' }}
+            <div className="ai-chat-pulse-ring absolute inset-0 rounded-2xl border-2 border-sky-300/40" />
+            <div 
+              className="ai-chat-pulse-ring absolute inset-0 rounded-2xl border border-blue-400/30"
+              style={{ animationDelay: '2s' }}
+            />
+            <div 
+              className="ai-chat-pulse-ring absolute inset-0 rounded-2xl border border-cyan-300/20"
+              style={{ animationDelay: '4s' }}
             />
           </>
         )}
-        <span className="absolute inset-0 bg-gradient-to-br from-sky-400/35 to-sky-600/25 opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
-        <PharmAIIcon className="w-9 h-9 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
+
+        {/* Shimmer effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-2xl ai-chat-shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Main background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-sky-400/10 to-blue-500/15 rounded-2xl backdrop-blur-sm" />
+
+        {/* Icon container */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full">
+          <PharmAIIcon className="w-8 h-8 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 drop-shadow-lg" />
+        </div>
+
+        {/* Subtle inner highlight */}
+        <div className="absolute inset-1 bg-gradient-to-br from-white/10 to-transparent rounded-xl pointer-events-none" />
       </div>
-      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap border border-white/20 shadow-lg">
-        {t('ai_chat', 'AI Chat')}
+
+      {/* Enhanced tooltip */}
+      <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl text-white text-xs px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap border border-white/20 shadow-2xl">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-gradient-to-r from-sky-400 to-blue-500 rounded-full animate-pulse" />
+          <span className="font-medium">{t('ai_chat', 'AI Chat')}</span>
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900/95" />
       </div>
     </button>
   );
