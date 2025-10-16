@@ -12,6 +12,8 @@ import ProductAvatar from '@/components/ProductAvatar';
 import VerifiedName from '@/components/VerifiedName';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { calculatePharmacyETA } from '@/lib/eta';
+import ProductDetailSkeletonMobile from '@/components/ProductDetailSkeletonMobile';
+import ProductDetailSkeletonDesktop from '@/components/ProductDetailSkeletonDesktop';
 
 export default function ProductDetail({ product, pharmacy }) {
   const { user } = useAuth();

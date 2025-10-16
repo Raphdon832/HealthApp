@@ -40,6 +40,8 @@ import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import AppBootstrapLoader from '@/components/AppBootstrapLoader';
 import FloatingAIChatButton from '@/components/FloatingAIChatButton';
+import ProductDetailSkeletonMobile from '@/components/ProductDetailSkeletonMobile';
+import ProductDetailSkeletonDesktop from '@/components/ProductDetailSkeletonDesktop';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -235,21 +237,43 @@ function ProductDetailRoute() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [pharmacy, setPharmacy] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      const prodSnap = await getDoc(firestoreDoc(db, "products", id));
-      const prodData = prodSnap.data();
-      setProduct(prodData ? { id, ...prodData } : null);
-      if (prodData?.pharmacyId) {
-        const pharmSnap = await getDoc(
-          firestoreDoc(db, "pharmacies", prodData.pharmacyId)
-        );
-        setPharmacy(pharmSnap.data());
+      setLoading(true);
+      try {
+        const prodSnap = await getDoc(firestoreDoc(db, "products", id));
+        const prodData = prodSnap.data();
+        setProduct(prodData ? { id, ...prodData } : null);
+        if (prodData?.pharmacyId) {
+          const pharmSnap = await getDoc(
+            firestoreDoc(db, "pharmacies", prodData.pharmacyId)
+          );
+          setPharmacy(pharmSnap.data());
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div>
+        <div className="md:hidden">
+          <ProductDetailSkeletonMobile />
+        </div>
+        <div className="hidden md:block">
+          <ProductDetailSkeletonDesktop />
+        </div>
+      </div>
+    );
+  }
 
   if (!product) return null;
   return <ProductDetail product={product} pharmacy={pharmacy} />;
