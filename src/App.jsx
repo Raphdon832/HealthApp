@@ -42,6 +42,8 @@ import AppBootstrapLoader from '@/components/AppBootstrapLoader';
 import FloatingAIChatButton from '@/components/FloatingAIChatButton';
 import ProductDetailSkeletonMobile from '@/components/ProductDetailSkeletonMobile';
 import ProductDetailSkeletonDesktop from '@/components/ProductDetailSkeletonDesktop';
+import VendorProfileSkeletonMobile from '@/components/VendorProfileSkeletonMobile';
+import VendorProfileSkeletonDesktop from '@/components/VendorProfileSkeletonDesktop';
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -279,6 +281,45 @@ function ProductDetailRoute() {
   return <ProductDetail product={product} pharmacy={pharmacy} />;
 }
 
+function VendorProfileRoute() {
+  const { id } = useParams();
+  const [vendor, setVendor] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const vendorSnap = await getDoc(firestoreDoc(db, "pharmacies", id));
+        const vendorData = vendorSnap.data();
+        setVendor(vendorData ? { id, ...vendorData } : null);
+      } catch (error) {
+        console.error('Error fetching vendor:', error);
+        setVendor(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div>
+        <div className="md:hidden">
+          <VendorProfileSkeletonMobile />
+        </div>
+        <div className="hidden md:block">
+          <VendorProfileSkeletonDesktop />
+        </div>
+      </div>
+    );
+  }
+
+  if (!vendor) return null;
+  return <VendorProfile />;
+}
+
 function ProfileRouter() {
   const { profile } = useAuth();
   if (!profile) return null;
@@ -399,7 +440,7 @@ function Shell() {
           path="/"
           element={<RoleBasedRootRoute />}
         />
-        <Route path="/vendor/:id" element={<VendorProfile />} />
+        <Route path="/vendor/:id" element={<VendorProfileRoute />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
         <Route 
