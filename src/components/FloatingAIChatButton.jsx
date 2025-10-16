@@ -34,26 +34,35 @@ export default function FloatingAIChatButton() {
     styleEl.id = styleId;
     styleEl.textContent = `
       @keyframes aiChatFloat {
-        0%, 100% { transform: translate3d(0, 0, 0); }
-        50% { transform: translate3d(0, -6px, 0); }
+        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        25% { transform: translate3d(0, -8px, 0) rotate(1deg); }
+        50% { transform: translate3d(0, -4px, 0) rotate(0deg); }
+        75% { transform: translate3d(0, -8px, 0) rotate(-1deg); }
       }
       @keyframes aiChatPulseRing {
-        0% { transform: scale(0.85); opacity: 0.28; }
-        60% { transform: scale(1.25); opacity: 0; }
-        100% { transform: scale(1.45); opacity: 0; }
+        0% { transform: scale(0.8); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 0.3; }
+        100% { transform: scale(1.6); opacity: 0; }
       }
       @keyframes aiChatGlow {
-        0%, 100% { opacity: 0.2; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(1.08); }
+        0%, 100% { opacity: 0.3; transform: scale(1); filter: blur(8px); }
+        50% { opacity: 0.6; transform: scale(1.1); filter: blur(12px); }
+      }
+      @keyframes aiChatShimmer {
+        0% { transform: translateX(-100%) skewX(-12deg); }
+        100% { transform: translateX(200%) skewX(-12deg); }
       }
       .ai-chat-float {
-        animation: aiChatFloat 6s ease-in-out infinite;
+        animation: aiChatFloat 8s ease-in-out infinite;
       }
       .ai-chat-soft-glow {
-        animation: aiChatGlow 5.8s ease-in-out infinite;
+        animation: aiChatGlow 6s ease-in-out infinite;
       }
       .ai-chat-pulse-ring {
-        animation: aiChatPulseRing 3.8s ease-out infinite;
+        animation: aiChatPulseRing 4s ease-out infinite;
+      }
+      .ai-chat-shimmer {
+        animation: aiChatShimmer 3s ease-in-out infinite;
       }
     `;
     document.head.appendChild(styleEl);
