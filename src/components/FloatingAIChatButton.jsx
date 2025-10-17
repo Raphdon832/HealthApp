@@ -95,7 +95,7 @@ export default function FloatingAIChatButton() {
     <button
       ref={buttonRef}
       onClick={() => navigate('/ai-chat')}
-      className="fixed bottom-32 right-4 z-50 w-14 h-14 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-110"
+      className="fixed bottom-44 right-4 z-50 w-14 h-14 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-110"
       aria-label={t('ai_chat', 'AI Chat')}
     >
       {/* Gradient border container */}
