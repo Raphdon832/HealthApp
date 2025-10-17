@@ -27,7 +27,7 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
                 <div className="text-[17px] md:text-[26px] lg:text-[20px] font-regular font-poppins text-gray-900 dark:text-white">
                   {t('hello', 'Hello')}{user ? `, ${user.displayName?.split(' ')[0] || t('friend', 'Friend')}` : ''}
                 </div>
-                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] md:text-[12px] lg:text-[14px] font-thin font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
+                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] md:text-[12px] lg:text-[14px] font-light font-poppins truncate max-w-xs md:max-w-md lg:max-w-lg" title={location}>
                   {location}
                 </span>
               </div>
@@ -40,7 +40,7 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
                     <ClockIcon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mb-0.5 mt-0.5 text-sky-500" />
                     <ChevronRight className="h-4 w-4 md:h-3 md:w-3 lg:h-4 lg:w-4 text-sky-500 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300 animate-pulse" />
                   </div>
-                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-thin text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
+                  <span className="text-[10px] md:text-[12px] lg:text-[14px] font-poppins font-light text-right leading-tight mt-1.5 group-hover:text-blue-600 transition-colors">
                     {etaInfo && closestPharmacy
                       ? `${etaInfo.formatted} ${t('to', 'to')} ${vendors[closestPharmacy.vendorId]?.name || t('nearest_pharmacy', 'nearest pharmacy')}`
                       : userCoords ? t('calculating_eta', 'Calculating ETA...') : t('fetching_location', 'Fetching location...')}

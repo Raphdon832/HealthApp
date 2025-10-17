@@ -328,7 +328,7 @@ export default function PharmacyMap() {
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{t('your_location', 'Your Location')}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{location}</p>
+                  <p className="text-xs text-gray-600 truncate dark:text-gray-400">{location}</p>
                 </div>
               </>
             ) : (
