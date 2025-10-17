@@ -80,7 +80,14 @@ function AppLayout() {
   // Order notifications for pharmacies
   const { newOrder, showNotification, clearNotification, viewOrder } = useOrderNotifications();
 
-  useEffect(() => setTab(location.pathname), [location.pathname]);
+  useEffect(() => {
+    const normalizePath = (pathname) => {
+      if (!pathname) return '/';
+      if (pathname.startsWith('/chat') || pathname.startsWith('/thread')) return '/messages';
+      return pathname;
+    };
+    setTab(normalizePath(location.pathname));
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!user || loading || (profile && profile.role === "pharmacy"))
@@ -146,6 +153,9 @@ function AppLayout() {
   // Detect “chat modal open” via query param
   const params = new URLSearchParams(location.search);
   const chatModalOpen = !!params.get("chat"); // e.g. /messages?chat=<vendorId>
+  const matchChatVendor = useMatch("/chat/:vendorId");
+  const matchThread = useMatch("/thread/:threadId");
+  const isChatRoute = !!(matchChatVendor || matchThread);
 
   // Dev overlay flag
   const showDebug =
@@ -169,14 +179,16 @@ function AppLayout() {
 
   // Device detection and swipe setting check
   const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+  const isDesktop = !isMobileOrTablet;
   const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
   const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
   const isAuthLoading = loading || (user && profile === undefined);
+  const showBottomNav = !chatModalOpen && !isAuthLoading && (!isChatRoute || isDesktop);
 
   return (
     <div
       className={`min-h-screen bg-white w-full flex flex-col items-center px-2 md:px-8 lg:px-16 xl:px-32 ${
-        chatModalOpen ? "" : "pb-24"
+        showBottomNav ? "pb-24" : ""
       }`}
     >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
@@ -188,7 +200,7 @@ function AppLayout() {
       </div>
 
       {/* Hide BottomNav when chat modal flag is on */}
-      {!chatModalOpen && !isAuthLoading && (
+      {showBottomNav && (
         <>
           <BottomNav
             tab={tab}
@@ -395,23 +407,6 @@ function Shell() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth" element={<Navigate to="/auth/onboarding" replace />} />
 
-        {/* Chat page routes - no BottomNav */}
-        <Route
-          path="/chat/:vendorId"
-          element={
-            <RequireAuth>
-              <ChatThread />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/thread/:threadId"
-          element={
-            <RequireAuth>
-              <ChatThread />
-            </RequireAuth>
-          }
-        />
         <Route
           path="/ai-chat"
           element={
@@ -450,6 +445,22 @@ function Shell() {
               <AddProduct />
             </RequireAuth>
           } 
+        />
+        <Route
+          path="/chat/:vendorId"
+          element={
+            <RequireAuth>
+              <ChatThread />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/thread/:threadId"
+          element={
+            <RequireAuth>
+              <ChatThread />
+            </RequireAuth>
+          }
         />
         <Route
           path="/messages"

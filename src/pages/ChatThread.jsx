@@ -28,6 +28,7 @@ import Modal from "@/components/Modal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useTranslation } from "@/lib/language";
 import VerifiedName from "@/components/VerifiedName";
+import Messages from "@/pages/Messages";
 
 /* Prescription */
 import PrescriptionPreview from "@/components/PrescriptionPreview";
@@ -138,6 +139,37 @@ const MessageSkeleton = React.memo(() => (
 
 MessageSkeleton.displayName = "MessageSkeleton";
 
+function useIsDesktop(minWidth = 1024) {
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia(`(min-width: ${minWidth}px)`).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mediaQuery = window.matchMedia(`(min-width: ${minWidth}px)`);
+    const handleChange = (event) => setIsDesktop(event.matches);
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+
+    setIsDesktop(mediaQuery.matches);
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, [minWidth]);
+
+  return isDesktop;
+}
+
 export default function ChatThread() {
   const { user, profile } = useAuth();
   const { getSetting } = useSettings();
@@ -145,13 +177,18 @@ export default function ChatThread() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const threadFromStateRef = useRef(location.state?.thread || null);
-  const initialThread = threadFromStateRef.current;
+  const [stateThread, setStateThread] = useState(location.state?.thread || null);
+  const isDesktop = useIsDesktop();
 
   // Get vendorId and threadId from URL parameters
   const vendorIdFromUrl = params.vendorId;
   const threadIdFromUrl = params.threadId;
 
+  useEffect(() => {
+    setStateThread(location.state?.thread || null);
+  }, [location.state, location.key]);
+
+  const initialThread = stateThread;
   const [threadId, setThreadId] = useState(
     threadIdFromUrl || initialThread?.id || null
   );
@@ -182,7 +219,9 @@ export default function ChatThread() {
   const productImage = queryParams.get("productImage");
   const vendorName = queryParams.get("vendorName");
   const productPrice = queryParams.get("productPrice"); // <-- Add this line
-  const prefillMsg = queryParams.get("prefillMsg");  useEffect(() => {
+  const prefillMsg = queryParams.get("prefillMsg");
+
+  useEffect(() => {
     if (!initialThread) return;
 
     if (profile?.role === "customer") {
@@ -514,11 +553,20 @@ export default function ChatThread() {
   }, [productName, productPrice, productId, prefillMsg]);
 
   return (
-    // Make the chat UI cover the full viewport and allow inner scrolling to work
     <div
-      className="h-screen w-full flex flex-col items-stretch overflow-visible bg-white dark:bg-gray-900"
-      style={{ position: "relative" }}
+      className={`h-screen w-full bg-white dark:bg-gray-900 ${
+        isDesktop ? "flex" : "flex flex-col"
+      }`}
     >
+      {isDesktop && (
+        <aside className="relative z-10 flex h-full w-[340px] flex-shrink-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+          <Messages
+            variant="sidebar"
+            selectedThreadId={threadId || undefined}
+          />
+        </aside>
+      )}
+      <div className="relative flex h-full flex-1 flex-col items-stretch overflow-visible bg-white dark:bg-gray-900">
       {/* Fixed background layer (non-scrollable) placed above page background but behind UI */}
       <div
         aria-hidden
@@ -556,26 +604,28 @@ export default function ChatThread() {
           style={{
             paddingTop: "env(safe-area-inset-top, 0)",
             // Force the header background to span the full viewport width even when content is centered with max-width
-            width: "100vw",
-            marginLeft: "calc(50% - 50vw)",
+            width: isDesktop ? "100%" : "100vw",
+            marginLeft: isDesktop ? 0 : "calc(50% - 50vw)",
             // Respect safe-area on notch devices
             paddingRight: "env(safe-area-inset-right, 0)",
           }}
         >
           <div className="w-full px-4 sm:px-5 pt-6 pb-3 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  if (window.history.length > 1) {
-                    navigate(-1);
-                  } else {
-                    navigate("/messages");
-                  }
-                }}
-                className="rounded-full border border-gray-200 dark:border-gray-600 dark:border-gray-600 px-3 sm:px-4 py-1 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
+              {!isDesktop && (
+                <button
+                  onClick={() => {
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate("/messages");
+                    }
+                  }}
+                  className="rounded-full border border-gray-200 dark:border-gray-600 px-3 py-1 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800 sm:px-4"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+              )}
               {/* Customer: show pharmacy name as link */}
               {profile?.role === "customer" ? (
                 <button
@@ -804,8 +854,8 @@ export default function ChatThread() {
             style={{
               paddingBottom: "env(safe-area-inset-bottom, 0)",
               // Make the composer background truly full-bleed across the viewport
-              width: "100vw",
-              marginLeft: "calc(50% - 50vw)",
+              width: isDesktop ? "100%" : "100vw",
+              marginLeft: isDesktop ? 0 : "calc(50% - 50vw)",
               paddingLeft: "env(safe-area-inset-left, 0)",
               paddingRight: "env(safe-area-inset-right, 0)",
             }}
@@ -878,7 +928,6 @@ export default function ChatThread() {
         {/* Removed PrescriptionList from chat thread view as per requirements */}
       </div>
     </div>
+  </div>
   );
 }
-
-

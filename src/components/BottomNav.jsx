@@ -15,6 +15,29 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ left: 0, opacity: 0 });
   const navRef = useRef(null);
   const buttonRefs = useRef({});
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
+  
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (event) => setIsDesktop(event.matches);
+    if (mq.addEventListener) {
+      mq.addEventListener('change', handleChange);
+    } else {
+      mq.addListener(handleChange);
+    }
+    setIsDesktop(mq.matches);
+    return () => {
+      if (mq.removeEventListener) {
+        mq.removeEventListener('change', handleChange);
+      } else {
+        mq.removeListener(handleChange);
+      }
+    };
+  }, []);
   
   const items = [
     isPharmacy
@@ -27,7 +50,11 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     { key: '/profile', label: t('profile', 'Profile'), icon: ProfileIcon },
   ];
 
-  // Calculate position of active indicator
+  // Clamp large unread counts for badge display and make it a string
+  const displayUnread = unreadMessages > 99 ? '99+' : String(unreadMessages || '');
+  const isMessagesActive = tab === '/messages';
+  const isCompactDesktopMessages = isDesktop && isMessagesActive;
+  
   const updateActiveIndicator = () => {
     const activeIndex = items.findIndex(item => item.key === tab);
     const activeButton = buttonRefs.current[tab];
@@ -36,9 +63,8 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     if (activeButton && navContainer && activeIndex !== -1) {
       const navRect = navContainer.getBoundingClientRect();
       const buttonRect = activeButton.getBoundingClientRect();
-      
-      // Calculate the center position of the active button relative to nav container
-      const left = buttonRect.left - navRect.left + (buttonRect.width / 2) - 20; // 20px = half indicator width
+      const indicatorHalfWidth = isCompactDesktopMessages ? 18 : 20;
+      const left = buttonRect.left - navRect.left + (buttonRect.width / 2) - indicatorHalfWidth;
       
       setActiveIndicatorStyle({
         left: `${left}px`,
@@ -49,16 +75,13 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     }
   };
 
-  // Clamp large unread counts for badge display and make it a string
-  const displayUnread = unreadMessages > 99 ? '99+' : String(unreadMessages || '');
-
   // Update indicator position when tab changes or items change
   useEffect(() => {
     // Use requestAnimationFrame for immediate, smooth updates
     requestAnimationFrame(() => {
       updateActiveIndicator();
     });
-  }, [tab, items]);
+  }, [tab, items, isCompactDesktopMessages]);
 
   // Handle window resize with throttling
   useEffect(() => {
@@ -88,14 +111,37 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
 
   // Show a tiny debug overlay when URL includes ?debugBottomNav=1
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
+  const wrapperClassName = isCompactDesktopMessages
+    ? 'fixed bottom-6 left-6 md:left-12 lg:left-64 xl:left-80 flex justify-start z-50 px-0'
+    : 'fixed bottom-3 left-0 right-0 flex justify-center z-50 px-3 sm:px-4';
+  const navClassName = [
+    'liquid-bottom-nav bg-white/95 dark:bg-gray-900/40 backdrop-blur-md relative border',
+    isCompactDesktopMessages
+      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-2xl border-sky-200 dark:border-sky-300/60 shadow-lg'
+      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 border-sky-300 dark:border-sky-300'
+  ].join(' ');
+  const buttonSizeClasses = isCompactDesktopMessages
+    ? 'min-w-[48px] px-1 py-2.5'
+    : 'min-w-[56px] sm:min-w-[64px] md:min-w-[72px] px-1 sm:px-2 py-3';
+  const iconSizeClasses = isCompactDesktopMessages
+    ? 'h-6 w-6 mb-1.5'
+    : 'h-7 w-7 sm:h-7 sm:w-7 mb-2 sm:mb-2';
+  const labelSizeClasses = isCompactDesktopMessages
+    ? 'text-[10px]'
+    : 'text-[10px] sm:text-[12px]';
+  const labelMaxWidthClasses = isCompactDesktopMessages
+    ? 'max-w-[52px]'
+    : 'max-w-[56px] sm:max-w-[72px]';
+  const indicatorBottom = isCompactDesktopMessages ? '4.6rem' : '5.8rem';
+  const indicatorWidth = isCompactDesktopMessages ? '2.25rem' : '2.5rem';
 
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50 px-3 sm:px-4" aria-hidden={false}>
+    <div className={wrapperClassName} aria-hidden={false}>
       <nav
         ref={navRef}
         role="navigation"
         aria-label="Bottom navigation"
-        className="liquid-bottom-nav max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 bg-white/95 dark:bg-gray-900/40 backdrop-blur-md border border-sky-300 dark:border-sky-300 relative"
+        className={navClassName}
         style={{
           // Ensure consistent rendering across mobile browsers
           WebkitTouchCallout: 'none',
@@ -111,13 +157,15 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       >
         {/* Animated active indicator */}
         <div
-          className="absolute bottom-[5.8rem] w-10 h-2 bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
+          className="absolute h-2 bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
           style={{
             left: activeIndicatorStyle.left,
             opacity: activeIndicatorStyle.opacity,
             transition: 'left 0.25s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.15s ease-out',
             transform: `scale(${activeIndicatorStyle.opacity})`,
             boxShadow: '0 2px 8px rgba(56, 165, 255, 0.4), 0 0 16px rgba(56, 165, 255, 0.2)',
+            bottom: indicatorBottom,
+            width: indicatorWidth,
           }}
         />
         
@@ -144,14 +192,14 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   onClick={() => setTab(it.key)}
                   aria-label={it.label}
                   aria-pressed={isActive}
-                  className={`relative flex flex-col items-center text-xs min-w-[56px] sm:min-w-[64px] md:min-w-[72px] px-1 sm:px-2 py-3 focus:outline-none transition-all duration-150 ease-out will-change-transform ${
+                  className={`relative flex flex-col items-center text-xs ${buttonSizeClasses} focus:outline-none transition-all duration-150 ease-out will-change-transform ${
                     isActive 
                       ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
                 >
                   <div className="relative z-10 transition-transform duration-150 ease-out will-change-transform hover:scale-110">
-                    <IconComponent {...iconProps} className={`h-7 w-7 sm:h-7 sm:w-7 mb-2 sm:mb-2 transition-all duration-150 ease-out ${
+                    <IconComponent {...iconProps} className={`${iconSizeClasses} transition-all duration-150 ease-out ${
                       isActive ? 'drop-shadow-lg' : ''
                     }`} />
                   </div>
@@ -185,9 +233,13 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                     })()
                   )}
                   
-                  <span className={`truncate max-w-[56px] sm:max-w-[72px] block text-center text-[10px] sm:text-[12px] transition-all duration-150 ease-out ${
-                    isActive ? 'font-bold' : 'font-normal'
-                  }`}>{it.label}</span>
+                  <span
+                    className={`truncate ${labelMaxWidthClasses} block text-center ${labelSizeClasses} transition-all duration-150 ease-out ${
+                      isActive ? 'font-bold' : 'font-normal'
+                    }`}
+                  >
+                    {it.label}
+                  </span>
                 </button>
               </div>
             );
