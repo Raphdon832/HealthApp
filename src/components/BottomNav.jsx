@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import HomeIcon from '../icons/react/HomeIcon';
 import OrdersIcon from '../icons/react/OrdersIcon';
 import MessagesIcon from '../icons/react/MessagesIcon';
@@ -8,6 +8,25 @@ import DashboardIcon from '../icons/react/DashboardIcon';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
 
+function getCompactPositionFromWindow() {
+  const defaultPosition = { left: '2rem', bottom: '2rem' };
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    return defaultPosition;
+  }
+
+  if (window.matchMedia('(min-width: 1280px)').matches) {
+    return { left: '18rem', bottom: '2rem' }; // xl:left-72
+  }
+  if (window.matchMedia('(min-width: 1024px)').matches) {
+    return { left: '16rem', bottom: '2rem' }; // lg:left-64
+  }
+  if (window.matchMedia('(min-width: 768px)').matches) {
+    return { left: '4rem', bottom: '2rem' }; // md:left-16
+  }
+
+  return defaultPosition; // base left-8
+}
+
 export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
   const { t } = useTranslation();
@@ -15,6 +34,8 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ left: 0, opacity: 0 });
   const navRef = useRef(null);
   const buttonRefs = useRef({});
+  const previousBoundsRef = useRef(null);
+  const [compactPosition, setCompactPosition] = useState(() => getCompactPositionFromWindow());
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
     return window.matchMedia('(min-width: 1024px)').matches;
@@ -38,6 +59,19 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleResize = () => {
+      const next = getCompactPositionFromWindow();
+      setCompactPosition((prev) =>
+        prev.left === next.left && prev.bottom === next.bottom ? prev : next
+      );
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const items = [
     isPharmacy
@@ -54,6 +88,33 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const displayUnread = unreadMessages > 99 ? '99+' : String(unreadMessages || '');
   const isMessagesActive = tab === '/messages';
   const isCompactDesktopMessages = isDesktop && isMessagesActive;
+
+  useLayoutEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+
+    const nextRect = navEl.getBoundingClientRect();
+    const prevRect = previousBoundsRef.current;
+
+    if (prevRect) {
+      const deltaX = prevRect.left - nextRect.left;
+      const deltaY = prevRect.top - nextRect.top;
+
+      if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+        navEl.style.transition = 'none';
+        navEl.style.willChange = 'transform';
+        navEl.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+
+        requestAnimationFrame(() => {
+          navEl.style.transition = '';
+          navEl.style.transform = '';
+          navEl.style.willChange = '';
+        });
+      }
+    }
+
+    previousBoundsRef.current = nextRect;
+  }, [compactPosition, isCompactDesktopMessages]);
   
   const updateActiveIndicator = () => {
     const activeIndex = items.findIndex(item => item.key === tab);
@@ -63,7 +124,7 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     if (activeButton && navContainer && activeIndex !== -1) {
       const navRect = navContainer.getBoundingClientRect();
       const buttonRect = activeButton.getBoundingClientRect();
-      const indicatorHalfWidth = isCompactDesktopMessages ? 18 : 20;
+      const indicatorHalfWidth = indicatorStyles.halfWidth;
       const left = buttonRect.left - navRect.left + (buttonRect.width / 2) - indicatorHalfWidth;
       
       setActiveIndicatorStyle({
@@ -111,14 +172,26 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
 
   // Show a tiny debug overlay when URL includes ?debugBottomNav=1
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugBottomNav') === '1';
-  const wrapperClassName = isCompactDesktopMessages
-    ? 'fixed bottom-6 left-6 md:left-12 lg:left-64 xl:left-80 flex justify-start z-50 px-0'
-    : 'fixed bottom-3 left-0 right-0 flex justify-center z-50 px-3 sm:px-4';
+  const navEase = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const wrapperStyle = isCompactDesktopMessages
+    ? {
+        bottom: compactPosition.bottom,
+        left: compactPosition.left,
+        transform: 'translate3d(0, 0, 0)',
+        transition: `bottom 420ms ${navEase}, left 420ms ${navEase}, transform 420ms ${navEase}`,
+      }
+    : {
+        bottom: '1rem', // bottom-4
+        left: '50%',
+        transform: 'translate3d(-50%, 0, 0)',
+        transition: `bottom 420ms ${navEase}, left 420ms ${navEase}, transform 420ms ${navEase}`,
+      };
+  const wrapperClassName = `fixed z-50 flex items-end`;
   const navClassName = [
-    'liquid-bottom-nav bg-white/95 dark:bg-gray-900/40 backdrop-blur-md relative border',
+    'liquid-bottom-nav bg-white/95 dark:bg-gray-900/40 backdrop-blur-md relative border pointer-events-auto transform-gpu transition-[box-shadow,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
     isCompactDesktopMessages
-      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-2xl border-sky-200 dark:border-sky-300/60 shadow-lg'
-      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 border-sky-300 dark:border-sky-300'
+      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-2xl border-sky-200 dark:border-sky-300/60 shadow-[0_25px_60px_-20px_rgba(56,165,255,0.45)]'
+      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 border-sky-300 dark:border-sky-300 shadow-[0_25px_50px_-25px_rgba(56,165,255,0.25)]'
   ].join(' ');
   const buttonSizeClasses = isCompactDesktopMessages
     ? 'min-w-[48px] px-1 py-2.5'
@@ -132,11 +205,26 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
   const labelMaxWidthClasses = isCompactDesktopMessages
     ? 'max-w-[52px]'
     : 'max-w-[56px] sm:max-w-[72px]';
-  const indicatorBottom = isCompactDesktopMessages ? '4.6rem' : '5.8rem';
-  const indicatorWidth = isCompactDesktopMessages ? '2.25rem' : '2.5rem';
+  const indicatorStyles = isCompactDesktopMessages
+    ? {
+        bottom: '4.2rem',
+        width: '2.35rem',
+        height: '0.45rem',
+        borderRadius: '9999px',
+        halfWidth: 2.35 * 16 * 0.5,
+      }
+    : {
+        bottom: '5.6rem',
+        width: '2.75rem',
+        height: '0.5rem',
+        borderRadius: '9999px',
+        halfWidth: 2.75 * 16 * 0.5,
+      };
+  const indicatorBottom = indicatorStyles.bottom;
+  const indicatorWidth = indicatorStyles.width;
 
   return (
-    <div className={wrapperClassName} aria-hidden={false}>
+    <div className={wrapperClassName} style={wrapperStyle} aria-hidden={false}>
       <nav
         ref={navRef}
         role="navigation"
@@ -157,15 +245,17 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       >
         {/* Animated active indicator */}
         <div
-          className="absolute h-2 bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
+          className="absolute bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
           style={{
             left: activeIndicatorStyle.left,
             opacity: activeIndicatorStyle.opacity,
-            transition: 'left 0.25s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.15s ease-out',
+            transition: `left 260ms ${navEase}, width 320ms ${navEase}, bottom 320ms ${navEase}, opacity 180ms ease-out`,
             transform: `scale(${activeIndicatorStyle.opacity})`,
             boxShadow: '0 2px 8px rgba(56, 165, 255, 0.4), 0 0 16px rgba(56, 165, 255, 0.2)',
             bottom: indicatorBottom,
             width: indicatorWidth,
+            height: indicatorStyles.height,
+            borderRadius: indicatorStyles.borderRadius,
           }}
         />
         

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -34,6 +34,69 @@ export default function Orders() {
   const navigate = useNavigate();
   const location = useLocation();
   const [highlightOrderId, setHighlightOrderId] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(5);
+  const isPharmacy = profile?.role === 'pharmacy';
+  const metrics = useMemo(() => {
+    if (!orders || orders.length === 0) {
+      return {
+        totalRevenue: 0,
+        pendingCount: 0,
+        topMonth: null,
+      };
+    }
+
+    const totalRevenueValue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const pendingCountValue = orders.reduce(
+      (count, order) => count + ((order.status || 'pending') === 'pending' ? 1 : 0),
+      0
+    );
+
+    const monthBuckets = orders.reduce((acc, order) => {
+      let createdAt = null;
+      const firestoreDate = order.createdAt?.toDate?.();
+      if (firestoreDate instanceof Date && !Number.isNaN(firestoreDate.getTime())) {
+        createdAt = firestoreDate;
+      } else if (order.createdAt) {
+        const parsed = new Date(order.createdAt);
+        if (!Number.isNaN(parsed.getTime())) {
+          createdAt = parsed;
+        }
+      }
+
+      if (!createdAt) return acc;
+
+      const key = `${createdAt.getFullYear()}-${createdAt.getMonth()}`;
+      if (!acc[key]) {
+        acc[key] = {
+          total: 0,
+          count: 0,
+          year: createdAt.getFullYear(),
+          month: createdAt.getMonth(),
+        };
+      }
+
+      acc[key].total += Number(order.total || 0);
+      acc[key].count += 1;
+      return acc;
+    }, {});
+
+    const topMonth = Object.values(monthBuckets).sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      return b.count - a.count;
+    })[0] || null;
+
+    return {
+      totalRevenue: totalRevenueValue,
+      pendingCount: pendingCountValue,
+      topMonth,
+    };
+  }, [orders]);
+  const { totalRevenue, pendingCount, topMonth } = metrics;
+  const topMonthLabel = topMonth
+    ? new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(
+        new Date(topMonth.year, topMonth.month, 1)
+      )
+    : t('no_data', 'No data');
   
 
   useEffect(() => {
@@ -88,9 +151,52 @@ export default function Orders() {
     await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
   };
 
-  const filteredOrders = statusFilter === 'all'
-    ? orders
-    : orders.filter(o => (o.status || 'pending') === statusFilter);
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'all') return orders;
+    return orders.filter(o => (o.status || 'pending') === statusFilter);
+  }, [orders, statusFilter]);
+  const displayedOrders = filteredOrders.slice(0, visibleCount);
+  const handleFilterChange = (value) => {
+    setStatusFilter(value);
+    setVisibleCount(5);
+  };
+  const formatCurrency = (value = 0) => `₦${Number(value || 0).toLocaleString()}`;
+  const hasMoreOrders = visibleCount < filteredOrders.length;
+  const canCollapseOrders = visibleCount > 5;
+  const orderLabel = orders.length === 1 ? t('order', 'Order') : t('orders', 'Orders');
+  const pendingLabel = pendingCount === 1 ? t('pending_order', 'Pending Order') : t('pending_orders', 'Pending Orders');
+  const totalOrdersLabel = orders.length
+    ? `${orders.length} ${orderLabel}`
+    : t('no_orders_yet', 'No orders yet.');
+  const otherPendingLabel = pendingCount
+    ? `${pendingCount} ${pendingLabel}`
+    : t('no_pending_orders', 'No pending orders.');
+  const topMonthStatsText = topMonth
+    ? `${formatCurrency(topMonth.total)} • ${topMonth.count} ${
+        topMonth.count === 1 ? t('order', 'Order') : t('orders', 'Orders')
+      }`
+    : t('not_enough_data', 'Not enough data yet');
+  const statCards = [
+    {
+      key: 'total',
+      title: isPharmacy ? t('total_revenue', 'Total Revenue') : t('total_order_value', 'Total Order Value'),
+      value: formatCurrency(totalRevenue),
+      helper: totalOrdersLabel,
+    },
+    {
+      key: 'pending',
+      title: t('pending_orders', 'Pending Orders'),
+      value: pendingCount.toLocaleString(),
+      helper: otherPendingLabel,
+    },
+    {
+      key: 'month',
+      title: isPharmacy ? t('top_selling_month', 'Top Selling Month') : t('top_buying_month', 'Top Buying Month'),
+      value: topMonthLabel,
+      helper: topMonthStatsText,
+    },
+  ];
+  const filterOptions = ['all', ...ORDER_STATUSES];
 
   const toggleExpand = (orderId) => {
     setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
@@ -143,116 +249,229 @@ export default function Orders() {
   return (
     <>
       <FixedHeader title="Orders" t={t} />
-  <div className="pt-10 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen flex flex-col">
-        {/* Filters */}
-        <div className="mt-8 -mx-4 sm:mx-0 sticky top-20 pt-8 sm:static z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
-          <div className="flex gap-2 flex-nowrap px-4 sm:px-0 overflow-x-auto no-scrollbar py-2">
-          <button
-            className={`px-3 py-1 rounded-full border text-[10px] font-light ${statusFilter==='all' ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
-            onClick={()=>setStatusFilter('all')}
-          >{t('all', 'All')}</button>
-          {ORDER_STATUSES.map(s => (
-            <button
-              key={s}
-              className={`px-3 py-1 rounded-full border text-[10px] font-light ${statusFilter===s ? 'bg-sky-600 text-white border-sky-600 dark:border-gray-600' : 'border-zinc-300 dark:border-gray-600 text-zinc-600'}`}
-              onClick={()=>setStatusFilter(s)}
-            >{t(s, s.charAt(0).toUpperCase()+s.slice(1))}</button>
-        ))}
-          </div>
-        </div>
-      <div className="mt-4 space-y-6">
-        {filteredOrders.length === 0 ? (
-          <div className="text-zinc-500 font-extralight text-[13px] sm:text-[14px] md:text-[16px] lg:text-[18px] text-center py-12 animate-fadeInUp">
-            {t('no_orders_yet', 'No orders yet.')}
-          </div>
-        ) : (
-          filteredOrders.map((o, index) => {
-            const items = o.items || [];
-            const isExpanded = expandedOrders[o.id];
-            const showSeeMore = items.length > 4;
-            const visibleItems = isExpanded ? items : items.slice(0, 4);
-            const phone = o.customerPhone || o.customer_phone || o.phone || '';
-            const isRevealed = revealedNumbers[o.id];
-            return (
+      <div className="pt-32 md:pt-36 lg:pt-40 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen">
+        <div className="max-w-[1200px] mx-auto flex flex-col gap-8">
+          <section className="grid gap-4 md:grid-cols-3">
+            {statCards.map(card => (
               <div
-                key={o.id}
-                id={`order-${o.id}`}
-                className={`relative -mx-4 sm:mx-0 rounded-[10px] sm:rounded-[10px] border border-gray-200 dark:border-gray-600 p-4 flex flex-col gap-2 group hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200 card-interactive animate-fadeInUp ${
-                  highlightOrderId===o.id ? 'ring-4 ring-sky-200 dark:ring-sky-800 bg-sky-50 dark:bg-sky-900/30 scale-102' : ''
-                }`}
-                style={{ 
-                  cursor: 'pointer',
-                  animationDelay: `${index * 0.1}s`
-                }}
-                onClick={e => {
-                  // Only open modal if not clicking the see more/less button or status dropdown (pharmacy view)
-                  if (e.target.closest('.order-see-more-btn')) return;
-                  if (profile.role === 'pharmacy' && e.target.closest('.order-status-dropdown')) return;
-                  setModalOrder(o);
-                }}
+                key={card.key}
+                className="rounded-2xl border border-sky-200 dark:border-sky-200 bg-white dark:bg-gray-900 p-6"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="font-light text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px]">{t('order_number', 'Order #')}{o.id.slice(0,6)}</div>
-                    <div className="text-gray-500 dark:text-gray-400 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-light">{o.createdAt?.toDate?.().toLocaleString?.()||''}</div>
-                  </div>
-                  <div className="text-[14px] sm:text-[15px] md:text-[18px] lg:text-[22px] font-medium">₦{Number(o.total).toLocaleString()}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  {card.title}
                 </div>
-                {/* Pharmacy view: show customer info, items, status, and actions */}
-                {profile.role === 'pharmacy' && (
-                  <div className="mt-2">
-                    <div className="text-[13px] text-zinc-500 dark:text-zinc-400 font-light mb-1 flex items-center gap-2">
-                      {t('customer', 'Customer')}: {o.customerName || o.customerId || o.customer_id || 'N/A'}
-                    </div>
-                    <div className="text-[12px] text-zinc-400 dark:text-zinc-500 font-light mb-2">{o.customerEmail || ''}</div>
-                    <div className="text-[13px] text-zinc-700 dark:text-zinc-300 font-medium mb-1">{t('items', 'Items')}:</div>
-                    <ul className="ml-2 list-disc text-[13px] text-zinc-700 dark:text-zinc-300">
-                      {visibleItems.map((item, idx) => (
-                        <li key={idx}>
-                          <span>{item.name || item.productId}</span>
-                          <span> x{item.qty || item.quantity || 1}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {showSeeMore && (
+                <div className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                  {card.value}
+                </div>
+                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  {card.helper}
+                </div>
+              </div>
+            ))}
+          </section>
+          <section className="grid gap-6 lg:grid-cols-[320px,1fr]">
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t('order_filters', 'Order Filters')}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {t('filter_description', 'Narrow down by status to focus on specific orders.')}
+                </p>
+                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {filterOptions.map(option => {
+                    const isActive = statusFilter === option;
+                    const label =
+                      option === 'all'
+                        ? t('all', 'All')
+                        : t(option, option.charAt(0).toUpperCase() + option.slice(1));
+                    return (
                       <button
-                        className="order-see-more-btn text-sky-600 text-xs mt-1 ml-2 font-medium hover:underline focus:outline-none"
+                        key={option}
+                        type="button"
+                        onClick={() => handleFilterChange(option)}
+                        className={`w-full rounded-full border px-4 py-2 text-sm transition ${
+                          isActive
+                            ? 'bg-sky-600 text-white border-sky-600 dark:border-sky-500'
+                            : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-sky-400/70'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t('contact_support', 'Contact Support')}
+                </h2>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  {t(
+                    'contact_support_description',
+                    'Need help with an order? Reach out to our support team for assistance.'
+                  )}
+                </p>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/support')}
+                    className="text-sm font-medium text-sky-600 hover:underline"
+                  >
+                    {t('get_support', 'Get support')}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t('orders', 'Orders')}
+                </h2>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {totalOrdersLabel}
+                </span>
+              </div>
+              <div className="mt-6 space-y-4">
+                {displayedOrders.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                    {t('no_orders_yet', 'No orders yet.')}
+                  </div>
+                ) : (
+                  displayedOrders.map((o, index) => {
+                    const items = o.items || [];
+                    const isExpanded = expandedOrders[o.id];
+                    const showSeeMore = items.length > 4;
+                    const visibleItems = isExpanded ? items : items.slice(0, 4);
+                    const phone = o.customerPhone || o.customer_phone || o.phone || '';
+                    const isRevealed = revealedNumbers[o.id];
+                    return (
+                      <div
+                        key={o.id}
+                        id={`order-${o.id}`}
+                        className={`relative flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 transition duration-200 hover:border-sky-400/70 hover:shadow-sm dark:border-gray-600 dark:bg-gray-900 ${
+                          highlightOrderId === o.id
+                            ? 'ring-4 ring-sky-200 dark:ring-sky-800 bg-sky-50/70 dark:bg-sky-900/30'
+                            : ''
+                        } animate-fadeInUp`}
+                        style={{
+                          cursor: 'pointer',
+                          animationDelay: `${index * 0.08}s`,
+                        }}
                         onClick={e => {
-                          e.stopPropagation();
-                          toggleExpand(o.id);
+                          if (e.target.closest('.order-see-more-btn')) return;
+                          if (profile?.role === 'pharmacy' && e.target.closest('.order-status-dropdown')) return;
+                          setModalOrder(o);
                         }}
                       >
-                        {isExpanded ? t('see_less', 'See less') : `${t('see_more', 'See more')} (${items.length - 4} ${t('more_items', 'more')})`}
-                      </button>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[12px] text-zinc-500 dark:text-zinc-400">{t('status', 'Status')}:</span>
-                      <select
-                        className="order-status-dropdown border rounded px-2 py-1 text-[12px]"
-                        value={o.status || 'pending'}
-                        onChange={e => handleStatusChange(o.id, e.target.value)}
-                      >
-                        {ORDER_STATUSES.map(s => <option key={s} value={s}>{t(s, s.charAt(0).toUpperCase()+s.slice(1))}</option>)}
-                      </select>
-                      {phone && !isRevealed && (
-                        <button
-                          className="ml-2 px-3 py-1 rounded-full bg-sky-600 text-white text-[12px] font-light"
-                          onClick={e => {
-                            e.stopPropagation();
-                            setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
-                          }}
-                        >{t('reveal_number', 'Reveal Number')}</button>
-                      )}
-                      {phone && isRevealed && (
-                        <span className="ml-2 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">{phone}</span>
-                      )}
-                    </div>
-                  </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <div className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                              {t('order_number', 'Order #')}
+                              {o.id.slice(0, 6)}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                              {o.createdAt?.toDate?.().toLocaleString?.() || ''}
+                            </div>
+                          </div>
+                          <div className="text-base font-semibold text-sky-700 dark:text-sky-400 sm:text-lg">
+                            {formatCurrency(o.total)}
+                          </div>
+                        </div>
+                        {profile?.role === 'pharmacy' && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                              {t('customer', 'Customer')}:{' '}
+                              <span className="font-medium text-gray-900 dark:text-gray-200">
+                                {o.customerName || o.customerId || o.customer_id || 'N/A'}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500">
+                              {o.customerEmail || ''}
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t('items', 'Items')}
+                              </div>
+                              <ul className="ml-4 list-disc space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                                {visibleItems.map((item, idx) => (
+                                  <li key={idx}>
+                                    <span>{item.name || item.productId}</span>
+                                    <span> ×{item.qty || item.quantity || 1}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {showSeeMore && (
+                                <button
+                                  className="order-see-more-btn mt-1 ml-4 text-xs font-medium text-sky-600 hover:underline"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    toggleExpand(o.id);
+                                  }}
+                                >
+                                  {isExpanded
+                                    ? t('see_less', 'See less')
+                                    : `${t('see_more', 'See more')} (${items.length - 4} ${t('more_items', 'more')})`}
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {t('status', 'Status')}:
+                              </span>
+                              <select
+                                className="order-status-dropdown rounded border border-gray-200 bg-white px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-900"
+                                value={o.status || 'pending'}
+                                onChange={e => handleStatusChange(o.id, e.target.value)}
+                              >
+                                {ORDER_STATUSES.map(s => (
+                                  <option key={s} value={s}>
+                                    {t(s, s.charAt(0).toUpperCase() + s.slice(1))}
+                                  </option>
+                                ))}
+                              </select>
+                              {phone && !isRevealed && (
+                                <button
+                                  className="ml-1 rounded-full bg-sky-600 px-3 py-1 text-xs font-medium text-white"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
+                                  }}
+                                >
+                                  {t('reveal_number', 'Reveal Number')}
+                                </button>
+                              )}
+                              {phone && isRevealed && (
+                                <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                  {phone}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
-            );
-          })
-        )}
+              {filteredOrders.length > 5 && (hasMoreOrders || canCollapseOrders) && (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-sky-600 hover:underline"
+                    onClick={() =>
+                      hasMoreOrders
+                        ? setVisibleCount(prev => Math.min(prev + 5, filteredOrders.length))
+                        : setVisibleCount(5)
+                    }
+                  >
+                    {hasMoreOrders ? t('see_more', 'See more') : t('see_less', 'See less')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
       {/* Modal for order details */}
       <Modal open={!!modalOrder} onClose={() => setModalOrder(null)}>
@@ -286,7 +505,6 @@ export default function Orders() {
           </div>
         )}
       </Modal>
-      </div>
     </>
   );
 }
