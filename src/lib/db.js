@@ -1,5 +1,5 @@
 // src/lib/db.js
-import { db } from "./firebase";
+import { db, storage } from "./firebase";
 import {
   collection,
   query,
@@ -18,6 +18,7 @@ import {
   increment,
   limit,
 } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { sendPayment } from "./payment/send";
 import { onCheckout } from "./payment/checkOut";
 
@@ -101,7 +102,7 @@ export const getOrCreateThread = async ({ vendorId, customerId, role }) => {
 
 export const sendChatMessage = async (
   threadId,
-  { senderId, to, text },
+  { senderId, to, text, imageUrl = null },
   prescriptionId = null
 ) => {
   const messagesCol = collection(db, "threads", threadId, "messages");
@@ -109,6 +110,7 @@ export const sendChatMessage = async (
     senderId,
     to,
     text: text || "",
+    imageUrl: imageUrl,
     createdAt: serverTimestamp(),
     read: false,
     status: "sent", // sent, delivered, read
@@ -118,7 +120,7 @@ export const sendChatMessage = async (
   });
 
   await updateDoc(doc(db, "threads", threadId), {
-    lastMessage: text || "…",
+    lastMessage: imageUrl ? "📷 Image" : (text || "…"),
     lastBy: senderId,
     lastAt: serverTimestamp(),
     [`unread.${to}`]: increment(1),
@@ -133,6 +135,13 @@ export const sendChatMessage = async (
   }, 1000);
 
   return messageRef.id;
+};
+
+export const uploadChatImage = async (file, threadId, senderId) => {
+  const storageRef = ref(storage, `chat-images/${threadId}/${Date.now()}_${file.name}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(snapshot.ref);
+  return downloadURL;
 };
 
 export const markThreadRead = async (threadId, viewerUid) => {

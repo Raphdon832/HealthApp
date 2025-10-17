@@ -16,6 +16,7 @@ import {
   sendChatMessage,
   markThreadRead,
   markMessageDelivered,
+  uploadChatImage,
 } from "@/lib/db";
 import { doc, getDoc } from "firebase/firestore";
 import { Paperclip } from "lucide-react";
@@ -200,6 +201,8 @@ export default function ChatThread() {
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [pharmacyPhone, setPharmacyPhone] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [visibleMessageCount, setVisibleMessageCount] = useState(50); // Start with 50 messages
@@ -471,24 +474,44 @@ export default function ChatThread() {
 
   const onSend = useCallback(async () => {
     const to = otherUid();
-    if (!to || !text.trim() || !threadId) return;
+    if (!to || !threadId) return;
+    if (!text.trim() && !selectedImage) return;
 
     // Optimistically clear input immediately for better UX
     const messageText = text.trim();
+    const imageToSend = selectedImage;
     setText("");
+    setSelectedImage(null);
 
     try {
+      let imageUrl = null;
+      if (imageToSend) {
+        setIsUploadingImage(true);
+        imageUrl = await uploadChatImage(imageToSend, threadId, user.uid);
+        setIsUploadingImage(false);
+      }
+
       await sendChatMessage(threadId, {
         senderId: user.uid,
         to,
         text: messageText,
+        imageUrl,
       });
     } catch (error) {
-      // Restore text if send fails
+      // Restore text and image if send fails
       setText(messageText);
+      setSelectedImage(imageToSend);
+      setIsUploadingImage(false);
       console.error("Failed to send message:", error);
     }
-  }, [threadId, text, user?.uid, otherUid]);
+  }, [threadId, text, selectedImage, user?.uid, otherUid]);
+
+  const handleImageSelect = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImage(file);
+    }
+  }, []);
 
   // Defer pharmacy products listener until the prescription modal opens
   useEffect(() => {
@@ -807,6 +830,16 @@ export default function ChatThread() {
                             lineHeight: 1.2,
                           }}
                         >
+                          {m.imageUrl && (
+                            <div className="mb-2">
+                              <img
+                                src={m.imageUrl}
+                                alt="Shared image"
+                                className="max-w-full max-h-64 object-cover rounded-lg cursor-pointer"
+                                onClick={() => window.open(m.imageUrl, '_blank')}
+                              />
+                            </div>
+                          )}
                           <React.Suspense fallback={<span>{m.text}</span>}>
                             <MessageWithLinks text={m.text} isMine={isMine} />
                           </React.Suspense>
@@ -861,6 +894,29 @@ export default function ChatThread() {
             }}
           >
             <div className="w-full">
+              {selectedImage && (
+                <div className="mx-4 sm:mx-5 mb-2 relative">
+                  <div className="relative inline-block">
+                    <img
+                      src={URL.createObjectURL(selectedImage)}
+                      alt="Selected"
+                      className="max-h-32 max-w-32 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage(null)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {isUploadingImage && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      {t("uploading_image", "Uploading image...")}
+                    </div>
+                  )}
+                </div>
+              )}
               <form
                 className="mx-4 sm:mx-5 flex items-center gap-3 py-3"
                 onSubmit={(e) => {
@@ -869,13 +925,16 @@ export default function ChatThread() {
                 }}
               >
                 <label
-                  className="flex items-center cursor-not-allowed opacity-40"
-                  title={t(
-                    "attachments_coming_soon",
-                    "Attachments coming soon"
-                  )}
+                  className="flex items-center cursor-pointer hover:text-blue-500 transition-colors"
+                  title={t("attach_image", "Attach image")}
                 >
-                  <Paperclip className="h-5 w-5 text-gray-400" />
+                  <Paperclip className="h-5 w-5 text-gray-400 hover:text-blue-500" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
                 </label>
                 <input
                   value={text}
@@ -887,11 +946,11 @@ export default function ChatThread() {
                 <button
                   type="submit"
                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
-                    text.trim()
+                    text.trim() || selectedImage
                       ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
-                  disabled={!text.trim()}
+                  disabled={!text.trim() && !selectedImage}
                 >
                   <img src={SendButtonUrl} alt="Send" className="h-4 w-4" />
                 </button>

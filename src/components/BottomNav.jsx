@@ -188,10 +188,10 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       };
   const wrapperClassName = `fixed z-50 flex items-end`;
   const navClassName = [
-    'liquid-bottom-nav bg-white/95 dark:bg-gray-900/40 backdrop-blur-md relative border pointer-events-auto transform-gpu transition-[box-shadow,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+    'liquid-bottom-nav relative isolate overflow-hidden pointer-events-auto transform-gpu backdrop-blur-2xl bg-white/10 dark:bg-gray-900/10 transition-[box-shadow,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
     isCompactDesktopMessages
-      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-2xl border-sky-200 dark:border-sky-300/60 shadow-[0_25px_60px_-20px_rgba(56,165,255,0.45)]'
-      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-5 py-3 border-sky-300 dark:border-sky-300 shadow-[0_25px_50px_-25px_rgba(56,165,255,0.25)]'
+      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-3xl shadow-[0_35px_65px_-30px_rgba(14,23,38,0.65)]'
+      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-6 py-3.5 rounded-[32px] shadow-[0_40px_80px_-40px_rgba(15,23,42,0.75)]'
   ].join(' ');
   const buttonSizeClasses = isCompactDesktopMessages
     ? 'min-w-[48px] px-1 py-2.5'
@@ -245,13 +245,13 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
       >
         {/* Animated active indicator */}
         <div
-          className="absolute bg-gradient-to-r from-sky-400 to-sky-600 rounded-full shadow-lg will-change-transform"
+          className="absolute bg-gradient-to-r from-cyan-200/85 via-sky-400/90 to-blue-600/90 rounded-full shadow-lg will-change-transform"
           style={{
             left: activeIndicatorStyle.left,
             opacity: activeIndicatorStyle.opacity,
             transition: `left 260ms ${navEase}, width 320ms ${navEase}, bottom 320ms ${navEase}, opacity 180ms ease-out`,
             transform: `scale(${activeIndicatorStyle.opacity})`,
-            boxShadow: '0 2px 8px rgba(56, 165, 255, 0.4), 0 0 16px rgba(56, 165, 255, 0.2)',
+            boxShadow: '0 6px 18px rgba(14, 165, 233, 0.35), 0 0 22px rgba(99, 102, 241, 0.35)',
             bottom: indicatorBottom,
             width: indicatorWidth,
             height: indicatorStyles.height,
