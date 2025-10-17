@@ -235,7 +235,7 @@ export default function Orders() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="text-xl font-poppins font-light mb-6">{t('please_sign_in_continue', 'Please sign in to continue')}</div>
         <button
-          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
+          className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium hover:bg-sky-700 transition"
           onClick={() => navigate('/auth/landing')}
         >
           {t('sign_in_sign_up', 'Sign In / Sign Up')}
@@ -251,7 +251,32 @@ export default function Orders() {
       <FixedHeader title="Orders" t={t} />
       <div className="pt-32 md:pt-36 lg:pt-40 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen">
         <div className="max-w-[1200px] mx-auto flex flex-col gap-8">
-          <section className="grid gap-4 md:grid-cols-3">
+          <div className="lg:hidden sticky top-[7rem] z-40 -mx-4 px-4 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {filterOptions.map(option => {
+                const isActive = statusFilter === option;
+                const label =
+                  option === 'all'
+                    ? t('all', 'All')
+                    : t(option, option.charAt(0).toUpperCase() + option.slice(1));
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => handleFilterChange(option)}
+                    className={`flex-shrink-0 rounded-full border px-4 py-2 text-xs font-normal transition ${
+                      isActive
+                        ? 'bg-sky-600 text-white border-sky-600 dark:border-sky-500'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-sky-400/70'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <section className="mt-1 grid auto-cols-[minmax(220px,1fr)] grid-flow-col gap-4 overflow-x-auto scrollbar-hide pb-1 md:grid-cols-3 md:grid-flow-row md:overflow-visible md:mt-0">
             {statCards.map(card => (
               <div
                 key={card.key}
@@ -270,8 +295,8 @@ export default function Orders() {
             ))}
           </section>
           <section className="grid gap-6 lg:grid-cols-[320px,1fr]">
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm">
+            <div className="hidden space-y-6 lg:block">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {t('order_filters', 'Order Filters')}
                 </h2>
@@ -302,7 +327,7 @@ export default function Orders() {
                   })}
                 </div>
               </div>
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {t('contact_support', 'Contact Support')}
                 </h2>
@@ -323,7 +348,7 @@ export default function Orders() {
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {t('orders', 'Orders')}
@@ -403,7 +428,7 @@ export default function Orders() {
                               </ul>
                               {showSeeMore && (
                                 <button
-                                  className="order-see-more-btn mt-1 ml-4 text-xs font-medium text-sky-600 hover:underline"
+                                  className="order-see-more-btn mt-1 ml-4 text-xs font-normal text-sky-600 hover:underline"
                                   onClick={e => {
                                     e.stopPropagation();
                                     toggleExpand(o.id);
@@ -471,6 +496,28 @@ export default function Orders() {
               )}
             </div>
           </section>
+          <div className="lg:hidden">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('contact_support', 'Contact Support')}
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                {t(
+                  'contact_support_description',
+                  'Need help with an order? Reach out to our support team for assistance.'
+                )}
+              </p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => navigate('/support')}
+                  className="text-sm font-medium text-sky-600 hover:underline"
+                >
+                  {t('get_support', 'Get support')}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {/* Modal for order details */}
