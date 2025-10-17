@@ -290,22 +290,14 @@ export const listenCart = (uid, cb) =>
 export const removeFromCart = (uid, itemId) =>
   deleteDoc(doc(db, "users", uid, "cart", itemId));
 
-export const placeOrder = async ({
-  customerId,
-  pharmacyId,
-  items,
-  total,
-  email,
-  prescription = false,
-}) => {
+export const placeOrder = async (orderData) => {
+  const { customerId, items, total, prescription = false } = orderData;
   const paymentSuccess = await onCheckout(total);
   const { data, status } = paymentSuccess;
-  console.log("Data: ", data);
-  console.log("Items: ", items);
   if (status) {
     setDoc(doc(db, "orders", data.orderId), {
       customerId,
-      customerEmail: email,
+      customerEmail: orderData.customerEmail,
       items: items.map((it) => ({
         productId: it.productId,
         pharmacyId: it.pharmacyId,
@@ -317,8 +309,12 @@ export const placeOrder = async ({
         transferStatus: null,
       })),
       total,
+      subtotal: orderData.subtotal,
       paystackReference: data.paystackReference,
       status: "paid",
+      paymentMethod: orderData.paymentMethod,
+      deliveryFee: orderData.deliveryFee,
+      deliveryAddress: orderData.deliveryAddress,
       prescriptionId: prescription ? prescription : null,
       paidAt: serverTimestamp(),
       createdAt: serverTimestamp(),

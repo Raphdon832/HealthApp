@@ -20,6 +20,7 @@ import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
+import { getRouteDistance } from "../lib/Distance/distance";
 
 export function CheckOut({ items, total, onClose, prescription = false }) {
   const { user } = useAuth();
@@ -43,110 +44,93 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     if (user && !deliveryAddress) {
       setCustomerEmail(user.email || "");
       setCustomerPhone(user.phoneNumber || "");
-      setDeliveryAddress(location || "Current location");
+      // setDeliveryAddress(location || "Current location");
     }
   }, [user, location, deliveryAddress]);
 
   // Calculate delivery fee when items change
-  useEffect(() => {
-    if (items.length > 0 && userCoords) {
-      calculateDeliveryFee();
-    }
-  }, [items, userCoords]);
-
-  const totalWithDelivery = useMemo(
-    () => total + deliveryFee,
-    [total, deliveryFee]
-  );
+  // useEffect(() => {
+  //   if (items.length > 0) {
+  //     calculateDeliveryFee();
+  //   }
+  // }, [items]);
 
   // Calculate delivery fee based on distance to pharmacies
   const calculateDeliveryFee = async () => {
-    if (!userCoords || items.length === 0) {
+    if (items.length === 0) {
       setDeliveryFee(0);
       return;
     }
 
     try {
       // Get unique pharmacies from cart items
-      const pharmacyIds = [
-        ...new Set(
-          items.map((item) => item.product?.pharmacyId).filter(Boolean)
-        ),
-      ];
+      // const pharmacyIds = [
+      //   ...new Set(
+      //     items.map((item) => item.product?.pharmacyId).filter(Boolean)
+      //   ),
+      // ];
+      const pharmacyId = items[0].pharmacyId;
       let totalDistance = 0;
+      let pharmLat, pharmLng;
 
-      for (const pharmacyId of pharmacyIds) {
-        const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
-        const pharmacy = pharmacyDoc.data();
+      const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
 
-        if (pharmacy) {
-          // Handle different coordinate formats
-          let pharmLat, pharmLon;
-          if (
-            pharmacy.coordinates?.latitude &&
-            pharmacy.coordinates?.longitude
-          ) {
-            pharmLat = pharmacy.coordinates.latitude;
-            pharmLon = pharmacy.coordinates.longitude;
-          } else if (pharmacy.lat && pharmacy.lon) {
-            pharmLat = pharmacy.lat;
-            pharmLon = pharmacy.lon;
-          } else if (pharmacy.latitude && pharmacy.longitude) {
-            pharmLat = pharmacy.latitude;
-            pharmLon = pharmacy.longitude;
-          }
+      if (!pharmacyDoc.exists()) return;
 
-          if (pharmLat && pharmLon) {
-            const distance = getDistance(
-              userCoords.latitude,
-              userCoords.longitude,
-              pharmLat,
-              pharmLon
-            );
-            totalDistance += distance;
-          }
-        }
-      }
+      const pharmacy = pharmacyDoc.data();
+      pharmLat = pharmacy.lat;
+      pharmLng = pharmacy.lon;
+      console.log("Customer Address: ", deliveryAddress);
+
+      const { distanceMeters } = await getRouteDistance({
+        pharmacyLocation: { pharmLat, pharmLng },
+        customerLocation: {
+          customerlat: 0,
+          customerLng: 0,
+          customerAddress: deliveryAddress,
+        },
+      });
+      distanceMeters;
 
       // ₦300 per km
-      const fee = Math.round(totalDistance * 300);
+      const fee = Math.round(distanceMeters * 0.05);
       setDeliveryFee(fee);
     } catch (error) {
       console.error("Error calculating delivery fee:", error);
-      setDeliveryFee(300); // Default fee
+      // setDeliveryFee(300); // Default fee
     }
   };
 
   // Address autocomplete function
-  const searchAddresses = async (query) => {
-    if (query.length < 3) {
-      setAddressSuggestions([]);
-      return;
-    }
+  // const searchAddresses = async (query) => {
+  //   if (query.length < 3) {
+  //     setAddressSuggestions([]);
+  //     return;
+  //   }
 
-    setIsLoadingAddress(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query
-        )}&limit=5&countrycodes=ng`
-      );
-      const data = await response.json();
-      setAddressSuggestions(data.map((item) => item.display_name));
-    } catch (error) {
-      console.error("Error searching addresses:", error);
-      setAddressSuggestions([]);
-    }
-    setIsLoadingAddress(false);
-  };
+  //   setIsLoadingAddress(true);
+  //   try {
+  //     const response = await fetch(
+  //       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+  //         query
+  //       )}&limit=5&countrycodes=ng`
+  //     );
+  //     const data = await response.json();
+  //     setAddressSuggestions(data.map((item) => item.display_name));
+  //   } catch (error) {
+  //     console.error("Error searching addresses:", error);
+  //     setAddressSuggestions([]);
+  //   }
+  //   setIsLoadingAddress(false);
+  // };
 
   // Get user's current location
-  const useCurrentLocation = () => {
-    if (location && userCoords) {
-      setDeliveryAddress(location);
-      setAddressSuggestions([]);
-    }
-  };
+  // const useCurrentLocation = () => {
+  //   if (location && userCoords) {
+  //     setDeliveryAddress(location);
+  //     setAddressSuggestions([]);
+  //   }
+  // };
 
   const proceedToPayment = () => {
     setShowOrderSummary(false);
@@ -157,41 +141,40 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     if (!user || !items.length || !selectedPaymentMethod) return;
 
     try {
-      const first = items[0];
-      const pharmacyId = first.product?.pharmacyId;
+      // const first = items[0];
+      // const pharmacyId = first.product?.pharmacyId;
       // const cartItems = groupItems();
 
       const orderData = {
         customerId: user.uid,
-        pharmacyId,
+        // pharmacyId,
         items: items.map((i) => ({
           productId: i.id,
           quantity: i.qty,
           price: i.price,
           pharmacyId: i.pharmacyId,
         })),
-        total: totalWithDelivery,
+        total: total + deliveryFee,
         subtotal: total,
         deliveryFee,
         deliveryAddress,
         customerPhone,
         customerEmail: customerEmail || user.email,
         paymentMethod: selectedPaymentMethod,
+        prescription: prescription,
       };
-
-      console.log(`Order: ${orderData.total}`);
-      console.log(`Order Items: ${orderData.items}`);
 
       let orderStatus;
       if (selectedPaymentMethod === "online") {
         // Use existing online payment flow
-        orderStatus = await placeOrder({
-          customerId: orderData.customerId,
-          items: orderData.items,
-          total: total,
-          email: orderData.customerEmail,
-          prescription: prescription,
-        });
+        // orderStatus = await placeOrder({
+        //   customerId: orderData.customerId,
+        //   items: orderData.items,
+        //   total: total + deliveryFee,
+        //   email: orderData.customerEmail,
+        //   prescription: prescription,
+        // });
+        orderStatus = await placeOrder(orderData);
       } else {
         // For cash on delivery, create order directly without payment
         // orderStatus = await placeOrder({
@@ -199,13 +182,15 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
         //   paymentStatus: "pending",
         //   orderStatus: "confirmed",
         // });
-        orderStatus = await placeOrder({
-          customerId: orderData.customerId,
-          items: orderData.items,
-          total: total,
-          email: orderData.customerEmail,
-          prescription: prescription,
-        });
+        // orderStatus = await placeOrder({
+        //   customerId: orderData.customerId,
+        //   items: orderData.items,
+        //   total: total + deliveryFee,
+        //   email: orderData.customerEmail,
+        //   prescription: prescription,
+        // });
+
+        orderStatus = await placeOrder(orderData);
       }
 
       console.log(`OrderStatus: ${orderStatus}`);
@@ -304,10 +289,11 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                     <div className="relative">
                       <input
                         type="text"
-                        value={deliveryAddress}
+                        // value={deliveryAddress}
                         onChange={(e) => {
                           setDeliveryAddress(e.target.value);
-                          searchAddresses(e.target.value);
+                          // searchAddresses(e.target.value);
+                          calculateDeliveryFee();
                         }}
                         placeholder={t(
                           "enter_delivery_address",
@@ -316,7 +302,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-[14px] pr-10"
                       />
                       <button
-                        onClick={useCurrentLocation}
+                        //onClick={useCurrentLocation}
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-sky-600 hover:bg-sky-50 rounded-full transition-colors"
                         title={t(
                           "use_current_location",
@@ -332,8 +318,8 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                           <button
                             key={index}
                             onClick={() => {
-                              setDeliveryAddress(suggestion);
-                              setAddressSuggestions([]);
+                              // setDeliveryAddress(suggestion);
+                              // setAddressSuggestions([]);
                             }}
                             className="w-full text-left p-3 hover:bg-gray-50 text-[13px] border-b last:border-b-0"
                           >
@@ -402,7 +388,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                     {t("total", "Total")}
                   </span>
                   <span className="text-[16px] font-bold text-sky-600">
-                    ₦{Number(total).toLocaleString()}
+                    ₦{Number(total + deliveryFee).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -520,7 +506,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                     {t("total_amount", "Total Amount")}
                   </span>
                   <span className="text-[18px] font-bold text-sky-600">
-                    ₦{Number(total).toLocaleString()}
+                    ₦{Number(total + deliveryFee).toLocaleString()}
                   </span>
                 </div>
               </div>
