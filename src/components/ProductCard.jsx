@@ -92,7 +92,7 @@ export default function ProductCard({
           setTimeout(() => setCartPressed(false), 150);
           onAdd(); 
         }}
-        className={`absolute bottom-3 right-3 h-8 w-8 flex items-center justify-center border border-solid btn-interactive transition-all duration-200 hover:scale-110 hover:shadow-lg ${
+        className={`absolute bottom-0 right-0 h-8 w-8 flex items-center justify-center border-l border-t border-solid btn-interactive transition-all duration-200 hover:scale-110 hover:shadow-lg ${
           cartPressed ? 'scale-90 shadow-inner' : 'active:scale-95'
         }`}
         style={{ 
