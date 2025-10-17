@@ -23,7 +23,7 @@ const ChatBgUrl = "/ChatBg.svg";
 // PharmAI Icon Component
 const PharmAIIcon = ({ className = "w-5 h-5" }) => (
   <img 
-    src="/PharmAIDp.svg" 
+    src="/PharmAIDp.svg"
     alt="PharmAI" 
     className={className}
   />
