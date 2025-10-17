@@ -214,13 +214,14 @@ export default function Cart() {
       let orderStatus;
       if (selectedPaymentMethod === "online") {
         // Use existing online payment flow
-        orderStatus = await placeOrder(
-          orderData.customerId,
-          orderData.pharmacyId,
-          orderData.items,
-          orderData.total,
-          orderData.customerEmail
-        );
+        console.log("Checkout totals - subtotal:", total, "deliveryFee:", deliveryFee, "totalWithDelivery:", totalWithDelivery);
+        orderStatus = await placeOrder({
+          customerId: orderData.customerId,
+          pharmacyId: orderData.pharmacyId,
+          items: orderData.items,
+          total: orderData.total,
+          email: orderData.customerEmail,
+        });
       } else {
         // For cash on delivery, create order directly without payment
         orderStatus = await placeOrder({

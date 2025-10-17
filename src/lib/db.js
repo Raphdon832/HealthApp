@@ -306,6 +306,7 @@ export const placeOrder = async ({
     setDoc(doc(db, "orders", data.orderId), {
       customerId,
       customerEmail: email,
+      pharmacyId, // Add pharmacyId to the order document
       items: items.map((it) => ({
         productId: it.productId,
         pharmacyId: it.pharmacyId,

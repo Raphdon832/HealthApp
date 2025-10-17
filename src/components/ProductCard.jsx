@@ -104,13 +104,15 @@ export default function ProductCard({
         onMouseEnter={(e) => {
           if (!cartPressed) {
             e.target.style.backgroundColor = addColor;
-            e.target.querySelector('svg').style.color = 'white';
+            const svg = e.target.querySelector('svg');
+            if (svg) svg.style.color = 'white';
           }
         }}
         onMouseLeave={(e) => {
           if (!cartPressed) {
             e.target.style.backgroundColor = 'transparent';
-            e.target.querySelector('svg').style.color = addColor;
+            const svg = e.target.querySelector('svg');
+            if (svg) svg.style.color = addColor;
           }
         }}
       >

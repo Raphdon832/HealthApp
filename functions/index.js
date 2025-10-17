@@ -13,7 +13,7 @@ admin.initializeApp();
 const cors = corsLib({ origin: true });
 const db = admin.firestore();
 
-const PAYSTACK_SECRET = defineSecret("PAYSTACK_SECRET");
+const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET || defineSecret("PAYSTACK_SECRET");
 const PAYSTACK_BASE = "https://api.paystack.co";
 
 function generateRandomString(length) {
@@ -29,8 +29,9 @@ function generateRandomString(length) {
 }
 
 function verifyPaystackSignature(rawBody, signature) {
+  const secret = process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value();
   const hash = crypto
-    .createHmac("sha512", PAYSTACK_SECRET)
+    .createHmac("sha512", secret)
     .update(rawBody)
     .digest("hex");
   return hash === signature;
@@ -76,7 +77,7 @@ async function makeTransfer({ amountNGN, recipient, reason, idempotencyKey }) {
   };
 
   const headers = {
-    Authorization: `Bearer ${PAYSTACK_SECRET.value()}`,
+    Authorization: `Bearer ${process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()}`,
     "Idempotency-Key": idempotencyKey || crypto.randomBytes(12).toString("hex"),
   };
 
@@ -90,12 +91,26 @@ const initOrder = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Login Required");
   try {
     const { total } = request.data;
+    console.log("Received total:", total, "Type:", typeof total);
     const customerEmail = request.auth.token.email;
     const orderId = generateRandomString(20);
 
+    // Ensure total is a number
+    const numericTotal = Number(total);
+    if (isNaN(numericTotal) || numericTotal <= 0) {
+      throw new HttpsError("invalid-argument", `Invalid total amount: ${total}`);
+    }
+
+    const amount = Math.round(numericTotal * 100);
+    console.log("Calculated amount:", amount, "from total * 100:", numericTotal * 100);
+    
+    if (amount < 10000) { // Paystack minimum is 100 naira = 10000 kobo
+      throw new HttpsError("invalid-argument", `Amount too small: ${amount} kobo. Minimum is 10000 kobo (₦100)`);
+    }
+
     const payload = {
       email: customerEmail,
-      amount: Math.round(total * 100),
+      amount: amount,
       metadata: { orderId: orderId },
       reference: generateRandomString(10),
     };
@@ -106,7 +121,7 @@ const initOrder = onCall(async (request) => {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET.value()}`,
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()}`,
         },
       }
     );
@@ -122,7 +137,7 @@ const initOrder = onCall(async (request) => {
       paystackReference: reference,
     };
   } catch (error) {
-    // console.log(error);
+    console.log("Paystack API Error:", error.response?.data || error.message);
     throw new HttpsError("internal", "Could not initialize order");
   }
 });

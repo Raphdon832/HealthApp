@@ -45,6 +45,8 @@ export default function Dashboard() {
   const [lowStockItems, setLowStockItems] = useState(0);
   const [ordersThisMonth, setOrdersThisMonth] = useState(0);
   const [lastMonthOrders, setLastMonthOrders] = useState(0);
+  const [reviews, setReviews] = useState(0);
+  const [activeChats, setActiveChats] = useState(0);
 
   // Review notifications
   const { newReviews, unreadReviewsCount, markReviewsAsRead } = useReviewNotifications();
