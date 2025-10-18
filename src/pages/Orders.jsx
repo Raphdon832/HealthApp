@@ -280,7 +280,7 @@ export default function Orders() {
             {statCards.map(card => (
               <div
                 key={card.key}
-                className="rounded-2xl border border-sky-200 dark:border-sky-200 bg-white dark:bg-gray-900 p-4 sm:p-6 min-w-0 flex-shrink-0 w-48 sm:w-auto"
+                className="rounded-2xl border border-sky-200 dark:border-sky-200 bg-white dark:bg-gray-900 p-4 sm:p-6 min-w-0 flex-shrink-0 w-48 sm:w-auto flex flex-col justify-center min-h-[120px] sm:min-h-[140px]"
               >
                 <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 truncate">
                   {card.title}
