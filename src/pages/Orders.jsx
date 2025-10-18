@@ -249,8 +249,8 @@ export default function Orders() {
   return (
     <>
       <FixedHeader title="Orders" t={t} />
-      <div className="pt-32 md:pt-36 lg:pt-40 pb-28 w-full mx-auto px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 min-h-screen">
-        <div className="max-w-[1200px] mx-auto flex flex-col gap-8">
+      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-3 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen">
+        <div className="max-w-[1200px] mx-auto flex flex-col gap-4 sm:gap-6 md:gap-8">
           <div className="lg:hidden sticky top-[7rem] z-40 -mx-4 px-4 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {filterOptions.map(option => {
@@ -276,34 +276,34 @@ export default function Orders() {
               })}
             </div>
           </div>
-          <section className="mt-1 grid auto-cols-[minmax(220px,1fr)] grid-flow-col gap-4 overflow-x-auto scrollbar-hide pb-1 md:grid-cols-3 md:grid-flow-row md:overflow-visible md:mt-0">
+          <section className="mt-1 flex gap-4 overflow-x-auto scrollbar-hide pb-1 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 sm:overflow-x-visible">
             {statCards.map(card => (
               <div
                 key={card.key}
-                className="rounded-2xl border border-sky-200 dark:border-sky-200 bg-white dark:bg-gray-900 p-6"
+                className="rounded-2xl border border-sky-200 dark:border-sky-200 bg-white dark:bg-gray-900 p-4 sm:p-6 min-w-0 flex-shrink-0 w-48 sm:w-auto"
               >
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 truncate">
                   {card.title}
                 </div>
-                <div className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="mt-2 sm:mt-3 text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
                   {card.value}
                 </div>
-                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                   {card.helper}
                 </div>
               </div>
             ))}
           </section>
-          <section className="grid gap-6 lg:grid-cols-[320px,1fr]">
-            <div className="hidden space-y-6 lg:block">
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <section className="grid gap-4 sm:gap-6 lg:grid-cols-[280px,1fr] lg:gap-6 xl:grid-cols-[320px,1fr]">
+            <div className="hidden space-y-4 sm:space-y-6 lg:block">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 sm:p-5">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                   {t('order_filters', 'Order Filters')}
                 </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   {t('filter_description', 'Narrow down by status to focus on specific orders.')}
                 </p>
-                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-2">
                   {filterOptions.map(option => {
                     const isActive = statusFilter === option;
                     const label =
@@ -315,7 +315,7 @@ export default function Orders() {
                         key={option}
                         type="button"
                         onClick={() => handleFilterChange(option)}
-                        className={`w-full rounded-full border px-4 py-2 text-sm transition ${
+                        className={`w-full rounded-full border px-3 py-2 text-xs sm:text-sm transition ${
                           isActive
                             ? 'bg-sky-600 text-white border-sky-600 dark:border-sky-500'
                             : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-sky-400/70'
@@ -327,21 +327,21 @@ export default function Orders() {
                   })}
                 </div>
               </div>
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 sm:p-5">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                   {t('contact_support', 'Contact Support')}
                 </h2>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   {t(
                     'contact_support_description',
                     'Need help with an order? Reach out to our support team for assistance.'
                   )}
                 </p>
-                <div className="mt-4">
+                <div className="mt-3 sm:mt-4">
                   <button
                     type="button"
                     onClick={() => navigate('/support')}
-                    className="text-sm font-medium text-sky-600 hover:underline"
+                    className="text-xs sm:text-sm font-medium text-sky-600 hover:underline"
                   >
                     {t('get_support', 'Get support')}
                   </button>
@@ -390,45 +390,45 @@ export default function Orders() {
                         }}
                       >
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <div className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
                               {t('order_number', 'Order #')}
                               {o.id.slice(0, 6)}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                               {o.createdAt?.toDate?.().toLocaleString?.() || ''}
                             </div>
                           </div>
-                          <div className="text-base font-semibold text-sky-700 dark:text-sky-400 sm:text-lg">
+                          <div className="text-sm sm:text-base font-semibold text-sky-700 dark:text-sky-400 flex-shrink-0">
                             {formatCurrency(o.total)}
                           </div>
                         </div>
                         {profile?.role === 'pharmacy' && (
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                              {t('customer', 'Customer')}:{' '}
-                              <span className="font-medium text-gray-900 dark:text-gray-200">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                              <span className="flex-shrink-0">{t('customer', 'Customer')}:</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-200 truncate min-w-0">
                                 {o.customerName || o.customerId || o.customer_id || 'N/A'}
                               </span>
                             </div>
-                            <div className="text-xs text-gray-400 dark:text-gray-500">
+                            <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
                               {o.customerEmail || ''}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              <div className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {t('items', 'Items')}
                               </div>
-                              <ul className="ml-4 list-disc space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                              <ul className="ml-3 sm:ml-4 list-disc space-y-1 text-xs sm:text-sm text-gray-700 dark:text-gray-300 max-h-20 overflow-y-auto">
                                 {visibleItems.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span>{item.name || item.productId}</span>
-                                    <span> ×{item.qty || item.quantity || 1}</span>
+                                  <li key={idx} className="truncate">
+                                    <span className="truncate">{item.name || item.productId}</span>
+                                    <span className="ml-1 flex-shrink-0">×{item.qty || item.quantity || 1}</span>
                                   </li>
                                 ))}
                               </ul>
                               {showSeeMore && (
                                 <button
-                                  className="order-see-more-btn mt-1 ml-4 text-xs font-normal text-sky-600 hover:underline"
+                                  className="order-see-more-btn mt-1 ml-3 sm:ml-4 text-xs font-normal text-sky-600 hover:underline flex-shrink-0"
                                   onClick={e => {
                                     e.stopPropagation();
                                     toggleExpand(o.id);
@@ -440,37 +440,41 @@ export default function Orders() {
                                 </button>
                               )}
                             </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {t('status', 'Status')}:
-                              </span>
-                              <select
-                                className="order-status-dropdown rounded border border-gray-200 bg-white px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-900"
-                                value={o.status || 'pending'}
-                                onChange={e => handleStatusChange(o.id, e.target.value)}
-                              >
-                                {ORDER_STATUSES.map(s => (
-                                  <option key={s} value={s}>
-                                    {t(s, s.charAt(0).toUpperCase() + s.slice(1))}
-                                  </option>
-                                ))}
-                              </select>
-                              {phone && !isRevealed && (
-                                <button
-                                  className="ml-1 rounded-full bg-sky-600 px-3 py-1 text-xs font-medium text-white"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
-                                  }}
-                                >
-                                  {t('reveal_number', 'Reveal Number')}
-                                </button>
-                              )}
-                              {phone && isRevealed && (
-                                <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-                                  {phone}
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {t('status', 'Status')}:
                                 </span>
-                              )}
+                                <select
+                                  className="order-status-dropdown rounded border border-gray-200 bg-white px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-900 min-w-0"
+                                  value={o.status || 'pending'}
+                                  onChange={e => handleStatusChange(o.id, e.target.value)}
+                                >
+                                  {ORDER_STATUSES.map(s => (
+                                    <option key={s} value={s}>
+                                      {t(s, s.charAt(0).toUpperCase() + s.slice(1))}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 min-w-0">
+                                {phone && !isRevealed && (
+                                  <button
+                                    className="rounded-full bg-sky-600 px-2 sm:px-3 py-1 text-xs font-medium text-white flex-shrink-0"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setRevealedNumbers(prev => ({ ...prev, [o.id]: true }));
+                                    }}
+                                  >
+                                    {t('reveal_number', 'Reveal Number')}
+                                  </button>
+                                )}
+                                {phone && isRevealed && (
+                                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 truncate min-w-0">
+                                    {phone}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -523,32 +527,44 @@ export default function Orders() {
       {/* Modal for order details */}
       <Modal open={!!modalOrder} onClose={() => setModalOrder(null)}>
         {modalOrder && (
-          <div>
-            <div className="text-lg font-medium mb-2">{t('order_number', 'Order #')}{modalOrder.id.slice(0, 6)}</div>
-            <div className="text-zinc-500 text-xs mb-4">{modalOrder.createdAt?.toDate?.().toLocaleString?.()||''}</div>
-            <div className="mb-2 text-[15px] font-medium">{t('items', 'Items')}:</div>
-            <ul className="mb-4 space-y-2">
-              {getHarmonizedItems(modalOrder.items).map((item, idx) => {
-                const prod = modalOrderProducts.find(p => p && p.id === item.productId);
-                return (
-                  <li key={item.productId} className="flex items-center gap-3">
-                    {prod ? (
-                      <ProductAvatar name={prod.name} image={prod.image} category={prod.category} size={40} roundedClass="rounded-lg" />
-                    ) : null}
-                    <div className="flex-1">
-                      <div className="font-poppins font-medium text-[14px]">{prod ? prod.name : item.productId}</div>
-                      <div className="text-zinc-500 text-xs">{t('qty', 'Qty')}: {item.qty}</div>
-                    </div>
-                    <div className="text-[14px] font-medium text-sky-600">₦{Number(item.price || prod?.price || 0).toLocaleString()}</div>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="flex justify-between items-center border-t pt-3 mt-2">
-              <div className="text-[15px] font-medium">{t('total', 'Total')}:</div>
-              <div className="text-[15px] font-bold text-sky-700">₦{Number(modalOrder.total).toLocaleString()}</div>
+          <div className="max-w-md mx-auto">
+            <div className="text-base sm:text-lg font-medium mb-2 truncate">
+              {t('order_number', 'Order #')}{modalOrder.id.slice(0, 6)}
             </div>
-            <div className="mt-2 text-xs text-zinc-400">{t('status', 'Status')}: {t(modalOrder.status || 'pending', modalOrder.status || 'pending')}</div>
+            <div className="text-zinc-500 text-xs sm:text-sm mb-4 truncate">
+              {modalOrder.createdAt?.toDate?.().toLocaleString?.() || ''}
+            </div>
+            <div className="mb-2 text-sm sm:text-[15px] font-medium">{t('items', 'Items')}:</div>
+            <div className="max-h-60 overflow-y-auto mb-4">
+              <ul className="space-y-2">
+                {getHarmonizedItems(modalOrder.items).map((item, idx) => {
+                  const prod = modalOrderProducts.find(p => p && p.id === item.productId);
+                  return (
+                    <li key={item.productId} className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      {prod ? (
+                        <ProductAvatar name={prod.name} image={prod.image} category={prod.category} size={32} roundedClass="rounded-lg flex-shrink-0" />
+                      ) : null}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-poppins font-medium text-xs sm:text-sm truncate">{prod ? prod.name : item.productId}</div>
+                        <div className="text-zinc-500 text-xs">{t('qty', 'Qty')}: {item.qty}</div>
+                      </div>
+                      <div className="text-xs sm:text-sm font-medium text-sky-600 flex-shrink-0 whitespace-nowrap">
+                        ₦{Number(item.price || prod?.price || 0).toLocaleString()}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <div className="flex justify-between items-center border-t pt-3 mt-2 min-w-0">
+              <div className="text-sm sm:text-[15px] font-medium flex-shrink-0">{t('total', 'Total')}:</div>
+              <div className="text-sm sm:text-[15px] font-bold text-sky-700 truncate ml-2">
+                ₦{Number(modalOrder.total).toLocaleString()}
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-zinc-400 truncate">
+              {t('status', 'Status')}: {t(modalOrder.status || 'pending', modalOrder.status || 'pending')}
+            </div>
           </div>
         )}
       </Modal>
