@@ -1073,7 +1073,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
       <div className="mt-8 w-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* LEFT: Profile detail card */}
         <aside className="min-w-0 lg:pr-2">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative lg:sticky lg:top-24 overflow-hidden">
             <div className="mb-2">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-[#9ED3FF] dark:border-gray-500 shadow" />
@@ -1086,7 +1086,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
             <VerifiedName
               name={pharmacyProfile.displayName || 'Pharmacy'}
               isVerified={pharmacyProfile.isVerified}
-              className="text-3xl font-light font-poppins text-sky-600 dark:text-sky-400 mb-1 tracking-tight truncate w-full"
+              className="text-l font-medium font-poppins text-sky-600 dark:text-sky-400 mb-1 tracking-tight truncate w-full"
               nameClassName="truncate"
               iconClassName="h-5 w-5 text-sky-500 dark:text-sky-400"
             />
@@ -1119,7 +1119,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
 
         {/* RIGHT: Storefront preview, controls and product list (scrollable on desktop) */}
         <section className="min-w-0 space-y-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto lg:pr-1">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col gap-4 relative overflow-hidden">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col gap-4 relative overflow-hidden">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2 max-w-xl">
                 <div className="text-[18px] font-light font-poppins text-black dark:text-white tracking-tight">
@@ -1180,7 +1180,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
                     setVerificationMessage('');
                     setVerificationModalOpen(true);
                   }}
-                  className="rounded-full bg-sky-600 text-white text-[12px] font-medium px-5 py-2 shadow hover:bg-sky-700 transition"
+                  className="rounded-full bg-sky-600 text-white text-[12px] font-normal px-5 py-2 shadow hover:bg-sky-700 transition"
                 >
                   {verificationCtaLabel}
                 </button>
@@ -1202,7 +1202,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
           </div>
 
           {/* Storefront Preview Section */}
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative overflow-hidden">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start relative overflow-hidden">
             <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('storefront_preview', 'Storefront Preview')}</div>
             <div className="w-full flex items-center justify-between pb-2 border-b dark:border-gray-600" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 dark:text-zinc-400 font-light">{t('inventory', 'Inventory')}</span>
@@ -1246,7 +1246,7 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
             </button>
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 relative overflow-hidden">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="text-[17px] font-light font-poppins text-black dark:text-white tracking-tight">{t('products', 'Products')}</div>
               {inventory.length > 3 && (

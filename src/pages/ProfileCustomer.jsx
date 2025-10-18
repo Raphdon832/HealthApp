@@ -391,7 +391,7 @@ export default function ProfileCustomer() {
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
         {/* Left column: Profile card + logout */}
         <div className="space-y-6">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             {/* Avatar */}
             <div className="w-20 h-20 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-3 overflow-hidden">
               {user?.photoURL ? (
@@ -506,7 +506,7 @@ export default function ProfileCustomer() {
 
         {/* Right column: Activity and Prescriptions stack */}
         <div className="space-y-6">
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             <div className="text-[18px] font-light font-poppins text-black dark:text-white mb-2 tracking-tight">{t('my_activity', 'My Activity')}</div>
             <div className="w-full flex items-center justify-between pb-2 border-b" style={{borderColor:'#9ED3FF', borderBottomWidth:'0.5px'}}>
               <span className="text-[12px] text-zinc-500 font-light">{t('items_in_cart', 'Items in Cart')}</span>
@@ -713,7 +713,7 @@ export default function ProfileCustomer() {
             )}
           </div>
 
-          <div className="rounded-3xl border bg-[#F7F7F7] dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
+          <div className="rounded-3xl border bg-transparent dark:bg-gray-800 border-[#36A5FF] dark:border-gray-600 p-4 flex flex-col items-start">
             <MyPrescriptionsSection />
           </div>
         </div>
