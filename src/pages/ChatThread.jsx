@@ -30,6 +30,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useTranslation } from "@/lib/language";
 import VerifiedName from "@/components/VerifiedName";
 import Messages from "@/pages/Messages";
+import ImageModal from "@/components/ImageModal";
 
 /* Prescription */
 import PrescriptionPreview from "@/components/PrescriptionPreview";
@@ -215,6 +216,21 @@ export default function ChatThread() {
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [pharmacyProducts, setPharmacyProducts] = useState([]);
   const [showPrescriptionHistory, setShowPrescriptionHistory] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState(null);
+
+  // Handle image modal visibility changes
+  useEffect(() => {
+    if (imageModalUrl) {
+      document.body.classList.add('image-modal-open');
+    } else {
+      document.body.classList.remove('image-modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('image-modal-open');
+    };
+  }, [imageModalUrl]);
 
   const queryParams = new URLSearchParams(location.search);
   const productId = queryParams.get("productId");
@@ -835,8 +851,8 @@ export default function ChatThread() {
                               <img
                                 src={m.imageUrl}
                                 alt="Shared image"
-                                className="max-w-full max-h-64 object-cover rounded-lg cursor-pointer"
-                                onClick={() => window.open(m.imageUrl, '_blank')}
+                                className="max-w-full max-h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => setImageModalUrl(m.imageUrl)}
                               />
                             </div>
                           )}
@@ -986,6 +1002,13 @@ export default function ChatThread() {
         {/* Prescription Quick Actions (for customer) */}
         {/* Removed PrescriptionList from chat thread view as per requirements */}
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        imageUrl={imageModalUrl}
+        isOpen={!!imageModalUrl}
+        onClose={() => setImageModalUrl(null)}
+      />
     </div>
   </div>
   );

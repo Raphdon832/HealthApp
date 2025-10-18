@@ -183,7 +183,8 @@ function AppLayout() {
   const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
   const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
   const isAuthLoading = loading || (user && profile === undefined);
-  const showBottomNav = !chatModalOpen && !isAuthLoading && (!isChatRoute || isDesktop);
+  const imageModalOpen = typeof document !== 'undefined' && document.body.classList.contains('image-modal-open');
+  const showBottomNav = !chatModalOpen && !imageModalOpen && !isAuthLoading && (!isChatRoute || isDesktop);
 
   return (
     <div
