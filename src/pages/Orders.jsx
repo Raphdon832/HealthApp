@@ -249,9 +249,9 @@ export default function Orders() {
   return (
     <>
       <FixedHeader title="Orders" t={t} />
-      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-3 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen">
+      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-0 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen">
         <div className="max-w-[1200px] mx-auto flex flex-col gap-4 sm:gap-6 md:gap-8">
-          <div className="lg:hidden sticky top-[7rem] z-40 -mx-4 px-4 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="lg:hidden sticky top-[7rem] z-40 -mx-0 px-0 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {filterOptions.map(option => {
                 const isActive = statusFilter === option;
