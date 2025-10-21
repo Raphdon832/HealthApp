@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
 import { collection, updateDoc, doc, deleteDoc, query, where, onSnapshot, addDoc, arrayUnion, serverTimestamp, deleteField, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNavigate } from 'react-router-dom';
 import Modal from '@/components/Modal';
@@ -52,6 +53,8 @@ export default function SuperuserDashboard() {
   const [userForm, setUserForm] = useState({ displayName: '', email: '', address: '', phone: '', role: '', suspended: false, password: '' });
   const [productForm, setProductForm] = useState({ name: '', image: '', description: '', stock: '', price: '', sku: '', category: '' });
   const [infoCardForm, setInfoCardForm] = useState({ header: '', preview: '', link: '', linkText: '', image: '', fullImage: '', bgColor: '#f0f8ff' });
+  const [imageFiles, setImageFiles] = useState({ image: null, fullImage: null });
+  const [uploadingImages, setUploadingImages] = useState({ image: false, fullImage: false });
   const [activeTab, setActiveTab] = useState('users');
   const [userModalTab, setUserModalTab] = useState('profile');
   const [userPrescriptions, setUserPrescriptions] = useState([]);
@@ -72,6 +75,47 @@ const appendAuditEntry = (message, statusOverride) => {
   };
   if (statusOverride) entry.status = statusOverride;
   return entry;
+};
+
+// Image upload handlers
+const handleImageFileSelect = async (file, imageType) => {
+  if (!file) return;
+  
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    setInfoCardError('Please select a valid image file.');
+    return;
+  }
+  
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    setInfoCardError('Image file size must be less than 5MB.');
+    return;
+  }
+  
+  try {
+    setUploadingImages(prev => ({ ...prev, [imageType]: true }));
+    setInfoCardError('');
+    
+    // Create a unique filename
+    const timestamp = Date.now();
+    const filename = `info-cards/${timestamp}_${file.name}`;
+    const storageRef = ref(storage, filename);
+    
+    // Upload the file
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    // Update the form with the new image URL
+    setInfoCardForm(prev => ({ ...prev, [imageType]: downloadURL }));
+    setImageFiles(prev => ({ ...prev, [imageType]: file }));
+    
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    setInfoCardError('Failed to upload image. Please try again.');
+  } finally {
+    setUploadingImages(prev => ({ ...prev, [imageType]: false }));
+  }
 };
 
 const syncVerificationStatusToProfile = async (submission, status) => {
@@ -784,6 +828,8 @@ const handleVerificationAssign = async (item, assignee) => {
                   linkFontSize: 13,
                   linkTextFontSize: 13
                 });
+                setImageFiles({ image: null, fullImage: null });
+                setUploadingImages({ image: false, fullImage: false });
               } catch(e){}
             }}>Add Info Card</button>
            </div>
@@ -810,6 +856,8 @@ const handleVerificationAssign = async (item, assignee) => {
                     linkFontSize: card.linkFontSize || 13,
                     linkTextFontSize: card.linkTextFontSize || 13
                   });
+                  setImageFiles({ image: null, fullImage: null });
+                  setUploadingImages({ image: false, fullImage: false });
                 }}>
                   <div style={{color: card.headerColor || '#0ea5e9', fontSize: (card.headerFontSize || 16) + 'px', fontWeight: 600}}>{card.header}</div>
                   <div style={{color: card.previewColor || '#475569', fontSize: (card.previewFontSize || 13) + 'px'}} className="mt-1">{card.preview}</div>
@@ -841,6 +889,8 @@ const handleVerificationAssign = async (item, assignee) => {
                        linkFontSize: card.linkFontSize || 13,
                        linkTextFontSize: card.linkTextFontSize || 13
                      });
+                     setImageFiles({ image: null, fullImage: null });
+                     setUploadingImages({ image: false, fullImage: false });
                    }}>Edit</button>
                    <button className="px-2 py-1 rounded bg-red-100 text-red-600 text-[12px] font-medium" onClick={async(e)=>{e.stopPropagation();await deleteDoc(doc(db,'infoCards',card.id));}}>Delete</button>
                  </div>
@@ -860,9 +910,67 @@ const handleVerificationAssign = async (item, assignee) => {
                     <input className="flex-1 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.link} onChange={e=>setInfoCardForm(f=>({...f,link:e.target.value}))} placeholder="Link (optional)" />
                     <input className="w-36 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.linkText} onChange={e=>setInfoCardForm(f=>({...f,linkText:e.target.value}))} placeholder="Link Text" />
                   </div>
-                  <div className="flex gap-2">
-                    <input className="flex-1 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.image} onChange={e=>setInfoCardForm(f=>({...f,image:e.target.value}))} placeholder="Image URL (right side, optional)" />
-                    <input className="w-36 border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" value={infoCardForm.fullImage} onChange={e=>setInfoCardForm(f=>({...f,fullImage:e.target.value}))} placeholder="Full Image URL" />
+                  {/* Image Upload Section */}
+                  <div className="space-y-3">
+                    <div className="text-xs text-zinc-500 font-medium">Images</div>
+                    
+                    {/* Right Side Image */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-zinc-500">Right Side Image (optional)</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageFileSelect(e.target.files[0], 'image')}
+                          className="flex-1 text-xs border border-sky-100 rounded px-2 py-1 focus:outline-none focus:border-sky-500"
+                          disabled={uploadingImages.image}
+                        />
+                        {uploadingImages.image && (
+                          <div className="text-xs text-sky-500 flex items-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-500 mr-1"></div>
+                            Uploading...
+                          </div>
+                        )}
+                      </div>
+                      <input 
+                        className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" 
+                        value={infoCardForm.image} 
+                        onChange={e=>setInfoCardForm(f=>({...f,image:e.target.value}))} 
+                        placeholder="Or enter image URL" 
+                      />
+                      {infoCardForm.image && (
+                        <div className="text-xs text-green-600">✓ Image loaded</div>
+                      )}
+                    </div>
+                    
+                    {/* Full Image */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-zinc-500">Full Image (optional)</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageFileSelect(e.target.files[0], 'fullImage')}
+                          className="flex-1 text-xs border border-sky-100 rounded px-2 py-1 focus:outline-none focus:border-sky-500"
+                          disabled={uploadingImages.fullImage}
+                        />
+                        {uploadingImages.fullImage && (
+                          <div className="text-xs text-sky-500 flex items-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-500 mr-1"></div>
+                            Uploading...
+                          </div>
+                        )}
+                      </div>
+                      <input 
+                        className="w-full border-b border-sky-100 text-[13px] py-2 focus:outline-none focus:border-sky-500" 
+                        value={infoCardForm.fullImage} 
+                        onChange={e=>setInfoCardForm(f=>({...f,fullImage:e.target.value}))} 
+                        placeholder="Or enter full image URL" 
+                      />
+                      {infoCardForm.fullImage && (
+                        <div className="text-xs text-green-600">✓ Full image loaded</div>
+                      )}
+                    </div>
                   </div>
                   {/* Color pickers and font size controls */}
                   <div className="grid grid-cols-2 gap-3">
@@ -931,6 +1039,8 @@ const handleVerificationAssign = async (item, assignee) => {
                        setEditingInfoCard(null);
                        setCreatingInfoCard(false);
                        setInfoCardError('');
+                       setImageFiles({ image: null, fullImage: null });
+                       setUploadingImages({ image: false, fullImage: false });
                      }}>Cancel</button>
                    </div>
                  </div>
