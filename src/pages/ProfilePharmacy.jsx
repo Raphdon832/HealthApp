@@ -938,12 +938,12 @@ const buildVerificationAuditEntry = (message, status = 'pending') => ({
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-xl font-poppins font-light mb-6">Please sign in to continue</div>
+        <div className="text-xl font-poppins font-light mb-6">{t('please_sign_in_continue', 'Please sign in to continue')}</div>
         <button
           className="rounded-full bg-sky-600 text-white px-8 py-3 text-lg font-poppins font-medium shadow hover:bg-sky-700 transition"
           onClick={() => navigate('/auth/landing')}
         >
-          Sign In / Sign Up
+          {t('sign_in_sign_up', 'Sign In / Sign Up')}
         </button>
       </div>
     );
