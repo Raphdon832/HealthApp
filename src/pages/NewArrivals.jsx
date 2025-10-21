@@ -10,7 +10,7 @@ import { ArrowLeft, Filter, Calendar, Sparkles, Package, Store, Clock } from 'lu
 const FixedHeader = ({ t, onBack }) => {
   return createPortal(
     <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-800/70">
-      <div className="mx-auto w-full max-w-[1200px]">
+      <div className="w-full">
         <div className="mt-8 flex flex-wrap items-end justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
@@ -247,14 +247,14 @@ export default function NewArrivals() {
     return (
       <>
       <FixedHeader t={t} onBack={() => navigate(-1)} />
-        <div className="min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white px-6 py-16 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
+        <div className="min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white px-6 py-16 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
           <div className="mx-auto w-full max-w-6xl space-y-8 animate-pulse">
             <div className="h-10 w-48 rounded-full bg-white/70 dark:bg-gray-800/80" />
             <div className="grid gap-4 sm:grid-cols-3">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-28 rounded-3xl border border-sky-100/80 bg-white/80 dark:border-gray-800/70 dark:bg-gray-900/70"
+                  className="h-28 rounded-3xl border border-sky-100/80 bg-white/80 dark:border-gray-800/70 dark:bg-gray-900"
                 />
               ))}
             </div>
@@ -262,7 +262,7 @@ export default function NewArrivals() {
               {[...Array(10)].map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-3xl border border-sky-100/60 bg-white/90 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70"
+                  className="rounded-3xl border border-sky-100/60 bg-white/90 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900"
                 >
                   <div className="mb-4 h-36 rounded-2xl bg-sky-100/50 dark:bg-gray-800" />
                   <div className="mb-2 h-3 rounded bg-sky-100/60 dark:bg-gray-700" />
@@ -279,8 +279,8 @@ export default function NewArrivals() {
   return (
     <>
       <FixedHeader t={t} onBack={() => navigate(-1)} />
-      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-0 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
-        <div className="max-w-[1200px] mx-auto flex flex-col gap-6 sm:gap-8">
+      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-0 min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
+        <div className="w-full flex flex-col gap-6 sm:gap-8">
           <section className="mt-1 flex gap-4 overflow-x-auto scrollbar-hide pb-1 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 sm:overflow-x-visible">
             {stats.map((card) => {
               const Icon = card.icon;
@@ -425,7 +425,7 @@ export default function NewArrivals() {
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-3xl border border-sky-100/80 bg-white/90 px-6 py-14 text-center shadow-sm dark:border-gray-800/70 dark:bg-gray-900/80">
+                  <div className="rounded-3xl border border-sky-100/80 bg-white/90 px-6 py-14 text-center shadow-sm dark:border-gray-800/70 dark:bg-gray-900">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-sky-100/80 bg-sky-50/80 text-sky-500 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-200">
                       <Calendar className="h-8 w-8" />
                     </div>
