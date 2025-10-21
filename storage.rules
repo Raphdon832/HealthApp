@@ -1,7 +1,12 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users to read/write their own chat images
+    // Allow authenticated users to read/write chat images in thread folders
+    match /chat-images/{threadId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow authenticated users to read/write their own chat images (legacy support)
     match /chat-images/{userId}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

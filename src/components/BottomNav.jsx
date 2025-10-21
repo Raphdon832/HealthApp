@@ -179,19 +179,23 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
         left: compactPosition.left,
         transform: 'translate3d(0, 0, 0)',
         transition: `bottom 420ms ${navEase}, left 420ms ${navEase}, transform 420ms ${navEase}`,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 0px)'
       }
     : {
         bottom: '1rem', // bottom-4
         left: '50%',
         transform: 'translate3d(-50%, 0, 0)',
         transition: `bottom 420ms ${navEase}, left 420ms ${navEase}, transform 420ms ${navEase}`,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 0px)'
       };
   const wrapperClassName = `fixed z-50 flex items-end`;
   const navClassName = [
-    'liquid-bottom-nav relative isolate overflow-hidden pointer-events-auto transform-gpu backdrop-blur-2xl bg-white/10 dark:bg-gray-900/10 transition-[box-shadow,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+    'liquid-bottom-nav relative isolate overflow-hidden pointer-events-auto transform-gpu transition-[box-shadow,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+    // Glass background + blur/saturation + subtle border/ring
+    'backdrop-blur-lg backdrop-saturate-200 bg-white/25 dark:bg-zinc-900/35 border border-white/25 dark:border-white/10 ring-1 ring-inset ring-white/10',
     isCompactDesktopMessages
-      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-3xl shadow-[0_35px_65px_-30px_rgba(14,23,38,0.65)]'
-      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-6 py-3.5 rounded-[32px] shadow-[0_40px_80px_-40px_rgba(15,23,42,0.75)]'
+      ? 'max-w-[320px] min-w-[240px] px-4 py-2.5 rounded-full shadow-[0_25px_60px_-30px_rgba(2,6,23,0.55)]'
+      : 'max-w-[95vw] min-w-[280px] sm:max-w-md lg:max-w-lg px-6 sm:px-6 py-3.5 rounded-full shadow-[0_30px_80px_-40px_rgba(2,6,23,0.55)]'
   ].join(' ');
   const buttonSizeClasses = isCompactDesktopMessages
     ? 'min-w-[48px] px-1 py-2.5'
@@ -243,19 +247,52 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
           transform: 'translateZ(0)',
         }}
       >
+        {/* Glass overlays */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+        >
+          {/* top gloss */}
+          <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/50 via-white/10 to-transparent" />
+          {/* edge highlight */}
+          <div className="absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/20" />
+          {/* subtle noise texture */}
+          <div
+            className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
+            style={{
+              backgroundImage:
+                'url("data:image/svg+xml;utf8,\
+<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'>\
+<filter id=\'n\'>\
+  <feTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'2\' stitchTiles=\'stitch\'/>\
+  <feColorMatrix type=\'saturate\' values=\'0\'/>\
+  <feComponentTransfer>\
+    <feFuncA type=\'linear\' slope=\'0.05\'/>\
+  </feComponentTransfer>\
+  <feBlend mode=\'overlay\' in2=\'SourceGraphic\'/>\
+ </filter>\
+ <rect width=\'100%\' height=\'100%\' filter=\'url(%23n)\' opacity=\'0.7\'/>\
+</svg>")',
+              backgroundSize: '120px 120px'
+            }}
+          />
+        </div>
+
         {/* Animated active indicator */}
         <div
-          className="absolute bg-gradient-to-r from-cyan-200/85 via-sky-400/90 to-blue-600/90 rounded-full shadow-lg will-change-transform"
+          className="absolute rounded-full will-change-transform"
           style={{
             left: activeIndicatorStyle.left,
             opacity: activeIndicatorStyle.opacity,
             transition: `left 260ms ${navEase}, width 320ms ${navEase}, bottom 320ms ${navEase}, opacity 180ms ease-out`,
             transform: `scale(${activeIndicatorStyle.opacity})`,
-            boxShadow: '0 6px 18px rgba(14, 165, 233, 0.35), 0 0 22px rgba(99, 102, 241, 0.35)',
+            boxShadow: '0 8px 22px rgba(2, 132, 199, 0.25), 0 0 24px rgba(59, 130, 246, 0.35)',
             bottom: indicatorBottom,
             width: indicatorWidth,
             height: indicatorStyles.height,
             borderRadius: indicatorStyles.borderRadius,
+            background: 'linear-gradient(90deg, rgba(14, 165, 233, 0.9) 0%, rgba(59, 130, 246, 0.8) 50%, rgba(14, 165, 233, 0.9) 100%)',
+            backdropFilter: 'blur(8px) saturate(160%)'
           }}
         />
         
@@ -284,8 +321,8 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
                   aria-pressed={isActive}
                   className={`relative flex flex-col items-center text-xs ${buttonSizeClasses} focus:outline-none transition-all duration-150 ease-out will-change-transform ${
                     isActive 
-                      ? 'text-sky-600 dark:text-sky-400 transform scale-105' 
-                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                      ? 'text-sky-600 dark:text-sky-400 transform scale-[1.04]' 
+                      : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-800 dark:hover:text-zinc-100'
                   }`}
                 >
                   <div className="relative z-10 transition-transform duration-150 ease-out will-change-transform hover:scale-110">
