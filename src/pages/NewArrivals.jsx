@@ -7,17 +7,24 @@ import ProductCard from '@/components/ProductCard';
 import { useTranslation } from '@/lib/language';
 import { ArrowLeft, Filter, Calendar, Sparkles, Package, Store, Clock } from 'lucide-react';
 
-const FixedHeader = ({ t, total }) => {
+const FixedHeader = ({ t, onBack }) => {
   return createPortal(
     <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[100] px-4 py-4 border-b border-gray-100 dark:border-gray-800/70">
       <div className="mx-auto w-full max-w-[1200px]">
         <div className="mt-8 flex flex-wrap items-end justify-between gap-3">
-          <h1 className="text-[28px] sm:text-[35px] md:text-[42px] lg:text-[48px] font-light font-poppins text-gray-900 dark:text-white">
-            {t('all_new_products', 'New Arrivals')}
-          </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {total} {total === 1 ? t('product', 'Product') : t('products', 'Products')}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-sky-100/80 bg-white text-sky-600 transition hover:border-sky-300 hover:text-sky-700 dark:border-gray-700 dark:bg-gray-900 dark:text-sky-300"
+              aria-label={t('go_back', 'Go back')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <h1 className="text-[20px] sm:text-[25px] md:text-[22px] lg:text-[38px] font-light font-poppins text-gray-900 dark:text-white">
+              {t('all_new_products', 'New Arrivals')}
+            </h1>
+          </div>
         </div>
       </div>
     </div>,
@@ -239,8 +246,8 @@ export default function NewArrivals() {
   if (loading) {
     return (
       <>
-        <FixedHeader t={t} total={0} />
-        <div className="min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white to-[#E4F0FF] px-6 py-16 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
+      <FixedHeader t={t} onBack={() => navigate(-1)} />
+        <div className="min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white px-6 py-16 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
           <div className="mx-auto w-full max-w-6xl space-y-8 animate-pulse">
             <div className="h-10 w-48 rounded-full bg-white/70 dark:bg-gray-800/80" />
             <div className="grid gap-4 sm:grid-cols-3">
@@ -271,8 +278,8 @@ export default function NewArrivals() {
 
   return (
     <>
-      <FixedHeader t={t} total={filteredNewArrivals.length} />
-      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-0 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white to-[#E4F0FF] dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
+      <FixedHeader t={t} onBack={() => navigate(-1)} />
+      <div className="pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28 w-full mx-auto px-0 sm:px-4 md:px-8 lg:px-12 xl:px-16 min-h-screen bg-gradient-to-br from-[#F6F9FF] via-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
         <div className="max-w-[1200px] mx-auto flex flex-col gap-6 sm:gap-8">
           <section className="mt-1 flex gap-4 overflow-x-auto scrollbar-hide pb-1 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 sm:overflow-x-visible">
             {stats.map((card) => {
@@ -383,62 +390,36 @@ export default function NewArrivals() {
 
               <div className="mt-6">
                 {filteredNewArrivals.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div className="grid grid-cols-2 gap-4 overflow-hidden sm:gap-5 lg:grid-cols-3">
                     {filteredNewArrivals.map((product, index) => {
+                      const productKey = product?.id || product?.sku || `${index}`;
                       const arrivalDate = toDate(product?.createdAt);
                       const arrivalRelative = formatRelativeTime(arrivalDate);
-                      const arrivalLabel = arrivalDate
-                        ? arrivalDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-                        : t('arrival_date_pending', 'Date pending');
-                      const vendorName =
-                        product?.vendorName ||
-                        product?.pharmacyName ||
-                        product?.pharmacy ||
-                        t('unknown_pharmacy', 'Unnamed pharmacy');
-                      const category = product?.category || t('category_generic', 'General');
-                      const productKey = product?.id || product?.sku || `${index}`;
 
                       return (
-                        <div
-                          key={productKey}
-                          className="flex flex-col gap-4 rounded-3xl border border-sky-100/80 bg-white/90 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-200/50 dark:border-gray-800/70 dark:bg-gray-900/80 dark:hover:shadow-sky-900/20"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="rounded-full border border-sky-200/70 bg-sky-50/90 px-3 py-1 text-xs font-medium text-sky-700 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-200">
-                              {arrivalRelative}
-                            </span>
-                            <span className="rounded-full border border-sky-100/70 bg-white/80 px-3 py-1 text-xs font-medium text-sky-600 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200">
-                              {category}
-                            </span>
-                          </div>
+                        <div key={productKey} className="relative flex justify-center">
                           <ProductCard
                             product={product}
-                            vendorName={vendorName}
                             onOpen={() => handleProductOpen(product?.id)}
                             onAdd={() => handleAddToCart(product?.id)}
-                            cardWidth="100%"
-                            cardHeight="200px"
-                            nameSize="14px"
-                            priceSize="13px"
-                            priceColor="#334155"
-                            priceWeight="600"
-                            addColor="#0284C7"
-                            borderRadius="18px"
+                            cardWidth="128px"
+                            cardHeight="120px"
+                            nameSize="12px"
+                            nameWeight="semi-bold"
+                            nameTracking="-0.5px"
+                            priceSize="11px"
+                            priceColor="#BDBDBD"
+                            priceWeight="medium"
+                            addColor="#36A5FF"
+                            addSize="9px"
+                            borderRadius="10px"
                           />
-                          <div className="flex items-center justify-between gap-3">
-                            <button
-                              type="button"
-                              onClick={() => handleProductOpen(product?.id)}
-                              className="inline-flex items-center gap-2 rounded-full border border-sky-200/70 bg-white px-4 py-2 text-xs font-medium text-sky-700 transition hover:border-sky-300 hover:text-sky-600 dark:border-sky-500/40 dark:bg-gray-900/70 dark:text-sky-200"
-                            >
-                              <Sparkles className="h-4 w-4" />
-                              {t('view_details', 'View details')}
-                            </button>
-                            <div className="text-right">
-                              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">{vendorName}</p>
-                              <p className="text-[10px] text-gray-400 dark:text-gray-500">{arrivalLabel}</p>
-                            </div>
-                          </div>
+                          <span
+                            className="absolute left-2 top-2 rounded-full bg-sky-500 px-2 py-0.5 text-[9px] font-semibold text-white shadow-sm"
+                            title={arrivalRelative}
+                          >
+                            {t('new', 'New')}
+                          </span>
                         </div>
                       );
                     })}
