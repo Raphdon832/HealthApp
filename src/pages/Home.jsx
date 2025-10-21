@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from '@/icons/react/ClockIcon';
 import SearchIcon from '@/icons/react/SearchIcon';
-import { listenProducts, addToCart, getAllPharmacies } from '@/lib/db';
+import { listenProducts, listenNewProducts, addToCart, getAllPharmacies } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
 import ProductCard from '@/components/ProductCard';
 import { useNavigate } from 'react-router-dom';
@@ -68,6 +68,7 @@ const FixedHeader = ({ user, profile, location, navigate, etaInfo, closestPharma
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [newProducts, setNewProducts] = useState([]);
   const [vendors, setVendors] = useState({});
   const [pharmacies, setPharmacies] = useState([]);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -75,6 +76,7 @@ export default function Home() {
   const [serverResults, setServerResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [q, setQ] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const { user, profile } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -86,8 +88,6 @@ export default function Home() {
 
   const newArrivalsRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [showNewArrivalsModal, setShowNewArrivalsModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Info cards
   const [infoCards, setInfoCards] = useState([]);
@@ -102,7 +102,6 @@ export default function Home() {
 
   // Pagination state for product lists
   const [popularPage, setPopularPage] = useState(1);
-  const [allNewPage, setAllNewPage] = useState(1);
 
   // Filtered products by search and category
   const filtered = useMemo(() => {
@@ -173,6 +172,7 @@ export default function Home() {
   }, [pharmacies, q, serverResults]);
 
   useEffect(() => listenProducts(setProducts), []);
+  useEffect(() => listenNewProducts(setNewProducts, 12), []);
 
   // Calculate ETA to closest pharmacy when user location or pharmacies change
   useEffect(() => {
@@ -320,10 +320,8 @@ export default function Home() {
   }, [products]);
 
   const allNewArrivals = useMemo(() => {
-    return [...products]
-      .filter((p) => p.createdAt)
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-  }, [products]);
+    return [...newProducts];
+  }, [newProducts]);
 
   // Pagination calculations (client-side)
   const popularPerPage = 30;
@@ -331,13 +329,11 @@ export default function Home() {
   // "Load more" semantics: show cumulative items up to (page * perPage)
   const popularVisible = popularProducts.slice(0, popularPage * popularPerPage);
 
-  const allNewPerPage = 12;
-  const allNewTotalPages = Math.max(1, Math.ceil(allNewArrivals.length / allNewPerPage));
-  const allNewVisible = allNewArrivals.slice(0, allNewPage * allNewPerPage);
+  // All new products are now limited to 12, so no pagination needed
+  const allNewVisible = allNewArrivals;
 
   // Reset page indices when data set sizes change
   useEffect(() => setPopularPage(1), [popularProducts.length]);
-  useEffect(() => setAllNewPage(1), [allNewArrivals.length]);
 
   // Helper function to translate info card text if it contains translation keys
   const translateCardText = (text) => {
@@ -784,7 +780,7 @@ export default function Home() {
         <div className="mt-2">
           <div className="flex items-center justify-between mb-3">
             <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins">{t('new_arrivals', 'New Arrivals')}</div>
-            <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600" onClick={() => setShowNewArrivalsModal(true)}>
+            <button className="text-[13px] md:text-[15px] lg:text-[17px] font-normal font-poppins text-sky-600" onClick={() => navigate('/new-arrivals')}>
               {t('view_all', 'view all')}
             </button>
           </div>
@@ -834,57 +830,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {showNewArrivalsModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-[20px] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
-              <button
-                className="absolute top-2 right-2 text-zinc-500 hover:text-zinc-800 text-xl font-bold"
-                onClick={() => setShowNewArrivalsModal(false)}
-                aria-label={t('close', 'Close')}
-              >
-                &times;
-              </button>
-              <div className="text-[20px] md:text-[26px] font-light mb-4 font-poppins text-left">{t('all_new_products', 'All New Products')}</div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-                {allNewVisible.map((p) => (
-                   <div className="relative flex flex-col items-center" key={p.id || p.sku}>
-                     <ProductCard
-                       product={p}
-                       onOpen={() => handleProductOpen(p.id)}
-                       onAdd={() => (user ? addToCart(user.uid, p.id, 1) : alert(t(t('please_sign_in', 'please_sign_in', 'Please sign in'))))}
-                       cardWidth="110px"
-                       cardHeight="128px"
-                       nameSize="11px"
-                       nameWeight="semi-bold"
-                       nameTracking="-0.5px"
-                       priceSize="9px"
-                       priceColor="#BDBDBD"
-                       priceWeight="medium"
-                       addColor="#36A5FF"
-                       addSize="9px"
-                     />
-                     <span className="absolute top-1 left-1 bg-sky-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-sm select-none pointer-events-none">
-                       {t('new', 'New')}
-                     </span>
-                   </div>
-                ))}
-              </div>
-              {/* All New "Load more" (cumulative) */}
-              {allNewTotalPages > 1 && allNewPage < allNewTotalPages && (
-                <div className="flex items-center justify-center gap-3 mt-4">
-                  <button
-                    className="px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700"
-                    onClick={() => setAllNewPage((p) => Math.min(allNewTotalPages, p + 1))}
-                    aria-label={t('load_more', 'Load more') + ' ' + t('new_arrivals', 'new arrivals')}
-                  >
-                    {t('load_more', 'Load more')}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         <div className="mt-10">
           <div className="text-[15px] md:text-[18px] lg:text-[22px] font-medium font-poppins mb-3">{t('popular_products', 'Popular Products')}</div>

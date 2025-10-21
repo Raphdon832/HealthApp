@@ -58,9 +58,9 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import AddProduct from '@/pages/AddProduct';
 
 // Extra
-import VendorProfile from '@/pages/VendorProfile';
+import NewArrivals from '@/pages/NewArrivals';
+import { AIChat } from '@/pages/AIChat';
 import ProductPreview from '@/pages/ProductPreview';
-import AIChat from '@/pages/AIChat';
 
 /* ---------------------------
    LAYOUTS
@@ -436,6 +436,7 @@ function Shell() {
           path="/"
           element={<RoleBasedRootRoute />}
         />
+        <Route path="/new-arrivals" element={<RequireAuth><NewArrivals /></RequireAuth>} />
         <Route path="/vendor/:id" element={<VendorProfileRoute />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
         <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />

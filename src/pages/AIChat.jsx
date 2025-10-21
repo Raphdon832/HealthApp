@@ -229,7 +229,7 @@ const renderMessageWithLinks = (content, navigate, productMatchers = []) => {
   return enhanced.length === 1 ? enhanced[0] : enhanced;
 };
 
-export default function AIChat() {
+export function AIChat() {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();

@@ -5,6 +5,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   addDoc,
   doc,
   getDoc,
@@ -16,7 +17,6 @@ import {
   serverTimestamp,
   writeBatch,
   increment,
-  limit,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { sendPayment } from "./payment/send";
@@ -261,6 +261,21 @@ export const listenProducts = (cb, pharmacyId = null) => {
     q,
     (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
     (e) => console.error("listenProducts error:", e)
+  );
+};
+
+// New function to fetch limited new products for the "All New Products" modal
+export const listenNewProducts = (cb, limitCount = 12) => {
+  const base = collection(db, "products");
+  const q = query(
+    base,
+    orderBy("createdAt", "desc"),
+    limit(limitCount)
+  );
+  return onSnapshot(
+    q,
+    (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    (e) => console.error("listenNewProducts error:", e)
   );
 };
 
