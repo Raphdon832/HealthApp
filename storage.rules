@@ -15,5 +15,15 @@ service firebase.storage {
     match /chat-images/{allPaths=**} {
       allow read: if request.auth != null;
     }
+
+    // Allow pharmacy users to upload product images
+    match /products/{pharmacyId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow all authenticated users to read product images
+    match /products/{allPaths=**} {
+      allow read: if request.auth != null;
+    }
   }
 }
