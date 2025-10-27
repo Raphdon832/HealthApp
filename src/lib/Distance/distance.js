@@ -11,22 +11,23 @@ const functions = getFunctions();
 
 // TODO: Change this to a firebase function
 const getRouteDistance = async ({ pharmacyLocation, customerLocation }) => {
-  const { pharmLat, pharmLng } = pharmacyLocation;
+  const { pharmLat, pharmLng, pharmAddress } = pharmacyLocation;
   const { customerLat, customerLng, customerAddress } = customerLocation;
 
-  const origin = {
-    location: {
-      latLng: {
-        latitude: pharmLat,
-        longitude: pharmLng,
-      },
-    },
-  };
+  const origin =
+    pharmAddress !== null
+      ? { address: pharmAddress }
+      : {
+          location: {
+            latLng: {
+              latitude: pharmLat,
+              longitude: pharmLng,
+            },
+          },
+        };
   const destination =
     customerAddress !== null
-      ? {
-          address: customerAddress,
-        }
+      ? { address: customerAddress }
       : {
           location: {
             latLng: {

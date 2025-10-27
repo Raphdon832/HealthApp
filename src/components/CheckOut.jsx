@@ -92,7 +92,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
 
     try {
       let fee = 0;
-      let pharmLat, pharmLng;
+      let pharmLat, pharmLng, pharmAddress;
 
       for (const { pharmacyId } of products) {
         const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
@@ -102,13 +102,15 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
         const pharmacy = pharmacyDoc.data();
         pharmLat = pharmacy.lat;
         pharmLng = pharmacy.lon;
+        pharmAddress = pharmacy.address;
 
-        console.log("Pharmacy lat: ", pharmLat);
-        console.log("Pharmacy.lon: ", pharmLng);
-        console.log("Customer Address: ", deliveryAddress);
+        // console.log("Pharmacy lat: ", pharmLat);
+        // console.log("Pharmacy lon: ", pharmLng);
+        // console.log("Pharmacy Address: ", pharmAddress);
+        // console.log("Customer Address: ", deliveryAddress);
 
         const { distanceMeters } = await getRouteDistance({
-          pharmacyLocation: { pharmLat, pharmLng },
+          pharmacyLocation: { pharmLat, pharmLng, pharmAddress },
           customerLocation: {
             customerlat: 0,
             customerLng: 0,
@@ -116,7 +118,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
           },
         });
         distanceMeters;
-        console.log("Distance Meters: ", distanceMeters);
+        // console.log("Distance Meters: ", distanceMeters);
 
         fee += Math.round(distanceMeters * 0.05);
       }
