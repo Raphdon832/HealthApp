@@ -103,9 +103,9 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
         pharmLat = pharmacy.lat;
         pharmLng = pharmacy.lon;
 
-        // console.log("Pharmacy lat: ", pharmLat);
-        // console.log("Pharmacy.lon: ", pharmLng);
-        // console.log("Customer Address: ", deliveryAddress);
+        console.log("Pharmacy lat: ", pharmLat);
+        console.log("Pharmacy.lon: ", pharmLng);
+        console.log("Customer Address: ", deliveryAddress);
 
         const { distanceMeters } = await getRouteDistance({
           pharmacyLocation: { pharmLat, pharmLng },
@@ -116,7 +116,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
           },
         });
         distanceMeters;
-        // console.log("Distance Meters: ", distanceMeters);
+        console.log("Distance Meters: ", distanceMeters);
 
         fee += Math.round(distanceMeters * 0.05);
       }
