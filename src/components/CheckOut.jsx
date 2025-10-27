@@ -91,31 +91,35 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     }
 
     try {
-      const pharmacyId = items[0].pharmacyId;
-      let totalDistance = 0;
+      let fee = 0;
       let pharmLat, pharmLng;
 
-      const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
+      for (const { pharmacyId } of products) {
+        const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
 
-      if (!pharmacyDoc.exists()) return;
+        if (!pharmacyDoc.exists()) return;
 
-      const pharmacy = pharmacyDoc.data();
-      pharmLat = pharmacy.lat;
-      pharmLng = pharmacy.lon;
-      console.log("Customer Address: ", deliveryAddress);
+        const pharmacy = pharmacyDoc.data();
+        pharmLat = pharmacy.lat;
+        pharmLng = pharmacy.lon;
 
-      const { distanceMeters } = await getRouteDistance({
-        pharmacyLocation: { pharmLat, pharmLng },
-        customerLocation: {
-          customerlat: 0,
-          customerLng: 0,
-          customerAddress: deliveryAddress,
-        },
-      });
-      distanceMeters;
+        // console.log("Pharmacy lat: ", pharmLat);
+        // console.log("Pharmacy.lon: ", pharmLng);
+        // console.log("Customer Address: ", deliveryAddress);
 
-      // ₦300 per km
-      const fee = Math.round(distanceMeters * 0.05);
+        const { distanceMeters } = await getRouteDistance({
+          pharmacyLocation: { pharmLat, pharmLng },
+          customerLocation: {
+            customerlat: 0,
+            customerLng: 0,
+            customerAddress: deliveryAddress,
+          },
+        });
+        distanceMeters;
+        // console.log("Distance Meters: ", distanceMeters);
+
+        fee += Math.round(distanceMeters * 0.05);
+      }
       setDeliveryFee(fee);
     } catch (error) {
       console.error("Error calculating delivery fee:", error);
@@ -316,7 +320,6 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                         // value={deliveryAddress}
                         onChange={(e) => {
                           setDeliveryAddress(e.target.value);
-                          // searchAddresses(e.target.value);
                           calculateDeliveryFee();
                         }}
                         placeholder={t(
