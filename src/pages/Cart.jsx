@@ -11,7 +11,11 @@ import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
-import AnimatedFeedback, { useToast, ToastContainer } from "@/components/AnimatedFeedback";
+import AnimatedFeedback, {
+  useToast,
+  ToastContainer,
+} from "@/components/AnimatedFeedback";
+import { CheckOut } from "../components/CheckOut";
 
 // Fixed Header Component
 const FixedHeader = ({ title, itemCount, t }) => {
@@ -34,7 +38,12 @@ export default function Cart() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords, location } = useUserLocation();
-  const { success: showSuccessToast, error: showErrorToast, toasts, removeToast } = useToast();
+  const {
+    success: showSuccessToast,
+    error: showErrorToast,
+    toasts,
+    removeToast,
+  } = useToast();
   const [items, setItems] = useState([]);
 
   // Checkout flow states
@@ -47,6 +56,8 @@ export default function Cart() {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [showCheckOut, setShowCheckOut] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -62,6 +73,18 @@ export default function Cart() {
       setItems(rows);
     });
   }, [user]);
+
+  // calculate total price of the products/items
+  let priceTotal = 0;
+  useEffect(() => {
+    const cartItems = groupItems();
+    for (const item of cartItems) {
+      const price = item.product.price * item.qty;
+      priceTotal += price;
+    }
+
+    setTotalPrice(priceTotal);
+  }, [items]);
 
   // Initialize delivery address and contact info from user data
   useEffect(() => {
@@ -216,7 +239,14 @@ export default function Cart() {
       let orderStatus;
       if (selectedPaymentMethod === "online") {
         // Use existing online payment flow
-        console.log("Checkout totals - subtotal:", total, "deliveryFee:", deliveryFee, "totalWithDelivery:", totalWithDelivery);
+        console.log(
+          "Checkout totals - subtotal:",
+          total,
+          "deliveryFee:",
+          deliveryFee,
+          "totalWithDelivery:",
+          totalWithDelivery
+        );
         orderStatus = await placeOrder({
           customerId: orderData.customerId,
           pharmacyId: orderData.pharmacyId,
@@ -248,14 +278,22 @@ export default function Cart() {
       // Show success message
       showSuccessToast(
         selectedPaymentMethod === "cash"
-          ? t("order_placed_delivery", "Order placed successfully! You'll pay on delivery.")
-          : t("payment_successful", "Payment successful! Your order has been placed.")
+          ? t(
+              "order_placed_delivery",
+              "Order placed successfully! You'll pay on delivery."
+            )
+          : t(
+              "payment_successful",
+              "Payment successful! Your order has been placed."
+            )
       );
 
       navigate("/customer/orders"); // Redirect to orders page
     } catch (error) {
       console.error("Checkout error:", error);
-      showErrorToast(t("checkout_failed", "Checkout failed. Please try again."));
+      showErrorToast(
+        t("checkout_failed", "Checkout failed. Please try again.")
+      );
     }
   };
 
@@ -424,7 +462,7 @@ export default function Cart() {
               </div>
             </div>
             <button
-              onClick={startCheckout}
+              onClick={() => setShowCheckOut(true)}
               className="mt-4 w-full rounded-full border bg-sky-400 text-white py-2 text-[12px] sm:text-[14px] lg:text-[16px] font-light"
             >
               {t("proceed_to_checkout", "Proceed to Checkout")}
@@ -432,6 +470,14 @@ export default function Cart() {
           </div>
         )}
       </div>
+
+      {showCheckOut && (
+        <CheckOut
+          items={groupItems()}
+          total={totalPrice}
+          onClose={() => setShowCheckOut(false)}
+        />
+      )}
 
       {/* Order Summary Modal */}
       {showOrderSummary && (

@@ -47,6 +47,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [successInfo, setSuccessInfo] = useState(null);
+  const [products, setProducts] = useState([]);
 
   // Initialize delivery address and contact info from user data
   useEffect(() => {
@@ -57,12 +58,30 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     }
   }, [user, location, deliveryAddress]);
 
-  // Calculate delivery fee when items change
-  // useEffect(() => {
-  //   if (items.length > 0) {
-  //     calculateDeliveryFee();
-  //   }
-  // }, [items]);
+  useEffect(() => {
+    // if prescription is true the data structure is slightly different from that which comes from cart
+    const allProducts = prescription
+      ? items.map((item) => ({
+          productId: item.id,
+          quantity: item.qty,
+          price: item.price,
+          pharmacyId: item.pharmacyId,
+          image: item.image,
+          name: item.name,
+          category: item.category,
+        }))
+      : items.map((item) => ({
+          productId: item.id,
+          quantity: item.qty,
+          price: item.product.price,
+          pharmacyId: item.product.pharmacyId,
+          image: item.product.image,
+          name: item.product.name,
+          category: item.product.category,
+        }));
+
+    setProducts(allProducts);
+  }, [items]);
 
   // Calculate delivery fee based on distance to pharmacies
   const calculateDeliveryFee = async () => {
@@ -72,74 +91,42 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     }
 
     try {
-      // Get unique pharmacies from cart items
-      // const pharmacyIds = [
-      //   ...new Set(
-      //     items.map((item) => item.product?.pharmacyId).filter(Boolean)
-      //   ),
-      // ];
-      const pharmacyId = items[0].pharmacyId;
-      let totalDistance = 0;
-      let pharmLat, pharmLng;
+      let fee = 0;
+      let pharmLat, pharmLng, pharmAddress;
 
-      const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
+      for (const { pharmacyId } of products) {
+        const pharmacyDoc = await getDoc(doc(db, "pharmacies", pharmacyId));
 
-      if (!pharmacyDoc.exists()) return;
+        if (!pharmacyDoc.exists()) return;
 
-      const pharmacy = pharmacyDoc.data();
-      pharmLat = pharmacy.lat;
-      pharmLng = pharmacy.lon;
-      console.log("Customer Address: ", deliveryAddress);
+        const pharmacy = pharmacyDoc.data();
+        pharmLat = pharmacy.lat;
+        pharmLng = pharmacy.lon;
+        pharmAddress = pharmacy.address;
 
-      const { distanceMeters } = await getRouteDistance({
-        pharmacyLocation: { pharmLat, pharmLng },
-        customerLocation: {
-          customerlat: 0,
-          customerLng: 0,
-          customerAddress: deliveryAddress,
-        },
-      });
-      distanceMeters;
+        // console.log("Pharmacy lat: ", pharmLat);
+        // console.log("Pharmacy lon: ", pharmLng);
+        // console.log("Pharmacy Address: ", pharmAddress);
+        // console.log("Customer Address: ", deliveryAddress);
 
-      // ₦300 per km
-      const fee = Math.round(distanceMeters * 0.05);
+        const { distanceMeters } = await getRouteDistance({
+          pharmacyLocation: { pharmLat, pharmLng, pharmAddress },
+          customerLocation: {
+            customerlat: 0,
+            customerLng: 0,
+            customerAddress: deliveryAddress,
+          },
+        });
+        distanceMeters;
+        // console.log("Distance Meters: ", distanceMeters);
+
+        fee += Math.round(distanceMeters * 0.05);
+      }
       setDeliveryFee(fee);
     } catch (error) {
       console.error("Error calculating delivery fee:", error);
-      // setDeliveryFee(300); // Default fee
     }
   };
-
-  // Address autocomplete function
-  // const searchAddresses = async (query) => {
-  //   if (query.length < 3) {
-  //     setAddressSuggestions([]);
-  //     return;
-  //   }
-
-  //   setIsLoadingAddress(true);
-  //   try {
-  //     const response = await fetch(
-  //       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-  //         query
-  //       )}&limit=5&countrycodes=ng`
-  //     );
-  //     const data = await response.json();
-  //     setAddressSuggestions(data.map((item) => item.display_name));
-  //   } catch (error) {
-  //     console.error("Error searching addresses:", error);
-  //     setAddressSuggestions([]);
-  //   }
-  //   setIsLoadingAddress(false);
-  // };
-
-  // Get user's current location
-  // const useCurrentLocation = () => {
-  //   if (location && userCoords) {
-  //     setDeliveryAddress(location);
-  //     setAddressSuggestions([]);
-  //   }
-  // };
 
   const proceedToPayment = () => {
     setShowOrderSummary(false);
@@ -165,18 +152,14 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     if (!user || !items.length || !selectedPaymentMethod) return;
 
     try {
-      // const first = items[0];
-      // const pharmacyId = first.product?.pharmacyId;
-      // const cartItems = groupItems();
-
       const orderData = {
         customerId: user.uid,
         // pharmacyId,
-        items: items.map((i) => ({
-          productId: i.id,
-          quantity: i.qty,
-          price: i.price,
-          pharmacyId: i.pharmacyId,
+        items: products.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          pharmacyId: item.pharmacyId,
         })),
         total: total + deliveryFee,
         subtotal: total,
@@ -292,28 +275,37 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                   {t("items", "Items")} ({items.length})
                 </h3>
                 <div className="space-y-3">
-                  {items.map((item, index) => (
+                  {products.map((product, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <ProductAvatar
-                        name={item.name}
-                        image={item.image} /*Put a default image*/
-                        category={item.category}
+                        name={product.name}
+                        image={product.image} /*Put a default image*/
+                        category={product.category}
                         size={40}
                         roundedClass="rounded-lg"
                       />
                       <div className="flex-1">
-                        <div className="text-[14px] font-medium truncate blur-sm select-none">
-                          {item.name}
-                        </div>
+                        {prescription ? (
+                          <div className="text-[14px] font-medium truncate blur-sm select-none">
+                            {product.name}
+                          </div>
+                        ) : (
+                          <div className="text-[14px] font-medium truncate">
+                            {product.name}
+                          </div>
+                        )}
                         <div className="text-[12px] text-gray-600">
-                          {t("qty", "Qty")}: {item.qty}
+                          {`${t("qty", "Qty")}: ${product.quantity}`}
                         </div>
                       </div>
                       <div className="text-[14px] font-medium text-sky-600">
-                        ₦{Number((item.price || 0) * item.qty).toLocaleString()}
+                        ₦
+                        {Number(
+                          product.price * product.quantity
+                        ).toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -336,7 +328,6 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                         // value={deliveryAddress}
                         onChange={(e) => {
                           setDeliveryAddress(e.target.value);
-                          // searchAddresses(e.target.value);
                           calculateDeliveryFee();
                         }}
                         placeholder={t(
@@ -596,7 +587,9 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
 
             <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-left">
               <div className="flex items-center justify-between text-[14px] text-gray-600">
-                <span className="font-medium">{t("total_amount", "Total Amount")}</span>
+                <span className="font-medium">
+                  {t("total_amount", "Total Amount")}
+                </span>
                 <span className="font-semibold text-gray-900">
                   {`\u20A6${Number(totalWithDelivery).toLocaleString()}`}
                 </span>

@@ -5,24 +5,28 @@
 
 import axios from "axios";
 
-// TODO: Change this to a firebase function
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions();
+
 const getRouteDistance = async ({ pharmacyLocation, customerLocation }) => {
-  const { pharmLat, pharmLng } = pharmacyLocation;
+  const { pharmLat, pharmLng, pharmAddress } = pharmacyLocation;
   const { customerLat, customerLng, customerAddress } = customerLocation;
 
-  const origin = {
-    location: {
-      latLng: {
-        latitude: pharmLat,
-        longitude: pharmLng,
-      },
-    },
-  };
+  const origin =
+    pharmAddress !== null
+      ? { address: pharmAddress }
+      : {
+          location: {
+            latLng: {
+              latitude: pharmLat,
+              longitude: pharmLng,
+            },
+          },
+        };
   const destination =
     customerAddress !== null
-      ? {
-          address: customerAddress,
-        }
+      ? { address: customerAddress }
       : {
           location: {
             latLng: {
@@ -33,22 +37,12 @@ const getRouteDistance = async ({ pharmacyLocation, customerLocation }) => {
         };
 
   const payload = { origin, destination };
-  const headers = {
-    "Content-Type": "application/json",
-    "X-Goog-Api-Key": "AIzaSyBrRCC7uRo9vv-VtbIq7lWP_1dEg89o77k",
-    "X-Goog-FieldMask":
-      "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
-  };
 
-  const response = await axios.post(
-    "https://routes.googleapis.com/directions/v2:computeRoutes",
-    payload,
-    {
-      headers: headers,
-    }
-  );
+  const distance = httpsCallable(functions, "computeRouteDistance");
 
-  return response.data.routes[0];
+  const res = await distance(payload);
+
+  return res.data;
 };
 
 export { getRouteDistance };

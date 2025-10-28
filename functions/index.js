@@ -13,7 +13,8 @@ admin.initializeApp();
 const cors = corsLib({ origin: true });
 const db = admin.firestore();
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET || defineSecret("PAYSTACK_SECRET");
+const PAYSTACK_SECRET =
+  process.env.PAYSTACK_SECRET || defineSecret("PAYSTACK_SECRET");
 const PAYSTACK_BASE = "https://api.paystack.co";
 
 function generateRandomString(length) {
@@ -77,7 +78,9 @@ async function makeTransfer({ amountNGN, recipient, reason, idempotencyKey }) {
   };
 
   const headers = {
-    Authorization: `Bearer ${process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()}`,
+    Authorization: `Bearer ${
+      process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()
+    }`,
     "Idempotency-Key": idempotencyKey || crypto.randomBytes(12).toString("hex"),
   };
 
@@ -98,14 +101,26 @@ const initOrder = onCall(async (request) => {
     // Ensure total is a number
     const numericTotal = Number(total);
     if (isNaN(numericTotal) || numericTotal <= 0) {
-      throw new HttpsError("invalid-argument", `Invalid total amount: ${total}`);
+      throw new HttpsError(
+        "invalid-argument",
+        `Invalid total amount: ${total}`
+      );
     }
 
     const amount = Math.round(numericTotal * 100);
-    console.log("Calculated amount:", amount, "from total * 100:", numericTotal * 100);
-    
-    if (amount < 10000) { // Paystack minimum is 100 naira = 10000 kobo
-      throw new HttpsError("invalid-argument", `Amount too small: ${amount} kobo. Minimum is 10000 kobo (₦100)`);
+    console.log(
+      "Calculated amount:",
+      amount,
+      "from total * 100:",
+      numericTotal * 100
+    );
+
+    if (amount < 10000) {
+      // Paystack minimum is 100 naira = 10000 kobo
+      throw new HttpsError(
+        "invalid-argument",
+        `Amount too small: ${amount} kobo. Minimum is 10000 kobo (₦100)`
+      );
     }
 
     const payload = {
@@ -121,7 +136,9 @@ const initOrder = onCall(async (request) => {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()}`,
+          Authorization: `Bearer ${
+            process.env.PAYSTACK_SECRET || PAYSTACK_SECRET.value()
+          }`,
         },
       }
     );
@@ -281,6 +298,33 @@ const confirmDelivery = onCall(async (request) => {
   }
 });
 
+const computeRouteDistance = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Login Required");
+
+  const payload = request.data;
+  "unauthenticated", "Login Required";
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": process.env.GOOGLE_MAPS_API_KEY,
+      "X-Goog-FieldMask":
+        "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
+    };
+
+    const response = await axios.post(
+      "https://routes.googleapis.com/directions/v2:computeRoutes",
+      payload,
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data.routes[0];
+  } catch (error) {
+    throw new HttpsError("internal", "Could not compute route distance");
+  }
+});
+
 const makePayment = onRequest((req, res) => {
   cors(req, res, async () => {
     let data = JSON.stringify({
@@ -346,6 +390,7 @@ export {
   initOrder,
   paystackWebhook,
   confirmDelivery,
+  computeRouteDistance,
   makePayment,
   verifyPayment,
 };
