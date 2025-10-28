@@ -1,0 +1,21 @@
+[debug] [2025-10-21T18:20:02.861Z] ----------------------------------------------------------------------
+[debug] [2025-10-21T18:20:02.865Z] Command:       /usr/local/bin/node /Users/mac/.npm-global/bin/firebase functions:list
+[debug] [2025-10-21T18:20:02.866Z] CLI Version:   14.18.0
+[debug] [2025-10-21T18:20:02.866Z] Platform:      darwin
+[debug] [2025-10-21T18:20:02.866Z] Node Version:  v22.17.0
+[debug] [2025-10-21T18:20:02.866Z] Time:          Tue Oct 21 2025 19:20:02 GMT+0100 (West Africa Standard Time)
+[debug] [2025-10-21T18:20:02.867Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-21T18:20:03.277Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-21T18:20:03.278Z] > authorizing via signed-in user (paulkilkelly3@gmail.com)
+[debug] [2025-10-21T18:20:03.279Z] [iam] checking project healthapp-f4173 for permissions ["cloudfunctions.functions.list","firebase.projects.get"]
+[debug] [2025-10-21T18:20:03.281Z] Checked if tokens are valid: false, expires at: 1761058632170
+[debug] [2025-10-21T18:20:03.281Z] Checked if tokens are valid: false, expires at: 1761058632170
+[debug] [2025-10-21T18:20:03.281Z] > refreshing access token with scopes: []
+[debug] [2025-10-21T18:20:03.288Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-21T18:20:03.288Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-21T18:20:05.989Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-21T18:20:05.989Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-21T18:20:06.006Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/healthapp-f4173:testIamPermissions [none]
+[debug] [2025-10-21T18:20:06.006Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/healthapp-f4173:testIamPermissions x-goog-quota-user=projects/healthapp-f4173
+[debug] [2025-10-21T18:20:06.006Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/healthapp-f4173:testIamPermissions {"permissions":["cloudfunctions.functions.list","firebase.projects.get"]}

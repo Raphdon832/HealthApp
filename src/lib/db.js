@@ -315,36 +315,78 @@ export const removeFromCart = (uid, itemId) =>
   deleteDoc(doc(db, "users", uid, "cart", itemId));
 
 export const placeOrder = async (orderData) => {
-  const { customerId, items, total, prescription = false } = orderData;
-  const paymentSuccess = await onCheckout(total);
-  const { data, status } = paymentSuccess;
-  if (status) {
-    setDoc(doc(db, "orders", data.orderId), {
-      customerId,
-      customerEmail: orderData.customerEmail,
-      items: items.map((it) => ({
-        productId: it.productId,
-        pharmacyId: it.pharmacyId,
-        price: it.price,
-        quantity: it.quantity || 1,
-        status: "pending",
-        paid: prescription ? true : false,
-        transferReference: null,
-        transferStatus: null,
-      })),
-      total,
-      subtotal: orderData.subtotal,
-      paystackReference: data.paystackReference,
-      status: "paid",
-      paymentMethod: orderData.paymentMethod,
-      deliveryFee: orderData.deliveryFee,
-      deliveryAddress: orderData.deliveryAddress,
-      prescriptionId: prescription ? prescription : null,
-      paidAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-    });
+  const {
+    customerId,
+    pharmacyId,
+    items = [],
+    total = 0,
+    subtotal = 0,
+    deliveryFee = 0,
+    deliveryAddress = null,
+    customerEmail = null,
+    customerPhone = null,
+    paymentMethod = "online",
+    paymentStatus,
+    orderStatus,
+    prescription = false,
+  } = orderData;
+
+  if (!customerId || !pharmacyId || !items.length) {
+    throw new Error("Missing order data");
   }
-  return status;
+
+  let orderId;
+  let paystackReference = null;
+  let checkoutStatus = true;
+
+  if (paymentMethod === "online") {
+    const paymentSuccess = await onCheckout(total);
+    checkoutStatus = paymentSuccess?.status ?? false;
+    if (!checkoutStatus) return false;
+    orderId = paymentSuccess?.data?.orderId;
+    paystackReference = paymentSuccess?.data?.paystackReference || null;
+  } else {
+    const newOrderRef = doc(collection(db, "orders"));
+    orderId = newOrderRef.id;
+  }
+
+  if (!orderId) {
+    const fallbackRef = doc(collection(db, "orders"));
+    orderId = fallbackRef.id;
+  }
+
+  const sanitizedItems = items.map((it) => ({
+    productId: it.productId,
+    pharmacyId: it.pharmacyId,
+    price: Number(it.price || 0),
+    quantity: Number(it.quantity || 1),
+    status: "pending",
+    paid: paymentMethod === "online" ? true : it.paid ?? false,
+    transferReference: null,
+    transferStatus: null,
+  }));
+
+  const orderPayload = {
+    customerId,
+    pharmacyId,
+    customerEmail: customerEmail ?? null,
+    customerPhone: customerPhone ?? null,
+    items: sanitizedItems,
+    total: Number(total || 0),
+    subtotal: Number(subtotal || 0),
+    paystackReference,
+    status: paymentMethod === "online" ? "paid" : orderStatus || "confirmed",
+    paymentStatus: paymentMethod === "online" ? "paid" : paymentStatus || "pending",
+    paymentMethod,
+    deliveryFee: Number(deliveryFee || 0),
+    deliveryAddress: deliveryAddress ?? null,
+    prescriptionId: prescription ? prescription : null,
+    paidAt: paymentMethod === "online" ? serverTimestamp() : null,
+    createdAt: serverTimestamp(),
+  };
+
+  await setDoc(doc(db, "orders", orderId), orderPayload);
+  return checkoutStatus;
 };
 
 export const listenOrders = (uid, cb) => {
