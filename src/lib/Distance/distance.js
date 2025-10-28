@@ -9,7 +9,6 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
 
-// TODO: Change this to a firebase function
 const getRouteDistance = async ({ pharmacyLocation, customerLocation }) => {
   const { pharmLat, pharmLng, pharmAddress } = pharmacyLocation;
   const { customerLat, customerLng, customerAddress } = customerLocation;

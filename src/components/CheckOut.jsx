@@ -288,9 +288,15 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                         roundedClass="rounded-lg"
                       />
                       <div className="flex-1">
-                        <div className="text-[14px] font-medium truncate select-none">
-                          {product.name}
-                        </div>
+                        {prescription ? (
+                          <div className="text-[14px] font-medium truncate blur-sm select-none">
+                            {product.name}
+                          </div>
+                        ) : (
+                          <div className="text-[14px] font-medium truncate">
+                            {product.name}
+                          </div>
+                        )}
                         <div className="text-[12px] text-gray-600">
                           {`${t("qty", "Qty")}: ${product.quantity}`}
                         </div>
