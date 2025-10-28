@@ -59,8 +59,10 @@ import AddProduct from '@/pages/AddProduct';
 
 // Extra
 import NewArrivals from '@/pages/NewArrivals';
-import { AIChat } from '@/pages/AIChat';
+import { AIChatRoute } from '@/pages/AIChat';
 import ProductPreview from '@/pages/ProductPreview';
+import { AiChatOverlayProvider } from '@/lib/aiChatOverlayContext';
+import AIChatOverlay from '@/components/AIChatOverlay';
 
 /* ---------------------------
    LAYOUTS
@@ -412,7 +414,7 @@ function Shell() {
           path="/ai-chat"
           element={
             <RequireAuth>
-              <AIChat />
+              <AIChatRoute />
             </RequireAuth>
           }
         />
@@ -527,9 +529,12 @@ export default function App() {
   
   return (
     <AuthProvider>
-      <NotificationManager />
-      <Shell />
-      <GlobalMessageNotifier />
+      <AiChatOverlayProvider>
+        <NotificationManager />
+        <Shell />
+        <AIChatOverlay />
+        <GlobalMessageNotifier />
+      </AiChatOverlayProvider>
     </AuthProvider>
   );
 }

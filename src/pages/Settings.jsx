@@ -103,6 +103,53 @@ export default function Settings() {
               </div>
             )}
 
+            {/* Floating AI Button Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">Floating PharmAI Button</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Show floating PharmAI assistant button on the screen
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.FLOATING_AI_BUTTON)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.FLOATING_AI_BUTTON, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+              </label>
+            </div>
+
+            {/* AI Chat in Navbar Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <h3 className="text-sm font-medium text-gray-800">PharmAI in Bottom Navigation</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Show PharmAI button in the bottom navigation bar
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={getSetting(SETTINGS_KEYS.AI_CHAT_IN_NAVBAR)}
+                  onChange={(e) => updateSetting(SETTINGS_KEYS.AI_CHAT_IN_NAVBAR, e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+              </label>
+            </div>
+
+            {/* Help text for AI chat settings */}
+            {(!getSetting(SETTINGS_KEYS.FLOATING_AI_BUTTON) && !getSetting(SETTINGS_KEYS.AI_CHAT_IN_NAVBAR)) && (
+              <div className="bg-orange-50 rounded-lg p-3 mt-2 border border-orange-200">
+                <p className="text-xs text-orange-700">
+                  <span className="font-medium">Note:</span> Both PharmAI options are disabled. Enable at least one to access the AI assistant.
+                </p>
+              </div>
+            )}
+
             {/* Data Saver Mode */}
             <div className="flex items-center justify-between py-2">
               <div>

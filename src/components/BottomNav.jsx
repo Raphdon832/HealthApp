@@ -5,8 +5,11 @@ import MessagesIcon from '../icons/react/MessagesIcon';
 import CartIcon from '../icons/react/CartIcon';
 import ProfileIcon from '../icons/react/ProfileIcon';
 import DashboardIcon from '../icons/react/DashboardIcon';
+import AIChatIcon from '../icons/react/AIChatIcon';
+import PharmAIIcon from '../icons/react/PharmAIIcon';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/language';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
 
 function getCompactPositionFromWindow() {
   const defaultPosition = { left: '2rem', bottom: '2rem' };
@@ -30,6 +33,7 @@ function getCompactPositionFromWindow() {
 export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages = 0, ordersCount = 0 }) {
   const { profile } = useAuth();
   const { t } = useTranslation();
+  const { getSetting } = useSettings();
   const isPharmacy = profile && profile.role === 'pharmacy';
   const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ left: 0, opacity: 0 });
   const navRef = useRef(null);
@@ -40,6 +44,9 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     if (typeof window === 'undefined' || !window.matchMedia) return false;
     return window.matchMedia('(min-width: 1024px)').matches;
   });
+  
+  // Check if AI chat should be shown in navbar based on settings
+  const showAIChatInNav = getSetting(SETTINGS_KEYS.AI_CHAT_IN_NAVBAR);
   
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
@@ -81,6 +88,8 @@ export default function BottomNav({ tab, setTab, cartCount = 0, unreadMessages =
     { key: '/messages', label: t('messages', 'Messages'), icon: MessagesIcon },
     // Only show Cart if not pharmacy
     ...(!isPharmacy ? [{ key: '/cart', label: t('cart', 'Cart'), icon: CartIcon }] : []),
+    // Show AI Chat in nav if floating button is disabled
+    ...(showAIChatInNav ? [{ key: '/ai-chat', label: t('ai_chat', 'PharmAI'), icon: PharmAIIcon }] : []),
     { key: '/profile', label: t('profile', 'Profile'), icon: ProfileIcon },
   ];
 

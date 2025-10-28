@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '@/lib/language';
+import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
+import { useAiChatOverlay } from '@/lib/aiChatOverlayContext';
 
 // PharmAI Icon Component
 const PharmAIIcon = ({ className = "w-8 h-8" }) => (
@@ -15,8 +17,18 @@ export default function FloatingAIChatButton() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { getSetting } = useSettings();
   const buttonRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.innerWidth >= 1024;
+  });
+  const { open } = useAiChatOverlay();
+
+  // Check if floating button is enabled in settings
+  const isFloatingButtonEnabled = getSetting(SETTINGS_KEYS.FLOATING_AI_BUTTON);
 
   useEffect(() => {
     const styleId = 'ai-chat-floating-animations';
@@ -79,7 +91,7 @@ export default function FloatingAIChatButton() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsDesktop(window.innerWidth >= 1024);
     };
 
     window.addEventListener('resize', handleResize);
@@ -91,12 +103,23 @@ export default function FloatingAIChatButton() {
     return null;
   }
 
+  // Don't show if floating button is disabled in settings
+  if (!isFloatingButtonEnabled) {
+    return null;
+  }
+
   return (
     <button
       ref={buttonRef}
-      onClick={() => navigate('/ai-chat')}
+      onClick={() => {
+        if (isDesktop) {
+          open();
+        } else {
+          navigate('/ai-chat', { state: { from: location.pathname } });
+        }
+      }}
       className="fixed bottom-44 right-4 z-50 w-14 h-14 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-110"
-      aria-label={t('ai_chat', 'AI Chat')}
+      aria-label={t('ai_chat', 'PharmAI')}
     >
       {/* Gradient border container */}
       <div className="relative w-full h-full p-0.5 rounded-full ai-chat-gradient-border">
@@ -122,7 +145,7 @@ export default function FloatingAIChatButton() {
       <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl text-white text-xs px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap border border-white/20 shadow-2xl">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-gradient-to-r from-sky-400 to-blue-500 rounded-full animate-pulse" />
-          <span className="font-medium">{t('ai_chat', 'AI Chat')}</span>
+          <span className="font-medium">{t('ai_chat', 'PharmAI')}</span>
         </div>
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900/95" />
       </div>

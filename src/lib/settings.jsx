@@ -24,7 +24,9 @@ export const SETTINGS_KEYS = {
   PRESCRIPTION_REMINDERS: 'prescription_reminders_enabled',
   DATA_SAVER_MODE: 'data_saver_mode_enabled',
   HIGH_CONTRAST: 'high_contrast_enabled',
-  REDUCE_MOTION: 'reduce_motion_enabled'
+  REDUCE_MOTION: 'reduce_motion_enabled',
+  FLOATING_AI_BUTTON: 'floating_ai_button_enabled',
+  AI_CHAT_IN_NAVBAR: 'ai_chat_in_navbar_enabled'
 };
 
 // Default settings
@@ -41,7 +43,9 @@ const DEFAULT_SETTINGS = {
   [SETTINGS_KEYS.PRESCRIPTION_REMINDERS]: true,
   [SETTINGS_KEYS.DATA_SAVER_MODE]: false,
   [SETTINGS_KEYS.HIGH_CONTRAST]: false,
-  [SETTINGS_KEYS.REDUCE_MOTION]: false
+  [SETTINGS_KEYS.REDUCE_MOTION]: false,
+  [SETTINGS_KEYS.FLOATING_AI_BUTTON]: true, // Enabled by default
+  [SETTINGS_KEYS.AI_CHAT_IN_NAVBAR]: true // Enabled by default (shows when floating is disabled)
 };
 
 export const SettingsProvider = ({ children }) => {
