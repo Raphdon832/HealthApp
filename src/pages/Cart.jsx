@@ -11,6 +11,7 @@ import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
+import AnimatedFeedback, { useToast, ToastContainer } from "@/components/AnimatedFeedback";
 
 // Fixed Header Component
 const FixedHeader = ({ title, itemCount, t }) => {
@@ -33,6 +34,7 @@ export default function Cart() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords, location } = useUserLocation();
+  const { success: showSuccessToast, error: showErrorToast, toasts, removeToast } = useToast();
   const [items, setItems] = useState([]);
 
   // Checkout flow states
@@ -227,7 +229,7 @@ export default function Cart() {
       console.log(`OrderStatus: ${orderStatus}`);
 
       if (orderStatus === false) {
-        alert(t("order_placement_failed", "Order placement failed"));
+        showErrorToast(t("order_placement_failed", "Order placement failed"));
         return;
       }
 
@@ -236,22 +238,17 @@ export default function Cart() {
       setShowPaymentMethods(false);
       setShowOrderSummary(false);
 
-      alert(
+      // Show success message
+      showSuccessToast(
         selectedPaymentMethod === "cash"
-          ? t(
-              "order_placed_delivery",
-              "Order placed successfully! You'll pay on delivery."
-            )
-          : t(
-              "payment_successful",
-              "Payment successful! Your order has been placed."
-            )
+          ? t("order_placed_delivery", "Order placed successfully! You'll pay on delivery.")
+          : t("payment_successful", "Payment successful! Your order has been placed.")
       );
 
       navigate("/customer/orders"); // Redirect to orders page
     } catch (error) {
       console.error("Checkout error:", error);
-      alert(t("checkout_failed", "Checkout failed. Please try again."));
+      showErrorToast(t("checkout_failed", "Checkout failed. Please try again."));
     }
   };
 
@@ -732,6 +729,7 @@ export default function Cart() {
           </div>
         </div>
       )}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
 }

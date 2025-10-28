@@ -15,7 +15,15 @@ import { db } from "@/lib/firebase";
 import { removeFromCart, placeOrder } from "@/lib/db";
 import { useTranslation } from "@/lib/language";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Navigation, CreditCard, Truck, Shield, X } from "lucide-react";
+import {
+  MapPin,
+  Navigation,
+  CreditCard,
+  Truck,
+  Shield,
+  X,
+  CheckCircle2,
+} from "lucide-react";
 import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -38,6 +46,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [successInfo, setSuccessInfo] = useState(null);
 
   // Initialize delivery address and contact info from user data
   useEffect(() => {
@@ -137,6 +146,21 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
     setShowPaymentMethods(true);
   };
 
+  const handleContinueShopping = useCallback(() => {
+    setSuccessInfo(null);
+    if (onClose) {
+      onClose();
+    }
+  }, [onClose]);
+
+  const handleViewOrders = useCallback(() => {
+    setSuccessInfo(null);
+    if (onClose) {
+      onClose();
+    }
+    navigate("/customer/orders");
+  }, [navigate, onClose]);
+
   const handleFinalCheckout = async () => {
     if (!user || !items.length || !selectedPaymentMethod) return;
 
@@ -205,19 +229,39 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
       setShowPaymentMethods(false);
       setShowOrderSummary(false);
 
-      alert(
+      const successCopy =
         selectedPaymentMethod === "cash"
-          ? t(
-              "order_placed_delivery",
-              "Order placed successfully! You'll pay on delivery."
-            )
-          : t(
-              "payment_successful",
-              "Payment successful! Your order has been placed."
-            )
-      );
+          ? {
+              title: t("order_placed_delivery_title", "Order confirmed"),
+              message: t(
+                "order_placed_delivery",
+                "Order placed successfully! You'll pay on delivery."
+              ),
+              description: t(
+                "order_placed_delivery_description",
+                "We'll notify you as soon as the pharmacy confirms your delivery."
+              ),
+            }
+          : {
+              title: t("payment_successful_title", "Payment successful"),
+              message: t(
+                "payment_successful",
+                "Payment successful! Your order has been placed."
+              ),
+              description: t(
+                "payment_successful_description",
+                "Thanks for shopping with us. We'll keep you posted on order updates."
+              ),
+            };
 
-      navigate("/customer/orders"); // Redirect to orders page
+      setSuccessInfo({
+        ...successCopy,
+        method:
+          selectedPaymentMethod === "online"
+            ? t("online_payment", "Online Payment")
+            : t("pay_on_delivery", "Pay on Delivery"),
+      });
+      setSelectedPaymentMethod("");
     } catch (error) {
       console.error("Checkout error:", error);
       alert(t("checkout_failed", "Checkout failed. Please try again."));
@@ -521,6 +565,60 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
                   : t("place_order", "Place Order")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {successInfo && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-60 p-4">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-xl">
+            <button
+              onClick={handleContinueShopping}
+              className="absolute right-4 top-4 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+            </div>
+            <h2 className="mt-4 text-[22px] font-semibold text-gray-900">
+              {successInfo.title}
+            </h2>
+            <p className="mt-2 text-[14px] text-gray-600">
+              {successInfo.message}
+            </p>
+            {successInfo.description && (
+              <p className="mt-2 text-[13px] text-gray-500">
+                {successInfo.description}
+              </p>
+            )}
+
+            <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-left">
+              <div className="flex items-center justify-between text-[14px] text-gray-600">
+                <span className="font-medium">{t("total_amount", "Total Amount")}</span>
+                <span className="font-semibold text-gray-900">
+                  {`\u20A6${Number(totalWithDelivery).toLocaleString()}`}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[12px] text-gray-500">
+                <span>{t("payment_method", "Payment Method")}</span>
+                <span className="text-gray-700">{successInfo.method}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleViewOrders}
+              className="mt-6 w-full rounded-full bg-sky-600 py-3 text-[16px] font-medium text-white transition-colors hover:bg-sky-700"
+            >
+              {t("view_my_orders", "View my orders")}
+            </button>
+            <button
+              onClick={handleContinueShopping}
+              className="mt-3 w-full rounded-full border border-gray-200 py-3 text-[16px] font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+            >
+              {t("continue_shopping", "Continue shopping")}
+            </button>
           </div>
         </div>
       )}
