@@ -9,41 +9,49 @@ import {
   useParams,
   useMatch,
   Outlet,
-} from 'react-router-dom';
-import { collection, query, onSnapshot, doc as firestoreDoc, getDoc, where } from 'firebase/firestore';
-import { listenUserThreads } from '@/lib/db';
-import PageTransitionWrapper from '@/components/PageTransitionWrapper';
-import InteractiveSwipeWrapper from '@/components/InteractiveSwipeWrapper';
-import { useSettings, SETTINGS_KEYS } from '@/lib/settings';
-import useApplySettings from '@/hooks/useApplySettings';
+} from "react-router-dom";
+import {
+  collection,
+  query,
+  onSnapshot,
+  doc as firestoreDoc,
+  getDoc,
+  where,
+} from "firebase/firestore";
+import { listenUserThreads } from "@/lib/db";
+import PageTransitionWrapper from "@/components/PageTransitionWrapper";
+import InteractiveSwipeWrapper from "@/components/InteractiveSwipeWrapper";
+import { useSettings, SETTINGS_KEYS } from "@/lib/settings";
+import useApplySettings from "@/hooks/useApplySettings";
 
-import BottomNav from '@/components/BottomNav';
-import Home from '@/pages/Home';
-import ProductDetail from '@/pages/ProductDetail';
-import Messages from '@/pages/Messages';
-import ChatThread from '@/pages/ChatThread';
-import Cart from '@/pages/Cart';
-import Orders from '@/pages/Orders';
-import ProfileCustomer from '@/pages/ProfileCustomer';
-import ProfilePharmacy from '@/pages/ProfilePharmacy';
-import Settings from '@/pages/Settings';
-import { AuthProvider, useAuth } from '@/lib/auth';
-import { RequireAuth } from '@/components/Protected';
-import { db } from '@/lib/firebase';
-import Dashboard from '@/pages/Dashboard';
-import NotificationManager from '@/components/NotificationManager';
-import OrderNotificationModal from '@/components/OrderNotificationModal';
-import { useOrderNotifications } from '@/hooks/useOrderNotifications';
-import SuperuserDashboard from '@/pages/SuperuserDashboard';
-import PharmacyMap from '@/pages/PharmacyMap';
-import GlobalMessageNotifier from '@/components/GlobalMessageNotifier';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
-import AppBootstrapLoader from '@/components/AppBootstrapLoader';
-import FloatingAIChatButton from '@/components/FloatingAIChatButton';
-import ProductDetailSkeletonMobile from '@/components/ProductDetailSkeletonMobile';
-import ProductDetailSkeletonDesktop from '@/components/ProductDetailSkeletonDesktop';
-import VendorProfileSkeletonMobile from '@/components/VendorProfileSkeletonMobile';
-import VendorProfileSkeletonDesktop from '@/components/VendorProfileSkeletonDesktop';
+import BottomNav from "@/components/BottomNav";
+import Home from "@/pages/Home";
+import ProductDetail from "@/pages/ProductDetail";
+import Messages from "@/pages/Messages";
+import ChatThread from "@/pages/ChatThread";
+import Cart from "@/pages/Cart";
+import Orders from "@/pages/Orders";
+import ProfileCustomer from "@/pages/ProfileCustomer";
+import ProfilePharmacy from "@/pages/ProfilePharmacy";
+import Settings from "@/pages/Settings";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { RequireAuth } from "@/components/Protected";
+import { db } from "@/lib/firebase";
+import Dashboard from "@/pages/Dashboard";
+import NotificationManager from "@/components/NotificationManager";
+import OrderNotificationModal from "@/components/OrderNotificationModal";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
+import SuperuserDashboard from "@/pages/SuperuserDashboard";
+import PharmacyMap from "@/pages/PharmacyMap";
+import GlobalMessageNotifier from "@/components/GlobalMessageNotifier";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import AppBootstrapLoader from "@/components/AppBootstrapLoader";
+import FloatingAIChatButton from "@/components/FloatingAIChatButton";
+import ProductDetailSkeletonMobile from "@/components/ProductDetailSkeletonMobile";
+import ProductDetailSkeletonDesktop from "@/components/ProductDetailSkeletonDesktop";
+import VendorProfileSkeletonMobile from "@/components/VendorProfileSkeletonMobile";
+import VendorProfileSkeletonDesktop from "@/components/VendorProfileSkeletonDesktop";
+import VendorProfile from "@/pages/VendorProfile";
 
 // Auth flow pages
 import Landing from "@/pages/auth/Landing";
@@ -55,14 +63,14 @@ import PharmacySignIn from "@/pages/auth/PharmacySignIn";
 import VerifyEmail from "@/pages/VerifyEmail";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 
-import AddProduct from '@/pages/AddProduct';
+import AddProduct from "@/pages/AddProduct";
 
 // Extra
-import NewArrivals from '@/pages/NewArrivals';
-import { AIChatRoute } from '@/pages/AIChat';
-import ProductPreview from '@/pages/ProductPreview';
-import { AiChatOverlayProvider } from '@/lib/aiChatOverlayContext';
-import AIChatOverlay from '@/components/AIChatOverlay';
+import NewArrivals from "@/pages/NewArrivals";
+import { AIChatRoute } from "@/pages/AIChat";
+import ProductPreview from "@/pages/ProductPreview";
+import { AiChatOverlayProvider } from "@/lib/aiChatOverlayContext";
+import AIChatOverlay from "@/components/AIChatOverlay";
 
 /* ---------------------------
    LAYOUTS
@@ -80,12 +88,14 @@ function AppLayout() {
   const [ordersCount, setOrdersCount] = useState(0);
 
   // Order notifications for pharmacies
-  const { newOrder, showNotification, clearNotification, viewOrder } = useOrderNotifications();
+  const { newOrder, showNotification, clearNotification, viewOrder } =
+    useOrderNotifications();
 
   useEffect(() => {
     const normalizePath = (pathname) => {
-      if (!pathname) return '/';
-      if (pathname.startsWith('/chat') || pathname.startsWith('/thread')) return '/messages';
+      if (!pathname) return "/";
+      if (pathname.startsWith("/chat") || pathname.startsWith("/thread"))
+        return "/messages";
       return pathname;
     };
     setTab(normalizePath(location.pathname));
@@ -101,26 +111,28 @@ function AppLayout() {
 
   // Listen to orders count for pharmacy users (exclude processing, shipped, cancelled)
   useEffect(() => {
-    if (!user || loading || !profile || profile.role !== 'pharmacy') {
+    if (!user || loading || !profile || profile.role !== "pharmacy") {
       return setOrdersCount(0);
     }
-    
+
     const pharmacyId = profile.uid || user.uid;
     const q = query(
-      collection(db, 'orders'), 
-      where('pharmacyId', '==', pharmacyId)
+      collection(db, "orders"),
+      where("pharmacyId", "==", pharmacyId)
     );
-    
+
     const unsub = onSnapshot(q, (snap) => {
-      const filteredOrders = snap.docs.filter(doc => {
+      const filteredOrders = snap.docs.filter((doc) => {
         const order = doc.data();
-        const status = order.status?.toLowerCase() || 'pending';
+        const status = order.status?.toLowerCase() || "pending";
         // Exclude processing, shipped, fulfilled, cancelled - count pending, etc.
-        return !['processing', 'shipped', 'fulfilled', 'cancelled'].includes(status);
+        return !["processing", "shipped", "fulfilled", "cancelled"].includes(
+          status
+        );
       });
       setOrdersCount(filteredOrders.length);
     });
-    
+
     return unsub;
   }, [user, profile]);
 
@@ -176,17 +188,26 @@ function AppLayout() {
 
   const handleViewOrder = (order) => {
     // Navigate to orders page when viewing the order
-    navigate('/orders');
+    navigate("/orders");
   };
 
   // Device detection and swipe setting check
-  const isMobileOrTablet = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+  const isMobileOrTablet =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(max-width: 1024px)").matches;
   const isDesktop = !isMobileOrTablet;
   const isSwipeEnabled = getSetting(SETTINGS_KEYS.SWIPE_NAVIGATION);
   const shouldShowSwipeWrapper = isMobileOrTablet && isSwipeEnabled;
   const isAuthLoading = loading || (user && profile === undefined);
-  const imageModalOpen = typeof document !== 'undefined' && document.body.classList.contains('image-modal-open');
-  const showBottomNav = !chatModalOpen && !imageModalOpen && !isAuthLoading && (!isChatRoute || isDesktop);
+  const imageModalOpen =
+    typeof document !== "undefined" &&
+    document.body.classList.contains("image-modal-open");
+  const showBottomNav =
+    !chatModalOpen &&
+    !imageModalOpen &&
+    !isAuthLoading &&
+    (!isChatRoute || isDesktop);
 
   return (
     <div
@@ -195,11 +216,7 @@ function AppLayout() {
       }`}
     >
       <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto flex-1 flex flex-col">
-        {shouldShowSwipeWrapper ? (
-          <InteractiveSwipeWrapper />
-        ) : (
-          <Outlet />
-        )}
+        {shouldShowSwipeWrapper ? <InteractiveSwipeWrapper /> : <Outlet />}
       </div>
 
       {/* Hide BottomNav when chat modal flag is on */}
@@ -270,7 +287,7 @@ function ProductDetailRoute() {
           setPharmacy(pharmSnap.data());
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error("Error fetching product:", error);
         setProduct(null);
       } finally {
         setLoading(false);
@@ -309,7 +326,7 @@ function VendorProfileRoute() {
         const vendorData = vendorSnap.data();
         setVendor(vendorData ? { id, ...vendorData } : null);
       } catch (error) {
-        console.error('Error fetching vendor:', error);
+        console.error("Error fetching vendor:", error);
         setVendor(null);
       } finally {
         setLoading(false);
@@ -408,7 +425,10 @@ function Shell() {
         <Route path="/auth/pharmacy/register" element={<PharmacyRegister />} />
         <Route path="/auth/pharmacy/signin" element={<PharmacySignIn />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-        <Route path="/auth" element={<Navigate to="/auth/onboarding" replace />} />
+        <Route
+          path="/auth"
+          element={<Navigate to="/auth/onboarding" replace />}
+        />
 
         <Route
           path="/ai-chat"
@@ -434,21 +454,32 @@ function Shell() {
       {/* Main app (with BottomNav, but it auto-hides if ?chat= is present) */}
       <Route element={<AppLayout />}>
         {/* Root route adapts based on auth state */}
+        <Route path="/" element={<RoleBasedRootRoute />} />
         <Route
-          path="/"
-          element={<RoleBasedRootRoute />}
+          path="/new-arrivals"
+          element={
+            <RequireAuth>
+              <NewArrivals />
+            </RequireAuth>
+          }
         />
-        <Route path="/new-arrivals" element={<RequireAuth><NewArrivals /></RequireAuth>} />
         <Route path="/vendor/:id" element={<VendorProfileRoute />} />
         <Route path="/product/:id" element={<ProductDetailRoute />} />
-        <Route path="/pharmacy-map" element={<RequireAuth><PharmacyMap /></RequireAuth>} />
-        <Route 
-          path="/add-product" 
+        <Route
+          path="/pharmacy-map"
+          element={
+            <RequireAuth>
+              <PharmacyMap />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/add-product"
           element={
             <RequireAuth>
               <AddProduct />
             </RequireAuth>
-          } 
+          }
         />
         <Route
           path="/chat/:vendorId"
@@ -526,7 +557,7 @@ function Shell() {
 export default function App() {
   // Apply global settings
   useApplySettings();
-  
+
   return (
     <AuthProvider>
       <AiChatOverlayProvider>
