@@ -121,11 +121,12 @@ export default function Orders() {
   useEffect(() => {
     if (!user || !profile) return;
     const userId = profile.uid || user.uid;
+    console.log("uid: ", userId);
     let q;
     if (profile.role === "pharmacy") {
       q = query(
         collection(db, "orders"),
-        where("pharmacyId", "==", userId),
+        where("pharmacyIds", "array-contains", userId),
         orderBy("createdAt", "desc")
       );
     } else {
@@ -135,8 +136,14 @@ export default function Orders() {
         orderBy("createdAt", "desc")
       );
     }
+
     const unsub = onSnapshot(q, (snap) => {
-      setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setOrders(
+        snap.docs.map((d) => {
+          console.log("Order ID: ", d.id);
+          return { id: d.id, ...d.data() };
+        })
+      );
     });
     return unsub;
   }, [user, profile]);
@@ -457,7 +464,15 @@ export default function Orders() {
                             </div>
                           </div>
                           <div className="text-sm sm:text-base font-semibold text-sky-700 dark:text-sky-400 flex-shrink-0">
-                            {formatCurrency(o.total)}
+                            {formatCurrency(
+                              profile.role === "customer"
+                                ? o.total
+                                : items.reduce(
+                                    (sum, item) =>
+                                      sum + item.price * item.quantity,
+                                    0
+                                  )
+                            )}
                           </div>
                         </div>
                         {profile?.role === "pharmacy" && (
@@ -671,18 +686,19 @@ export default function Orders() {
               <div className="text-sm sm:text-[15px] font-bold text-sky-700 truncate ml-2">
                 ₦
                 {Number(
-                  modalOrder.total
-                  // modalOrder.items
-                  //   .filter(
-                  //     (item) =>
-                  //       item.pharmacyId === user.uid ||
-                  //       profile.role === "customer"
-                  //   ).total
-                  //   // .reduce(
-                  //   //   (sum, item) =>
-                  //   //     sum + item.price * (item.qty || item.quantity || 1),
-                  //   //   0
-                  //   // )
+                  profile.role === "customer"
+                    ? modalOrder.total
+                    : modalOrder.items
+                        .filter(
+                          (item) =>
+                            item.pharmacyId === user.uid ||
+                            profile.role === "customer"
+                        )
+                        .reduce(
+                          (sum, item) =>
+                            sum + item.price * (item.qty || item.quantity || 1),
+                          0
+                        )
                 ).toLocaleString()}
               </div>
             </div>
