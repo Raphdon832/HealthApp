@@ -368,7 +368,6 @@ export const placeOrder = async (orderData) => {
 
   const orderPayload = {
     customerId,
-    pharmacyId,
     customerEmail: customerEmail ?? null,
     customerPhone: customerPhone ?? null,
     items: sanitizedItems,
