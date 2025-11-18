@@ -169,15 +169,18 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
       // const pharmacyId = first.product?.pharmacyId;
       // const cartItems = groupItems();
 
+      let pharmacyIds;
       const orderData = {
         customerId: user.uid,
-        // pharmacyId,
-        items: items.map((i) => ({
-          productId: i.id,
-          quantity: i.qty,
-          price: i.price,
-          pharmacyId: i.pharmacyId,
-        })),
+        items: items.map((i) => {
+          pharmacyIds.push(i.pharmacyId);
+          return {
+            productId: i.id,
+            quantity: i.qty,
+            price: i.price,
+            pharmacyId: i.pharmacyId,
+          };
+        }),
         total: total + deliveryFee,
         subtotal: total,
         deliveryFee,
@@ -186,6 +189,7 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
         customerEmail: customerEmail || user.email,
         paymentMethod: selectedPaymentMethod,
         prescription: prescription,
+        pharmacyIds: pharmacyIds,
       };
 
       let orderStatus;
@@ -596,7 +600,9 @@ export function CheckOut({ items, total, onClose, prescription = false }) {
 
             <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-left">
               <div className="flex items-center justify-between text-[14px] text-gray-600">
-                <span className="font-medium">{t("total_amount", "Total Amount")}</span>
+                <span className="font-medium">
+                  {t("total_amount", "Total Amount")}
+                </span>
                 <span className="font-semibold text-gray-900">
                   {`\u20A6${Number(totalWithDelivery).toLocaleString()}`}
                 </span>

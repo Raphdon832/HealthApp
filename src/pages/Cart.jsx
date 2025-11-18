@@ -11,7 +11,10 @@ import DeleteIcon from "@/icons/react/DeleteIcon";
 import ProductAvatar from "@/components/ProductAvatar";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getDistance } from "@/lib/eta";
-import AnimatedFeedback, { useToast, ToastContainer } from "@/components/AnimatedFeedback";
+import AnimatedFeedback, {
+  useToast,
+  ToastContainer,
+} from "@/components/AnimatedFeedback";
 
 // Fixed Header Component
 const FixedHeader = ({ title, itemCount, t }) => {
@@ -34,7 +37,12 @@ export default function Cart() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userCoords, location } = useUserLocation();
-  const { success: showSuccessToast, error: showErrorToast, toasts, removeToast } = useToast();
+  const {
+    success: showSuccessToast,
+    error: showErrorToast,
+    toasts,
+    removeToast,
+  } = useToast();
   const [items, setItems] = useState([]);
 
   // Checkout flow states
@@ -194,16 +202,19 @@ export default function Cart() {
       const first = items[0];
       const pharmacyId = first.product?.pharmacyId;
       const cartItems = groupItems();
+      let pharmacyIds = [];
 
       const orderData = {
         customerId: user.uid,
-        pharmacyId,
-        items: cartItems.map((i) => ({
-          productId: i.productId,
-          quantity: i.qty,
-          price: i.product.price,
-          pharmacyId: i.product.pharmacyId,
-        })),
+        items: cartItems.map((i) => {
+          pharmacyIds.push(i.product.pharmacyId);
+          return {
+            productId: i.productId,
+            quantity: i.qty,
+            price: i.product.price,
+            pharmacyId: i.product.pharmacyId,
+          };
+        }),
         total: totalWithDelivery,
         subtotal: total,
         deliveryFee,
@@ -212,7 +223,9 @@ export default function Cart() {
         customerEmail: customerEmail || user.email,
         paymentMethod: selectedPaymentMethod,
         paymentStatus: selectedPaymentMethod === "online" ? "paid" : "pending",
-        orderStatus: selectedPaymentMethod === "online" ? "pending" : "confirmed",
+        orderStatus:
+          selectedPaymentMethod === "online" ? "pending" : "confirmed",
+        pharmacyIds: pharmacyIds,
       };
 
       console.log(
@@ -241,14 +254,22 @@ export default function Cart() {
       // Show success message
       showSuccessToast(
         selectedPaymentMethod === "cash"
-          ? t("order_placed_delivery", "Order placed successfully! You'll pay on delivery.")
-          : t("payment_successful", "Payment successful! Your order has been placed.")
+          ? t(
+              "order_placed_delivery",
+              "Order placed successfully! You'll pay on delivery."
+            )
+          : t(
+              "payment_successful",
+              "Payment successful! Your order has been placed."
+            )
       );
 
       navigate("/customer/orders"); // Redirect to orders page
     } catch (error) {
-      console.error("Checkout error:", error);
-      showErrorToast(t("checkout_failed", "Checkout failed. Please try again."));
+      console.error("Checkout error:", error.message);
+      showErrorToast(
+        t("checkout_failed", "Checkout failed. Please try again.")
+      );
     }
   };
 

@@ -121,7 +121,6 @@ export default function Orders() {
   useEffect(() => {
     if (!user || !profile) return;
     const userId = profile.uid || user.uid;
-    console.log("uid: ", userId);
     let q;
     if (profile.role === "pharmacy") {
       q = query(
@@ -138,14 +137,9 @@ export default function Orders() {
     }
 
     const unsub = onSnapshot(q, (snap) => {
-      setOrders(
-        snap.docs.map((d) => {
-          console.log("Order ID: ", d.id);
-          return { id: d.id, ...d.data() };
-        })
-      );
+      setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      return unsub;
     });
-    return unsub;
   }, [user, profile]);
 
   // If navigation included a highlight id (state or query param), set it when component mounts or location changes

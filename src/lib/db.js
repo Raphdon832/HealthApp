@@ -120,7 +120,7 @@ export const sendChatMessage = async (
   });
 
   await updateDoc(doc(db, "threads", threadId), {
-    lastMessage: imageUrl ? "📷 Image" : (text || "…"),
+    lastMessage: imageUrl ? "📷 Image" : text || "…",
     lastBy: senderId,
     lastAt: serverTimestamp(),
     [`unread.${to}`]: increment(1),
@@ -138,7 +138,10 @@ export const sendChatMessage = async (
 };
 
 export const uploadChatImage = async (file, threadId, senderId) => {
-  const storageRef = ref(storage, `chat-images/${threadId}/${Date.now()}_${file.name}`);
+  const storageRef = ref(
+    storage,
+    `chat-images/${threadId}/${Date.now()}_${file.name}`
+  );
   const snapshot = await uploadBytes(storageRef, file);
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
@@ -267,11 +270,7 @@ export const listenProducts = (cb, pharmacyId = null) => {
 // New function to fetch limited new products for the "All New Products" modal
 export const listenNewProducts = (cb, limitCount = 12) => {
   const base = collection(db, "products");
-  const q = query(
-    base,
-    orderBy("createdAt", "desc"),
-    limit(limitCount)
-  );
+  const q = query(base, orderBy("createdAt", "desc"), limit(limitCount));
   return onSnapshot(
     q,
     (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
@@ -329,9 +328,10 @@ export const placeOrder = async (orderData) => {
     paymentStatus,
     orderStatus,
     prescription = false,
+    pharmacyIds,
   } = orderData;
 
-  if (!customerId || !pharmacyId || !items.length) {
+  if (!customerId || !items.length) {
     throw new Error("Missing order data");
   }
 
@@ -376,11 +376,13 @@ export const placeOrder = async (orderData) => {
     subtotal: Number(subtotal || 0),
     paystackReference,
     status: paymentMethod === "online" ? "paid" : orderStatus || "confirmed",
-    paymentStatus: paymentMethod === "online" ? "paid" : paymentStatus || "pending",
+    paymentStatus:
+      paymentMethod === "online" ? "paid" : paymentStatus || "pending",
     paymentMethod,
     deliveryFee: Number(deliveryFee || 0),
     deliveryAddress: deliveryAddress ?? null,
     prescriptionId: prescription ? prescription : null,
+    pharmacyIds,
     paidAt: paymentMethod === "online" ? serverTimestamp() : null,
     createdAt: serverTimestamp(),
   };
