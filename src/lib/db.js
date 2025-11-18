@@ -316,7 +316,6 @@ export const removeFromCart = (uid, itemId) =>
 export const placeOrder = async (orderData) => {
   const {
     customerId,
-    pharmacyId,
     items = [],
     total = 0,
     subtotal = 0,

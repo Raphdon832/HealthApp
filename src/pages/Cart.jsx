@@ -199,15 +199,15 @@ export default function Cart() {
     if (!user || !items.length || !selectedPaymentMethod) return;
 
     try {
-      const first = items[0];
-      const pharmacyId = first.product?.pharmacyId;
       const cartItems = groupItems();
-      let pharmacyIds = [];
+      let pharmacyIds = []; // This can be convert to Set() to improve performance
 
       const orderData = {
         customerId: user.uid,
         items: cartItems.map((i) => {
-          pharmacyIds.push(i.product.pharmacyId);
+          if (!pharmacyIds.includes(i.product.pharmacyId)) {
+            pharmacyIds.push(i.product.pharmacyId);
+          }
           return {
             productId: i.productId,
             quantity: i.qty,
